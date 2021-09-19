@@ -1,8 +1,23 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+    Main executable for Pisces GUI.
+
+"""
+
+### Imports
+
 import tkinter as tk
 import socket
 
 
+### Helper functions
+
 def get_ip():
+    """
+        Get IP address of this device, return as string.
+    """
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         # doesn't even have to be reachable
@@ -14,13 +29,19 @@ def get_ip():
         s.close()
     return IP
 
-
+### TKinter Stuff
 
 class Page(tk.Frame):
     def __init__(self, *args, **kwargs):
         tk.Frame.__init__(self, *args, **kwargs)
     def show(self):
         self.lift()
+
+class OverviewPage(Page):
+   def __init__(self, *args, **kwargs):
+       Page.__init__(self, *args, **kwargs)
+       label = tk.Label(self, text="This is the high level overview page.")
+       label.pack(side="top", fill="both", expand=True)
 
 class LightPage(Page):
    def __init__(self, *args, **kwargs):
@@ -31,10 +52,10 @@ class LightPage(Page):
 class TemperaturePage(Page):
    def __init__(self, *args, **kwargs):
        Page.__init__(self, *args, **kwargs)
-       label = tk.Label(self, text="This is the temperature page.")
+       label = tk.Label(self, text="This is the temperature management page.")
        label.pack(side="top", fill="both", expand=True)
 
-class Page3(Page):
+class SettingsPage(Page):
    def __init__(self, *args, **kwargs):
        Page.__init__(self, *args, **kwargs)
        label = tk.Label(self, text=f"My IP address = {get_ip()}")
@@ -43,26 +64,31 @@ class Page3(Page):
 class MainView(tk.Frame):
     def __init__(self, *args, **kwargs):
         tk.Frame.__init__(self, *args, **kwargs)
-        p1 = LightPage(self)
-        p2 = TemperaturePage(self)
-        p3 = Page3(self)
+
+        p1 = OverviewPage(self)
+        p2 = LightPage(self)
+        p3 = TemperaturePage(self)
+        p4 = SettingsPage(self)
 
         buttonframe = tk.Frame(self)
         container = tk.Frame(self)
-        buttonframe.pack(side="top", fill="x", expand=False)
-        container.pack(side="top", fill="both", expand=True)
+        buttonframe.pack(side="bottom", fill="x", expand=False)
+        container.pack(side="bottom", fill="both", expand=True)
 
         p1.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
         p2.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
         p3.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
+        p4.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
 
-        b1 = tk.Button(buttonframe, text="Lights", command=p1.show)
-        b2 = tk.Button(buttonframe, text="Temperature", command=p2.show)
-        b3 = tk.Button(buttonframe, text="Page 3", command=p3.show)
+        b1 = tk.Button(buttonframe, text="Overview", command=p1.show)
+        b2 = tk.Button(buttonframe, text="Lights", command=p2.show)
+        b3 = tk.Button(buttonframe, text="Temperature", command=p3.show)
+        b4 = tk.Button(buttonframe, text="Settings", command=p4.show)
 
         b1.pack(side="left")
         b2.pack(side="left")
         b3.pack(side="left")
+        b4.pack(side="left")
 
         p1.show()
 
