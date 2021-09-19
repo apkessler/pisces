@@ -1,0 +1,28 @@
+// -*- Protocol-Buffers -*-
+// ==================================================================================================
+//
+//
+// =================================================================================================
+// @file rasipiscesHal.proto
+// @brief Service definitions for gRPC
+// @author Andrew Kessler <andrewkessler6@gmail.com>
+
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+
+
+package raspisceshal;
+
+service RaspiscesHalService {
+
+    rpc Echo (EchoRequest) returns (EchoResponse) {}
+
+}
+
+message EchoRequest {
+    string payload =1;
+}
+
+message EchoResponse {
+    string payback = 1;
+}
