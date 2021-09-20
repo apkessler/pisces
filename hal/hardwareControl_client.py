@@ -37,6 +37,13 @@ class HardwareControlClient():
         """
         response = self.stub.SetRelayState(hardwareControl_pb2.RelayState(channel=chn, isEngaged=isEngaged))
 
+    def getRelayStates(self):
+        """
+            Get all relay states as list.
+            Unpack from GRPC object and return as native Python list.
+        """
+        response = self.stub.GetRelayStates(hardwareControl_pb2.Empty())
+        return [r.isEngaged for r in response.states]
 
 def test():
     """
@@ -50,9 +57,12 @@ def test():
         hwCntrl.echo()
 
         print(f"Temperature={hwCntrl.getTemperature_degC():.2f} dC")
+        print(f"Relay states: {hwCntrl.getRelayStates()}")
 
         hwCntrl.setRelayState(2, True)
         hwCntrl.setRelayState(3, False)
+
+        print(f"Relay states: {hwCntrl.getRelayStates()}")
 
 if __name__ == '__main__':
     logging.basicConfig()

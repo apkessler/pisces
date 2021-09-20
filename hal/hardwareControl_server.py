@@ -12,10 +12,15 @@ import grpc
 import hardwareControl_pb2
 import hardwareControl_pb2_grpc
 
+#For now, this represents the hardware state
+relay_states = 5*[False]
+
+
 class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
     """
 
     """
+
 
     def Echo(self, request, context):
         """
@@ -27,14 +32,19 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
         """
             Set relay state, return nothing
         """
+        ## TODO: Needs to actually write to GPIO
         print(f"[SERVER] Got relay request: {request.channel} <-- {request.isEngaged}")
+        relay_states[request.channel] = request.isEngaged
         return hardwareControl_pb2.Empty()
 
     def GetRelayStates(self, request, context):
         """
             Return all relay states
         """
-        #TODO
+        response = hardwareControl_pb2.RelayStates()
+        for i in range(len(relay_states)):
+            response.states.append(hardwareControl_pb2.RelayState(channel=i, isEngaged=relay_states[i]))
+        return response
 
     def GetTemperature(self, request, context):
         """
