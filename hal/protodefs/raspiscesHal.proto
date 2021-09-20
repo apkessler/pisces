@@ -16,6 +16,14 @@ package raspisceshal;
 service RaspiscesHalService {
 
     rpc Echo (EchoRequest) returns (EchoResponse) {}
+    rpc SetRelayState (RelayState) returns (Empty) {}
+    rpc GetRelayStates (Empty) returns (RelayStates) {}
+
+    rpc GetTemperature (Empty) returns (Temperature) {}
+
+}
+
+message Empty {
 
 }
 
@@ -25,4 +33,17 @@ message EchoRequest {
 
 message EchoResponse {
     string payback = 1;
+}
+
+message RelayState {
+    uint32 channel = 1;
+    bool isEngaged = 2;
+}
+
+message RelayStates {
+    repeated RelayState states = 1;
+}
+
+message Temperature {
+    float temperature_degC = 1;
 }
