@@ -3,7 +3,7 @@
 //
 //
 // =================================================================================================
-// @file rasipiscesHal.proto
+// @file hardwareControl.proto
 // @brief Service definitions for gRPC
 // @author Andrew Kessler <andrewkessler6@gmail.com>
 
@@ -11,9 +11,9 @@ syntax = "proto3";
 import "google/protobuf/timestamp.proto";
 
 
-package raspisceshal;
+package hardwarecontrol;
 
-service RaspiscesHalService {
+service HardwareControl {
 
     rpc Echo (EchoRequest) returns (EchoResponse) {}
     rpc SetRelayState (RelayState) returns (Empty) {}
