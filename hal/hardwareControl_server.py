@@ -47,8 +47,8 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
             else:
                 relay_gpio_objs[inx].off()
         else:
-            #ERROR! Bad relay channel. How to throw error message?
-            print(f"Bad relay channel given {request.channel}", flush=True)
+            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+            context.set_details(f"Invalid relay channel ({request.channel})")
 
         return hardwareControl_pb2.Empty()
 
@@ -68,6 +68,22 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
         #TODO Should actually ready from sensor. For now, just return constant.
         return hardwareControl_pb2.Temperature(temperature_degC=20.0)
 
+    def SetLightState(self, request, context):
+        """
+            Set light state, return nothing
+        """
+        print(f"[SERVER] Got light request: {request.lightId} <-- {request.state}", flush=True)
+
+        inx = request.lightId - 1
+        if (0 <= inx < len(lightStates)):
+            lightStates[inx] = request.state
+
+        else:
+            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+            context.set_details(f"Invalid light channel ({request.lightId})")
+            #TODO add handling for bad state enum
+
+        return hardwareControl_pb2.Empty()
 
     def GetLightStates(self, request, context):
         """
