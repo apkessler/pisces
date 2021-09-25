@@ -7,20 +7,54 @@
 
 from concurrent import futures
 import logging
-import grpc
+import grpc, json
+from collections import namedtuple
 
 import hardwareControl_pb2
 import hardwareControl_pb2_grpc
 
 import gpiozero as gz
-
+import os
 
 #Pinout - TODO, move to config?
-relay_gpio_map = ['GPIO5','GPIO6','GPIO13','GPIO16','GPIO19','GPIO20','GPIO21','GPIO26'] #GPIOxx pins per Raspi Conventoin
-relay_gpio_objs = [gz.DigitalOutputDevice(pin=p, active_high=False) for p in relay_gpio_map]
+#relay_gpio_map = ['GPIO5','GPIO6','GPIO13','GPIO16','GPIO19','GPIO20','GPIO21','GPIO26'] #GPIOxx pins per Raspi Conventoin
+#relay_gpio_objs = [gz.DigitalOutputDevice(pin=p, active_high=False) for p in relay_gpio_map]
 
 #To do, this mapping needs to also link to relay obj(s)
-lightStates = 2*[hardwareControl_pb2.LightState_Off]
+#
+# lightStates = 2*[hardwareControl_pb2.LightState_Off]
+class HardwareMap():
+    """
+        This class exists to map the config json file to an object that holds handles to hw objects
+    """
+
+    def __init__(self, configFile):
+
+        print(f"Loading config from {configFile}...\n", flush=True)
+        with open(configFile, 'r') as f:
+            self.jData = json.load(f)
+
+        RelayObj = namedtuple('RelayObj',['name','gpioObj'])
+        LightObj = namedtuple('LightObj',['name', 'enable_relay', 'mode_relay', 'state']) #TODO - turn into full object
+
+        print(f"Creating relay objects...\n", flush=True)
+
+        self.relayObjs = []
+        for r in self.jData['relays']:
+            obj =  RelayObj(name=r['name'], gpioObj=gz.DigitalOutputDevice(pin=r['pin'], active_high=r['active_hi']))
+            self.relayObjs.append(obj)
+
+        print(f"Creating light objects...\n", flush=True)
+        self.lightObjs = []
+        for lightInfo in self.jData['lights']:
+            enable_relay = None
+            mode_relay = None # look these up from config
+            obj = LightObj(name=lightInfo['name'], enable_relay=enable_relay, mode_relay=mode_relay, state=hardwareControl_pb2.LightState_Off)
+            self.lightObjs.append(obj)
+
+print(os.getcwd())
+hwMap = HardwareMap("./hal/hwconfig.json")
+
 
 class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
     """
@@ -41,11 +75,11 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
         print(f"[SERVER] Got relay request: {request.channel} <-- {request.isEngaged}", flush=True)
 
         inx = request.channel - 1
-        if (0 <= inx < len(relay_gpio_objs)):
+        if (0 <= inx < len(hwMap.relayObjs)):
             if (request.isEngaged):
-                relay_gpio_objs[inx].on()
+                hwMap.relayObjs[inx].gpioObj.on()
             else:
-                relay_gpio_objs[inx].off()
+                hwMap.relayObjs[inx].gpioObj.off()
         else:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             context.set_details(f"Invalid relay channel ({request.channel})")
@@ -57,8 +91,8 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
             Return all relay states
         """
         response = hardwareControl_pb2.RelayStates()
-        for inx,rly in enumerate(relay_gpio_objs):
-            response.states.append(hardwareControl_pb2.RelayState(channel=(inx+1), isEngaged=rly.is_active))
+        for inx,rly in enumerate(hwMap.relayObjs):
+            response.states.append(hardwareControl_pb2.RelayState(channel=(inx+1), isEngaged=rly.gpioObj.is_active))
         return response
 
     def GetTemperature(self, request, context):
@@ -75,8 +109,10 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
         print(f"[SERVER] Got light request: {request.lightId} <-- {request.state}", flush=True)
 
         inx = request.lightId - 1
-        if (0 <= inx < len(lightStates)):
-            lightStates[inx] = request.state
+        if (0 <= inx < len(hwMap.lightObjs)):
+            #hwMap.lightObjs[inx].state = request.state
+            #TODO: this need to be more complex to trigger the proper relays
+            context.set_code(grpc.StatusCode.UNIMPLEMENTED)
 
         else:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
@@ -90,8 +126,8 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
             Return all light states
         """
         response = hardwareControl_pb2.LightStates()
-        for inx,obj in enumerate(lightStates):
-            response.states.append(hardwareControl_pb2.LightState(lightId=(inx+1), state=obj))
+        for inx,obj in enumerate(hwMap.lightObjs):
+            response.states.append(hardwareControl_pb2.LightState(lightId=(inx+1), state=obj.state))
         return response
 
 def serve():
