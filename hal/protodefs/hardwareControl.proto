@@ -21,6 +21,10 @@ service HardwareControl {
 
     rpc GetTemperature (Empty) returns (Temperature) {}
 
+    //Should these be in a different service?
+    rpc SetLightState(LightState) returns (Empty) {}
+    rpc GetLightStates(Empty) returns (LightStates) {}
+
 }
 
 message Empty {
@@ -46,4 +50,19 @@ message RelayStates {
 
 message Temperature {
     float temperature_degC = 1;
+}
+
+enum LightStateEnum {
+    LightState_Off = 0;
+    LightState_Day = 1;
+    LightState_Night = 2;
+}
+
+message LightState {
+    uint32 lightId = 1; //Which light is being addressed
+    LightStateEnum  state = 2;
+}
+
+message LightStates {
+    repeated LightState states = 1;
 }

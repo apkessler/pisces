@@ -19,6 +19,8 @@ import gpiozero as gz
 relay_gpio_map = ['GPIO5','GPIO6','GPIO13','GPIO16','GPIO19','GPIO20','GPIO21','GPIO26'] #GPIOxx pins per Raspi Conventoin
 relay_gpio_objs = [gz.DigitalOutputDevice(pin=p, active_high=False) for p in relay_gpio_map]
 
+#To do, this mapping needs to also link to relay obj(s)
+lightStates = 2*[hardwareControl_pb2.LightState_Off]
 
 class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
     """
@@ -65,6 +67,16 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
         """
         #TODO Should actually ready from sensor. For now, just return constant.
         return hardwareControl_pb2.Temperature(temperature_degC=20.0)
+
+
+    def GetLightStates(self, request, context):
+        """
+            Return all light states
+        """
+        response = hardwareControl_pb2.LightStates()
+        for inx,obj in enumerate(lightStates):
+            response.states.append(hardwareControl_pb2.LightState(lightId=(inx+1), state=obj))
+        return response
 
 def serve():
     """

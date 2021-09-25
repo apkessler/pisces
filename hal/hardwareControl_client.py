@@ -46,6 +46,14 @@ class HardwareControlClient():
         response = self.stub.GetRelayStates(hardwareControl_pb2.Empty())
         return [r.isEngaged for r in response.states]
 
+    def getLightStates(self):
+        """
+            Get all light states as list.
+            Unpack from GRPC object and return as native Python list.
+        """
+        response = self.stub.GetLightStates(hardwareControl_pb2.Empty())
+        return [r.state for r in response.states]
+
 def test():
     """
         Exercise available interfaces for testing.
@@ -56,6 +64,8 @@ def test():
     with grpc.insecure_channel('localhost:50051') as channel:
         hwCntrl = HardwareControlClient(channel)
         hwCntrl.echo()
+
+        print(f"Light states: {hwCntrl.getLightStates()}")
 
         print(f"Temperature={hwCntrl.getTemperature_degC():.2f} dC")
         print(f"Relay states: {hwCntrl.getRelayStates()}")
