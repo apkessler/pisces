@@ -16,13 +16,60 @@ import hardwareControl_pb2_grpc
 import gpiozero as gz
 import os
 
-#Pinout - TODO, move to config?
-#relay_gpio_map = ['GPIO5','GPIO6','GPIO13','GPIO16','GPIO19','GPIO20','GPIO21','GPIO26'] #GPIOxx pins per Raspi Conventoin
-#relay_gpio_objs = [gz.DigitalOutputDevice(pin=p, active_high=False) for p in relay_gpio_map]
+class Light():
+    """
+        Object to represent a 3way aquarium light
+    """
+    def __init__(self, name, enable_relay, mode_relay):
+        self.name = name
+        self.enable_relay = enable_relay
+        self.mode_relay = mode_relay
 
-#To do, this mapping needs to also link to relay obj(s)
-#
-# lightStates = 2*[hardwareControl_pb2.LightState_Off]
+        self.state = hardwareControl_pb2.LightState_Off
+
+    def getState(self):
+        return self.state
+
+    def getStateStr(self):
+        if (self.state == hardwareControl_pb2.LightState_Off):
+            return "Off"
+        if (self.state == hardwareControl_pb2.LightState_Day):
+            return "Day"
+        if (self.state == hardwareControl_pb2.LightState_Night):
+            return "Night"
+
+        return "???"
+
+    def changeState(self, state):
+        if (state == hardwareControl_pb2.LightState_Off):
+            print(f"Turning {self.name} off!")
+            self.enable_relay.gpioObj.off()
+            self.mode_relay.gpioObj.off() #Not strictly necessary, but keeps states consistent
+            self.state = state
+
+        elif (state == hardwareControl_pb2.LightState_Day):
+            print(f"Turning {self.name} to day mode!")
+            self.mode_relay.gpioObj.off()
+            self.enable_relay.gpioObj.on()
+            self.state = state
+
+        elif (state == hardwareControl_pb2.LightState_Night):
+            print(f"Turning {self.name} to night mode!")
+            self.mode_relay.gpioObj.on()
+            self.enable_relay.gpioObj.on()
+            self.state = state
+        else:
+            #Unhandled!
+            pass
+
+    def turnOff(self):
+        self.setState(hardwareControl_pb2.LightState_Off)
+
+    def __str__(self):
+        return f"<{self.name}: {self.getStateStr()}>"
+
+
+
 class HardwareMap():
     """
         This class exists to map the config json file to an object that holds handles to hw objects
@@ -35,7 +82,6 @@ class HardwareMap():
             self.jData = json.load(f)
 
         RelayObj = namedtuple('RelayObj',['name','gpioObj'])
-        LightObj = namedtuple('LightObj',['name', 'enable_relay', 'mode_relay', 'state']) #TODO - turn into full object
 
         print(f"Creating relay objects...\n", flush=True)
 
@@ -45,11 +91,22 @@ class HardwareMap():
             self.relayObjs.append(obj)
 
         print(f"Creating light objects...\n", flush=True)
+
+        def lookupRly(name):
+            """
+            Find first relay in list with given name
+            """
+            for r in self.relayObjs:
+                if r.name == name:
+                    return r
+            raise NameError(f'No relay with name "{name}" defined.')
+
+
         self.lightObjs = []
         for lightInfo in self.jData['lights']:
-            enable_relay = None
-            mode_relay = None # look these up from config
-            obj = LightObj(name=lightInfo['name'], enable_relay=enable_relay, mode_relay=mode_relay, state=hardwareControl_pb2.LightState_Off)
+            enable_relay = lookupRly(lightInfo['enable_relay'])
+            mode_relay = lookupRly(lightInfo['mode_relay'])
+            obj = Light(lightInfo['name'], enable_relay, mode_relay)
             self.lightObjs.append(obj)
 
 print(os.getcwd())
@@ -75,12 +132,12 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
         print(f"[SERVER] Got relay request: {request.channel} <-- {request.isEngaged}", flush=True)
 
         inx = request.channel - 1
-        if (0 <= inx < len(hwMap.relayObjs)):
+        try:
             if (request.isEngaged):
                 hwMap.relayObjs[inx].gpioObj.on()
             else:
                 hwMap.relayObjs[inx].gpioObj.off()
-        else:
+        except IndexError:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             context.set_details(f"Invalid relay channel ({request.channel})")
 
@@ -108,13 +165,9 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
         """
         print(f"[SERVER] Got light request: {request.lightId} <-- {request.state}", flush=True)
 
-        inx = request.lightId - 1
-        if (0 <= inx < len(hwMap.lightObjs)):
-            #hwMap.lightObjs[inx].state = request.state
-            #TODO: this need to be more complex to trigger the proper relays
-            context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-
-        else:
+        try:
+            hwMap.lightObjs[request.lightId - 1].changeState(request.state)
+        except IndexError:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             context.set_details(f"Invalid light channel ({request.lightId})")
             #TODO add handling for bad state enum
@@ -127,7 +180,7 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
         """
         response = hardwareControl_pb2.LightStates()
         for inx,obj in enumerate(hwMap.lightObjs):
-            response.states.append(hardwareControl_pb2.LightState(lightId=(inx+1), state=obj.state))
+            response.states.append(hardwareControl_pb2.LightState(lightId=(inx+1), state=obj.getState()))
         return response
 
 def serve():
