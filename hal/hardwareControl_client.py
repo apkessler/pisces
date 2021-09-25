@@ -7,6 +7,7 @@
 
 import logging
 import grpc
+import time
 
 import hardwareControl_pb2
 import hardwareControl_pb2_grpc
@@ -59,8 +60,10 @@ def test():
         print(f"Temperature={hwCntrl.getTemperature_degC():.2f} dC")
         print(f"Relay states: {hwCntrl.getRelayStates()}")
 
-        hwCntrl.setRelayState(2, True)
-        hwCntrl.setRelayState(3, False)
+        hwCntrl.setRelayState(1, True)
+        print(f"Relay states: {hwCntrl.getRelayStates()}")
+        time.sleep(2)
+        hwCntrl.setRelayState(1, False)
 
         print(f"Relay states: {hwCntrl.getRelayStates()}")
 

@@ -12,8 +12,12 @@ import grpc
 import hardwareControl_pb2
 import hardwareControl_pb2_grpc
 
-#For now, this represents the hardware state
-relay_states = 5*[False]
+import gpiozero as gz
+
+
+#Pinout - TODO, move to config?
+relay_gpio_map = ['GPIO5','GPIO6','GPIO13','GPIO16','GPIO19','GPIO20','GPIO21','GPIO26'] #GPIOxx pins per Raspi Conventoin
+relay_gpio_objs = [gz.DigitalOutputDevice(pin=p, active_high=False) for p in relay_gpio_map]
 
 
 class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
@@ -32,9 +36,18 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
         """
             Set relay state, return nothing
         """
-        ## TODO: Needs to actually write to GPIO
-        print(f"[SERVER] Got relay request: {request.channel} <-- {request.isEngaged}")
-        relay_states[request.channel] = request.isEngaged
+        print(f"[SERVER] Got relay request: {request.channel} <-- {request.isEngaged}", flush=True)
+
+        inx = request.channel - 1
+        if (0 <= inx < len(relay_gpio_objs)):
+            if (request.isEngaged):
+                relay_gpio_objs[inx].on()
+            else:
+                relay_gpio_objs[inx].off()
+        else:
+            #ERROR! Bad relay channel. How to throw error message?
+            print(f"Bad relay channel given {request.channel}", flush=True)
+
         return hardwareControl_pb2.Empty()
 
     def GetRelayStates(self, request, context):
@@ -42,8 +55,8 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
             Return all relay states
         """
         response = hardwareControl_pb2.RelayStates()
-        for i in range(len(relay_states)):
-            response.states.append(hardwareControl_pb2.RelayState(channel=i, isEngaged=relay_states[i]))
+        for inx,rly in enumerate(relay_gpio_objs):
+            response.states.append(hardwareControl_pb2.RelayState(channel=(inx+1), isEngaged=rly.is_active))
         return response
 
     def GetTemperature(self, request, context):
