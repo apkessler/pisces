@@ -2,10 +2,11 @@
     "sunrise_hhmm": 800,
     "sunset_hhmm": 1800,
 
-    "eclipse_frequency": "hourly",
-    "eclipse_duration_sec": "60",
+    "eclipse_enabled" : true,
+    "eclipse_frequency_min": 30,
+    "eclipse_duration_min": 1,
 
-    "manual_eclipse_allowed": false,
+    "manual_eclipse_enabled": false,
     "manual_eclipse_duration_sec": 5
 
 }
