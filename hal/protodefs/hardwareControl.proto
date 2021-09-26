@@ -25,6 +25,9 @@ service HardwareControl {
     rpc SetLightState(LightState) returns (Empty) {}
     rpc GetLightStates(Empty) returns (LightStates) {}
 
+    rpc GetPH(Empty) returns (pH) {}
+
+
 }
 
 message Empty {
@@ -65,4 +68,8 @@ message LightState {
 
 message LightStates {
     repeated LightState states = 1;
+}
+
+message pH {
+    float pH = 1;
 }
