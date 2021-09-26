@@ -46,6 +46,12 @@ class HardwareControlClient():
         response = self.stub.GetRelayStates(hardwareControl_pb2.Empty())
         return [r.isEngaged for r in response.states]
 
+    def setLightState(self, lightId, state):
+        """
+            Set state on given light to given state
+        """
+        response = self.stub.SetLightState(hardwareControl_pb2.LightState(lightId=lightId, state=state))
+
     def getLightStates(self):
         """
             Get all light states as list.
@@ -67,6 +73,8 @@ def test():
 
         print(f"Light states: {hwCntrl.getLightStates()}")
 
+
+
         print(f"Temperature={hwCntrl.getTemperature_degC():.2f} dC")
         print(f"Relay states: {hwCntrl.getRelayStates()}")
 
@@ -76,6 +84,13 @@ def test():
         hwCntrl.setRelayState(1, False)
 
         print(f"Relay states: {hwCntrl.getRelayStates()}")
+
+        hwCntrl.setLightState(1, hardwareControl_pb2.LightState_Day)
+        print(f"Light states: {hwCntrl.getLightStates()}")
+        time.sleep(2)
+        hwCntrl.setLightState(1, hardwareControl_pb2.LightState_Off)
+        print(f"Light states: {hwCntrl.getLightStates()}")
+
 
 if __name__ == '__main__':
     logging.basicConfig()
