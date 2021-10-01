@@ -152,12 +152,6 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
             response.states.append(hardwareControl_pb2.RelayState(channel=(inx+1), isEngaged=rly.gpioObj.is_active))
         return response
 
-    def GetTemperature(self, request, context):
-        """
-            Get temperature from sensor and return.
-        """
-        #TODO Should actually ready from sensor. For now, just return constant.
-        return hardwareControl_pb2.Temperature(temperature_degC=20.0)
 
     def SetLightState(self, request, context):
         """
@@ -182,6 +176,21 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
         for inx,obj in enumerate(hwMap.lightObjs):
             response.states.append(hardwareControl_pb2.LightState(lightId=(inx+1), state=obj.getState()))
         return response
+
+    def GetTemperature(self, request, context):
+        """
+            Get temperature from sensor and return.
+        """
+        #TODO Should actually ready from sensor. For now, just return constant.
+        return hardwareControl_pb2.Temperature(temperature_degC=20.0)
+
+
+    def GetPH(self, request, context):
+        """
+            Get pH from sensor and return.
+        """
+        #TODO Should actually ready from sensor. For now, just return constant.
+        return hardwareControl_pb2.pH(pH=7.00)
 
 def serve():
     """

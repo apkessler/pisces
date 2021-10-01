@@ -25,6 +25,13 @@ class HardwareControlClient():
         response = self.stub.GetTemperature(hardwareControl_pb2.Empty())
         return response.temperature_degC
 
+    def getPH(self):
+        """
+            Get the latest pH reading.
+        """
+        response = self.stub.GetPH(hardwareControl_pb2.Empty())
+        return response.pH
+
     def echo(self, payload='Test123'):
         """
             Send and receive a loopback test of given string.
@@ -76,6 +83,7 @@ def test():
 
 
         print(f"Temperature={hwCntrl.getTemperature_degC():.2f} dC")
+        print(f"pH={hwCntrl.getPH():.2f}")
         print(f"Relay states: {hwCntrl.getRelayStates()}")
 
         hwCntrl.setRelayState(1, True)
