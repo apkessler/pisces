@@ -143,12 +143,13 @@ class AtlasI2C:
 
         if is_valid:
             char_list = self.handle_raspi_glitch(response[1:])
-            result = "Success " + self.get_device_info() + ": " +  str(''.join(char_list))
-            #result = "Success: " +  str(''.join(char_list))
+            value = str(''.join(char_list)).rstrip('\x00')
+            result = f"Success {self.get_device_info()}: {value}"
         else:
-            result = "Error " + self.get_device_info() + ": " + error_code
+            result = f"Error {self.get_device_info()}: {error_code}"
 
-        return result
+            return result
+        return value
 
     def get_command_timeout(self, command):
         timeout = None

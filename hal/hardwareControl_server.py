@@ -8,13 +8,19 @@
 from concurrent import futures
 import logging
 import grpc, json
-from collections import namedtuple
+from collections import namedtuple, deque
+import time
+import datetime as dt
+import threading
+import random
 
 import hardwareControl_pb2
 import hardwareControl_pb2_grpc
 
 import gpiozero as gz
 import os
+
+import AtlasI2C as Atlas
 
 class Light():
     """
@@ -111,7 +117,8 @@ class HardwareMap():
 
 print(os.getcwd())
 hwMap = HardwareMap("./hal/hwconfig.json")
-
+phDeque = deque(maxlen=1)
+thermDeque = deque(maxlen=1)
 
 class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
     """
@@ -181,21 +188,70 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
         """
             Get temperature from sensor and return.
         """
-        #TODO Should actually ready from sensor. For now, just return constant.
-        return hardwareControl_pb2.Temperature(temperature_degC=20.0)
+        latest_datum = thermDeque[0] #Peek from deck to never consume
+        logging.info(f"Using retrieved data {latest_datum}")
+        return hardwareControl_pb2.Temperature(temperature_degC=latest_datum[1])
 
 
     def GetPH(self, request, context):
         """
             Get pH from sensor and return.
         """
-        #TODO Should actually ready from sensor. For now, just return constant.
-        return hardwareControl_pb2.pH(pH=7.00)
+        #Get the latest reading from polling thread...
+        #latest_datum = phDeque.popleft() #TODO: Handle index error, which happens if no new data available since last pop()
+        latest_datum = phDeque[0] #Peek to never consume- is this thread safe? Probably (https://stackoverflow.com/questions/46107077/python-is-there-a-thread-safe-version-of-a-deque)
+        logging.info(f"Using retrieved data {latest_datum}")
+        return hardwareControl_pb2.pH(pH=float(latest_datum[1]))
+
+def ph_poller(theDeque):
+    """
+        The pH poller thread gets a new reading from the pH sensor every couple of seconds, and
+        pushes it onto the RIGHT side of a deque of length 1. Main thread can pop (or peek) from
+        the left side to get the most recent pH sensor reading with timestamp. If pop(), needs to
+        handle case of no data on dequeue.
+    """
+    logging.info("Starting pH polling thread")
+    phSensor = Atlas.AtlasI2C(address = 99, moduletype = "pH")
+
+    while (True):
+        phSensor.write('R')
+        time.sleep(3)
+        v = (dt.datetime.now(), phSensor.read()) #TODO add error handling for failed reads
+        logging.info(f"Pushing {v} onto deque")
+        theDeque.append(v)
+        time.sleep(2)
+
+def therm_poller(theDeque):
+    """
+        The temperature poller thread gets a new reading from the temperature sensor at a fixed rate, and
+        pushes it onto the RIGHT side of a deque of length 1. Main thread can pop (or peek) from
+        the left side to get the most recent pH sensor reading with timestamp. If pop(), needs to
+        handle case of no data on dequeue.
+    """
+    logging.info("Starting Thermometer polling thread")
+
+    lastTemp = 20
+    while (True):
+        time.sleep(5)
+        lastTemp += random.random()-0.5  #TODO make real
+        v = (dt.datetime.now(),  lastTemp)
+        logging.info(f"Pushing {v} onto deque")
+        theDeque.append(v)
+
+
+
+
 
 def serve():
     """
 
     """
+    t = threading.Thread(target=ph_poller, args=(phDeque,), daemon=True)
+    t.start()
+
+    t = threading.Thread(target=therm_poller, args=(thermDeque,), daemon=True)
+    t.start()
+
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     hardwareControl_pb2_grpc.add_HardwareControlServicer_to_server(HardwareControl(), server)
     server.add_insecure_port('[::]:50051')
@@ -204,6 +260,7 @@ def serve():
 
 if __name__ == '__main__':
     logging.basicConfig()
+    logging.getLogger().setLevel(logging.INFO)
     serve()
 
 

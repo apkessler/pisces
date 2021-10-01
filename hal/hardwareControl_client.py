@@ -84,20 +84,21 @@ def test():
 
         print(f"Temperature={hwCntrl.getTemperature_degC():.2f} dC")
         print(f"pH={hwCntrl.getPH():.2f}")
-        print(f"Relay states: {hwCntrl.getRelayStates()}")
 
-        hwCntrl.setRelayState(1, True)
-        print(f"Relay states: {hwCntrl.getRelayStates()}")
-        time.sleep(2)
-        hwCntrl.setRelayState(1, False)
+        # print(f"Relay states: {hwCntrl.getRelayStates()}")
 
-        print(f"Relay states: {hwCntrl.getRelayStates()}")
+        # hwCntrl.setRelayState(1, True)
+        # print(f"Relay states: {hwCntrl.getRelayStates()}")
+        # time.sleep(2)
+        # hwCntrl.setRelayState(1, False)
 
-        hwCntrl.setLightState(1, hardwareControl_pb2.LightState_Day)
-        print(f"Light states: {hwCntrl.getLightStates()}")
-        time.sleep(2)
-        hwCntrl.setLightState(1, hardwareControl_pb2.LightState_Off)
-        print(f"Light states: {hwCntrl.getLightStates()}")
+        # print(f"Relay states: {hwCntrl.getRelayStates()}")
+
+        # hwCntrl.setLightState(1, hardwareControl_pb2.LightState_Day)
+        # print(f"Light states: {hwCntrl.getLightStates()}")
+        # time.sleep(2)
+        # hwCntrl.setLightState(1, hardwareControl_pb2.LightState_Off)
+        # print(f"Light states: {hwCntrl.getLightStates()}")
 
 
 if __name__ == '__main__':
