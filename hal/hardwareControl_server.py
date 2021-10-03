@@ -12,7 +12,7 @@ from collections import namedtuple, deque
 import time
 import datetime as dt
 import threading
-import random
+import glob
 
 import hardwareControl_pb2
 import hardwareControl_pb2_grpc
@@ -136,7 +136,7 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
         """
             Set relay state, return nothing
         """
-        print(f"[SERVER] Got relay request: {request.channel} <-- {request.isEngaged}", flush=True)
+        logging.debug(f"[SERVER] Got relay request: {request.channel} <-- {request.isEngaged}")
 
         inx = request.channel - 1
         try:
@@ -164,7 +164,7 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
         """
             Set light state, return nothing
         """
-        print(f"[SERVER] Got light request: {request.lightId} <-- {request.state}", flush=True)
+        logging.info(f"[SERVER] Got light request: {request.lightId} <-- {request.state}")
 
         try:
             hwMap.lightObjs[request.lightId - 1].changeState(request.state)
@@ -187,9 +187,9 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
     def GetTemperature(self, request, context):
         """
             Get temperature from sensor and return.
+            TODO: add timestamp of data collected to message?
         """
         latest_datum = thermDeque[0] #Peek from deck to never consume
-        logging.info(f"Using retrieved data {latest_datum}")
         return hardwareControl_pb2.Temperature(temperature_degC=latest_datum[1])
 
 
@@ -198,10 +198,8 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
             Get pH from sensor and return.
         """
         #Get the latest reading from polling thread...
-        #latest_datum = phDeque.popleft() #TODO: Handle index error, which happens if no new data available since last pop()
         latest_datum = phDeque[0] #Peek to never consume- is this thread safe? Probably (https://stackoverflow.com/questions/46107077/python-is-there-a-thread-safe-version-of-a-deque)
-        logging.info(f"Using retrieved data {latest_datum}")
-        return hardwareControl_pb2.pH(pH=float(latest_datum[1]))
+        return hardwareControl_pb2.pH(pH=latest_datum[1])
 
 def ph_poller(theDeque):
     """
@@ -209,6 +207,8 @@ def ph_poller(theDeque):
         pushes it onto the RIGHT side of a deque of length 1. Main thread can pop (or peek) from
         the left side to get the most recent pH sensor reading with timestamp. If pop(), needs to
         handle case of no data on dequeue.
+
+        TODO: move all hardcoded stuff to config file -- possibly to HardwareMap object?
     """
     logging.info("Starting pH polling thread")
     phSensor = Atlas.AtlasI2C(address = 99, moduletype = "pH")
@@ -216,8 +216,9 @@ def ph_poller(theDeque):
     while (True):
         phSensor.write('R')
         time.sleep(3)
-        v = (dt.datetime.now(), phSensor.read()) #TODO add error handling for failed reads
-        logging.info(f"Pushing {v} onto deque")
+        theData = float(phSensor.read())  #TODO add error handling for failed reads
+        v = (dt.datetime.now(), theData)
+        logging.debug(f"PH: Pushing ({v[0].strftime('%Y-%m-%d-%H:%M:%S')}, {v[1]:.3f}) onto deque")
         theDeque.append(v)
         time.sleep(2)
 
@@ -225,18 +226,43 @@ def therm_poller(theDeque):
     """
         The temperature poller thread gets a new reading from the temperature sensor at a fixed rate, and
         pushes it onto the RIGHT side of a deque of length 1. Main thread can pop (or peek) from
-        the left side to get the most recent pH sensor reading with timestamp. If pop(), needs to
+        the left side to get the most recent sensor reading with timestamp. If pop(), needs to
         handle case of no data on dequeue.
+
+        TODO: Directly adapted from sample code. Should clean up, comment, and add error handling
     """
+
+    base_dir = '/sys/bus/w1/devices/'
+    device_folder = glob.glob(base_dir + '28*')[0]
+    device_file = device_folder + '/w1_slave'
     logging.info("Starting Thermometer polling thread")
 
-    lastTemp = 20
-    while (True):
-        time.sleep(5)
-        lastTemp += random.random()-0.5  #TODO make real
-        v = (dt.datetime.now(),  lastTemp)
-        logging.info(f"Pushing {v} onto deque")
+    def read_temp_raw():
+        f = open(device_file, 'r')
+        lines = f.readlines()
+        f.close()
+        return lines
+
+    def read_temp():
+        lines = read_temp_raw()
+        while lines[0].strip()[-3:] != 'YES':
+            time.sleep(0.2)
+            lines = read_temp_raw()
+        equals_pos = lines[1].find('t=')
+        if equals_pos != -1:
+            temp_string = lines[1][equals_pos+2:]
+            temp_c = float(temp_string) / 1000.0
+            #temp_f = temp_c * 9.0 / 5.0 + 32.0
+            return temp_c
+
+    while True:
+
+        temp_c = read_temp()
+        v = (dt.datetime.now(),  temp_c)
+        logging.debug(f"THERM: Pushing ({v[0].strftime('%Y-%m-%d-%H:%M:%S')}, {v[1]:.3f}°C) onto deque")
         theDeque.append(v)
+        time.sleep(5)
+
 
 
 
