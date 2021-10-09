@@ -33,6 +33,16 @@
         "ms1_pin": null,
         "ms2_pin": null,
         "ms3_pin": null
+    },
+
+    "thermometer":
+    {
+        "poll_interval_sec":10
+    },
+
+    "ph_sensor":
+    {
+        "poll_interval_sec":5
     }
 
 }
