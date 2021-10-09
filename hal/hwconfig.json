@@ -23,6 +23,16 @@
             "enable_relay":"RelayCh3",
             "mode_relay": "RelayCh4"
         }
-    ]
+    ],
+
+    "stepper":
+    {
+        "step_pin": "GPIO17",
+        "dir_pin": "GPIO27",
+        "nen_pin": "GPIO22",
+        "ms1_pin": null,
+        "ms2_pin": null,
+        "ms3_pin": null
+    }
 
 }

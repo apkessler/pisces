@@ -21,6 +21,8 @@ import gpiozero as gz
 import os
 
 import AtlasI2C as Atlas
+import stepper
+
 
 class Light():
     """
@@ -114,6 +116,16 @@ class HardwareMap():
             mode_relay = lookupRly(lightInfo['mode_relay'])
             obj = Light(lightInfo['name'], enable_relay, mode_relay)
             self.lightObjs.append(obj)
+
+        #Pump stepper
+        self.stepper = stepper.StepperMotor(
+            self.jData['stepper']['step_pin'],
+            self.jData['stepper']['dir_pin'],
+            self.jData['stepper']['nen_pin'],
+            self.jData['stepper']['ms1_pin'],
+            self.jData['stepper']['ms2_pin'],
+            self.jData['stepper']['ms3_pin']
+            )
 
 print(os.getcwd())
 hwMap = HardwareMap("./hal/hwconfig.json")
@@ -230,6 +242,8 @@ def therm_poller(theDeque):
         handle case of no data on dequeue.
 
         TODO: Directly adapted from sample code. Should clean up, comment, and add error handling
+        TODO: move all hardcoded stuff to config file -- possibly to HardwareMap object?
+
     """
 
     base_dir = '/sys/bus/w1/devices/'
