@@ -67,6 +67,12 @@ class HardwareControlClient():
         response = self.stub.GetLightStates(hardwareControl_pb2.Empty())
         return [r.state for r in response.states]
 
+    def moveStepper(self, numSteps, isReverse=False):
+        """
+            Move stepper motor specified number of steps
+        """
+        response = self.stub.MoveStepper(hardwareControl_pb2.StepperCommand(numSteps=numSteps, isReverse=isReverse))
+
 def test():
     """
         Exercise available interfaces for testing.
@@ -84,6 +90,10 @@ def test():
 
         print(f"Temperature={hwCntrl.getTemperature_degC():.2f} dC")
         print(f"pH={hwCntrl.getPH():.2f}")
+
+        hwCntrl.moveStepper(500)
+        time.sleep(2)
+        hwCntrl.moveStepper(500, isReverse=True)
 
         # print(f"Relay states: {hwCntrl.getRelayStates()}")
 
