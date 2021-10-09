@@ -213,6 +213,14 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
         latest_datum = phDeque[0] #Peek to never consume- is this thread safe? Probably (https://stackoverflow.com/questions/46107077/python-is-there-a-thread-safe-version-of-a-deque)
         return hardwareControl_pb2.pH(pH=latest_datum[1])
 
+    def MoveStepper(self, request, context):
+        """
+            Handle command to move stepper motor a certain number of steps
+        """
+        hwMap.stepper.sendCommand(request.numSteps, isReverse=request.isReverse)
+
+        return hardwareControl_pb2.Empty()
+
 def ph_poller(theDeque):
     """
         The pH poller thread gets a new reading from the pH sensor every couple of seconds, and
@@ -245,11 +253,21 @@ def therm_poller(theDeque):
         TODO: move all hardcoded stuff to config file -- possibly to HardwareMap object?
 
     """
-
-    base_dir = '/sys/bus/w1/devices/'
-    device_folder = glob.glob(base_dir + '28*')[0]
-    device_file = device_folder + '/w1_slave'
     logging.info("Starting Thermometer polling thread")
+
+    try:
+        base_dir = '/sys/bus/w1/devices/'
+        device_folder = glob.glob(base_dir + '28*')[0]
+        device_file = device_folder + '/w1_slave'
+        logging.debug(f"Found temperature sensor: {device_folder}")
+
+    except IndexError:
+        logging.info("Temperature sensor not found!!!")
+        v = (dt.datetime.now(),  -273) #Push a fake reading so code will run
+        theDeque.append(v)
+        while (1):
+            time.sleep(10)
+
 
     def read_temp_raw():
         f = open(device_file, 'r')

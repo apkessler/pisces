@@ -19,10 +19,6 @@ class StepMode(Enum):
     EIGTH_STEP = 3
     SIXTEENTH_STEP = 4
 
-class StepDir(Enum):
-    FORWARD = 0
-    BACKWARDS = 1
-
 class StepperMotor(object):
 
     def __init__(self, step, dir, nen, ms1, ms2, ms3):
@@ -47,7 +43,7 @@ class StepperMotor(object):
 
         self.gpio_nen.on() #Assert to disable driver
 
-        self.thread = threading.Thread(target=self.run, args=(), daemon=True)
+        self.thread = threading.Thread(target=self._run, args=(), daemon=True)
         self.thread.start()
 
 
@@ -68,8 +64,8 @@ class StepperMotor(object):
         self.gpio_step.off()
         time.sleep(delay_s)
 
-    def sendCommand(self, steps, dir=StepDir.FORWARD, mode=StepMode.FULL_STEP):
-        cmd = {'steps':steps, 'dir':dir, 'mode':mode}
+    def sendCommand(self, steps, isReverse=False, mode=StepMode.FULL_STEP):
+        cmd = {'steps':steps, 'isReverse':isReverse, 'mode':mode}
         logging.debug(f"Enqueing cmd {cmd}")
         self.queue.put(cmd, timeout=1)
 
@@ -91,7 +87,7 @@ class StepperMotor(object):
         print(f"{mode} ({mode.value}):{[g.is_active for g in self.gpios_msx]}")
 
 
-    def run(self):
+    def _run(self):
         """
             This method should run as in its own thread. It waits for commands to come in
             over the message queue, then executes them.
@@ -104,10 +100,10 @@ class StepperMotor(object):
 
             logging.debug(f"Dequeing cmd: {cmd}")
 
-            if (cmd['dir'] == StepDir.FORWARD):
-                self.gpio_dir.off()
-            else:
+            if (cmd['isReverse']):
                 self.gpio_dir.on()
+            else:
+                self.gpio_dir.off()
 
             self.enableDriver()
             time.sleep(0.1)
@@ -120,7 +116,9 @@ class StepperMotor(object):
 
             self.disableDriver()
 
-        print("Done", flush=True)
+            logging.info(f"Done with stepper cmd")
+
+        logging.debug(f"Stepper run thread compelte")
 
 
 def main():
@@ -131,7 +129,7 @@ def main():
     while (1):
         cmd = input("Input command: (dir,mode,steps): ")
         tokens = [int(x) for x in cmd.split(',')]
-        dir = StepDir(tokens[0])
+        dir =tokens[0]
         mode = StepMode(tokens[1])
         steps = tokens[2]
         #print(f"DIR:{dir}, Mode:{mode}, Steps:{steps}")

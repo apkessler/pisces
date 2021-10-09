@@ -27,6 +27,7 @@ service HardwareControl {
 
     rpc GetPH(Empty) returns (pH) {}
 
+    rpc MoveStepper(StepperCommand) returns (Empty) {}
 
 }
 
@@ -72,4 +73,9 @@ message LightStates {
 
 message pH {
     float pH = 1;
+}
+
+message StepperCommand {
+    uint32 numSteps = 1;
+    bool isReverse = 2;
 }
