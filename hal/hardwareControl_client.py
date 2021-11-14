@@ -84,6 +84,17 @@ def test():
         hwCntrl = HardwareControlClient(channel)
         hwCntrl.echo()
 
+
+        for i in range(1,9):
+            hwCntrl.setRelayState(i, True)
+            #print(f"Relay states: {hwCntrl.getRelayStates()}")
+            time.sleep(2)
+            hwCntrl.setRelayState(i, False)
+            time.sleep(2)
+
+        return
+
+
         print(f"Light states: {hwCntrl.getLightStates()}")
 
 

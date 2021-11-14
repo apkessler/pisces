@@ -11,7 +11,7 @@ import threading
 from collections import deque
 import logging
 import datetime as dt
-
+import math
 import AtlasI2C as Atlas
 
 class ThermometerPoller(object):
@@ -122,7 +122,7 @@ class PhSensorPoller(object):
             logging.debug(f"PH: Pushing ({v[0].strftime('%Y-%m-%d-%H:%M:%S')}, {v[1]:.3f}) onto deque")
             self.deque.append(v)
 
-            time.sleep(max(self.interval_s - self.readDelay_s), 0.1)
+            time.sleep(max(self.interval_s - self.readDelay_s, 0.1))
 
 def main():
 
@@ -130,6 +130,7 @@ def main():
     P = PhSensorPoller()
 
     while (1):
+        time.sleep(5) #give things a chance to start
         logging.info(f"Temp: {T.getLatestDatum()}")
         logging.info(f"pH: {P.getLatestDatum()}")
         time.sleep(1)

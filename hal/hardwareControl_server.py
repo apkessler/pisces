@@ -47,20 +47,32 @@ class Light():
     def changeState(self, state):
         if (state == hardwareControl_pb2.LightState_Off):
             print(f"Turning {self.name} off!")
-            self.enable_relay.gpioObj.off()
-            self.mode_relay.gpioObj.off() #Not strictly necessary, but keeps states consistent
+            if (self.enable_relay):
+                self.enable_relay.gpioObj.off()
+
+            if (self.mode_relay):
+                self.mode_relay.gpioObj.off() #Not strictly necessary, but keeps states consistent
+
             self.state = state
 
         elif (state == hardwareControl_pb2.LightState_Day):
             print(f"Turning {self.name} to day mode!")
-            self.mode_relay.gpioObj.off()
-            self.enable_relay.gpioObj.on()
+            if (self.mode_relay):
+                self.mode_relay.gpioObj.off()
+
+            if (self.enable_relay):
+                self.enable_relay.gpioObj.on()
+
             self.state = state
 
         elif (state == hardwareControl_pb2.LightState_Night):
             print(f"Turning {self.name} to night mode!")
-            self.mode_relay.gpioObj.on()
-            self.enable_relay.gpioObj.on()
+            if (self.mode_relay):
+                self.mode_relay.gpioObj.on()
+
+            if (self.enable_relay):
+                self.enable_relay.gpioObj.on()
+
             self.state = state
         else:
             #Unhandled!
@@ -99,7 +111,11 @@ class HardwareMap():
         def lookupRly(name):
             """
             Find first relay in list with given name
+            If input is None, return None
             """
+            if name == None:
+                return None
+
             for r in self.relayObjs:
                 if r.name == name:
                     return r
@@ -127,7 +143,7 @@ class HardwareMap():
         self.thermometerPoller = sensorpollers.ThermometerPoller(interval_s = self.jData['thermometer']['poll_interval_sec'])
 
         #PH Sensor Poller
-        self.phSensorPoller = sensorpollers.PhSensorPoller(interval_s= self.jData['ph_sensor']['poll_interval_sec'])
+        #self.phSensorPoller = sensorpollers.PhSensorPoller(interval_s= self.jData['ph_sensor']['poll_interval_sec'])
 
 hwMap = HardwareMap()
 

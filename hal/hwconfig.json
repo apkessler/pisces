@@ -1,27 +1,37 @@
 {
     "relays":
     [
-        {"name": "RelayCh1", "pin":  "GPIO5", "active_hi": false},
-        {"name": "RelayCh2", "pin":  "GPIO6", "active_hi": false},
-        {"name": "RelayCh3", "pin": "GPIO13", "active_hi": false},
-        {"name": "RelayCh4", "pin": "GPIO16", "active_hi": false},
-        {"name": "RelayCh5", "pin": "GPIO19", "active_hi": false},
-        {"name": "RelayCh6", "pin": "GPIO20", "active_hi": false},
-        {"name": "RelayCh7", "pin": "GPIO21", "active_hi": false},
-        {"name": "RelayCh8", "pin": "GPIO26", "active_hi": false}
+        {"name": "RelayCh1", "pin":  "GPIO13", "active_hi": false},
+        {"name": "RelayCh2", "pin":  "GPIO16", "active_hi": false},
+        {"name": "RelayCh3", "pin": "GPIO6", "active_hi": false},
+        {"name": "RelayCh4", "pin": "GPIO12", "active_hi": false},
+        {"name": "RelayCh5", "pin": "GPIO26", "active_hi": false},
+        {"name": "RelayCh6", "pin": "GPIO21", "active_hi": false},
+        {"name": "RelayCh7", "pin": "GPIO19", "active_hi": false},
+        {"name": "RelayCh8", "pin": "GPIO20", "active_hi": false}
     ],
 
     "lights":
     [
         {
-            "name": "Light1",
-            "enable_relay":"RelayCh1",
-            "mode_relay": "RelayCh2"
+            "name": "TankLight1",
+            "enable_relay":"RelayCh5",
+            "mode_relay": "RelayCh6"
         },
         {
-            "name": "Light2",
-            "enable_relay":"RelayCh3",
-            "mode_relay": "RelayCh4"
+            "name": "TankLight2",
+            "enable_relay":"RelayCh7",
+            "mode_relay": "RelayCh8"
+        },
+        {
+            "name": "GrowLight1",
+            "enable_relay":"RelayCh1",
+            "mode_relay": null
+        },
+        {
+            "name": "GrowLight2",
+            "enable_relay":"RelayCh2",
+            "mode_relay": null
         }
     ],
 
