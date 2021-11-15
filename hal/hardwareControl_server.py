@@ -58,7 +58,7 @@ class Light():
         elif (state == hardwareControl_pb2.LightState_Day):
             print(f"Turning {self.name} to day mode!")
             if (self.mode_relay):
-                self.mode_relay.gpioObj.off()
+                self.mode_relay.gpioObj.on()
 
             if (self.enable_relay):
                 self.enable_relay.gpioObj.on()
@@ -67,8 +67,9 @@ class Light():
 
         elif (state == hardwareControl_pb2.LightState_Night):
             print(f"Turning {self.name} to night mode!")
+
             if (self.mode_relay):
-                self.mode_relay.gpioObj.on()
+                self.mode_relay.gpioObj.off()
 
             if (self.enable_relay):
                 self.enable_relay.gpioObj.on()
@@ -243,7 +244,7 @@ def serve():
     """
 
     """
-    hwMap.setup("./hal/hwconfig.json")
+    hwMap.setup("/home/pi/Repositories/pisces/hal/hwconfig.json")
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     hardwareControl_pb2_grpc.add_HardwareControlServicer_to_server(HardwareControl(), server)
