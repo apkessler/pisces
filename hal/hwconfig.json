@@ -52,7 +52,7 @@
 
     "ph_sensor":
     {
-        "poll_interval_sec":5
+        "poll_interval_sec":60
     }
 
 }
