@@ -1,12 +1,26 @@
 {
-    "sunrise_hhmm": 800,
-    "sunset_hhmm": 1800,
+    "schedules":
+    [
+        {
+            "name":"TankLights",
+            "lights": ["TankLight1", "TankLight2"],
+            "sunrise_hhmm": 800,
+            "sunset_hhmm": 1800,
 
-    "eclipse_enabled" : true,
-    "eclipse_frequency_min": 30,
-    "eclipse_duration_min": 1,
+            "eclipse_enabled" : true,
+            "eclipse_frequency_min": 30,
+            "eclipse_duration_min": 1,
 
-    "manual_eclipse_enabled": false,
-    "manual_eclipse_duration_sec": 5
+            "manual_eclipse_enabled": false,
+            "manual_eclipse_duration_sec": 5
+        },
+        {
+            "name":"GrowLights",
+            "lights": ["GrowLight1", "GrowLight2"],
+            "sunrise_hhmm": 600,
+            "sunset_hhmm": 2000,
 
+            "eclipse_enabled" : false
+        }
+    ]
 }

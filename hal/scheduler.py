@@ -15,7 +15,7 @@ import hardwareControl_pb2
 import hardwareControl_pb2_grpc
 from hardwareControl_client import HardwareControlClient
 
-confFile = "schedule.json"
+confFile = "/home/pi/Repositories/pisces/hal/schedule.json"
 
 class State(Enum):
     PINIT = 0
@@ -23,6 +23,9 @@ class State(Enum):
     DAY = 2
     NIGHT = 3
     ECLIPSE = 4
+
+#TODO: link to hwconfig?
+lightKeys = {"TankLight1":1, "TankLight2":2, "GrowLight1":3, "GrowLight2":4}
 
 
 def hhmmToTime(hhmm):
@@ -41,9 +44,13 @@ class ScheduleSM():
         self.presentState = State.PINIT
         self.jData = jData
         self.hwCntrl = hwCntrl
+        self.name=jData['name']
 
         self.sunrise_time = hhmmToTime(jData['sunrise_hhmm'])
         self.sunset_time = hhmmToTime(jData['sunset_hhmm'])
+
+        for light in self.jData["lights"]:
+            logging.info(f"Found light {light} ({lightKeys[light]})")
 
 
     def update(self, dt_now):
@@ -92,29 +99,30 @@ class ScheduleSM():
             pass
         elif (newState == State.DISABLED):
             # just leave the lights where they are?
-            self.hwCntrl.setLightState(1, hardwareControl_pb2.LightState_Off)
-            self.hwCntrl.setLightState(2, hardwareControl_pb2.LightState_Off)
+            for light in self.jData["lights"]:
+                self.hwCntrl.setLightState(lightKeys[light], hardwareControl_pb2.LightState_Off)
+
 
         elif (newState == State.DAY):
-            self.hwCntrl.setLightState(1, hardwareControl_pb2.LightState_Day)
-            self.hwCntrl.setLightState(2, hardwareControl_pb2.LightState_Day)
+            for light in self.jData["lights"]:
+                self.hwCntrl.setLightState(lightKeys[light], hardwareControl_pb2.LightState_Day)
 
         elif (newState == State.NIGHT):
-            self.hwCntrl.setLightState(1, hardwareControl_pb2.LightState_Night)
-            self.hwCntrl.setLightState(2, hardwareControl_pb2.LightState_Night)
+            for light in self.jData["lights"]:
+                self.hwCntrl.setLightState(lightKeys[light], hardwareControl_pb2.LightState_Night)
 
         elif (newState == State.ECLIPSE):
-            print(f"Starting eclipse! Ends at {self.eclipseEndTime}")
-            self.hwCntrl.setLightState(1, hardwareControl_pb2.LightState_Night)
-            self.hwCntrl.setLightState(2, hardwareControl_pb2.LightState_Night)
+            logging.info(f"Starting eclipse! Ends at {self.eclipseEndTime}")
+            for light in self.jData["lights"]:
+                self.hwCntrl.setLightState(lightKeys[light], hardwareControl_pb2.LightState_Night)
 
 
         else:
-            print(f"ERROR: Unhandled state in changeStateTo():{newState}")
+            logging.warning(f"{self.name}: Unhandled state in changeStateTo():{newState}")
             #Raise exception?
 
 
-        print(f"{self.lastTime}\tScheduler: {self.presentState} --> {newState}", flush=True)
+        logging.info(f"{self.lastTime}\t {self.name} Scheduler: {self.presentState} --> {newState}")
         self.presentState = newState
 
     @staticmethod
@@ -140,44 +148,51 @@ def main():
             jData = json.load(f)
 
 
-        schSM = ScheduleSM(jData, hwCntrl)
-        print("---- Running scheduler! ----")
+        schds = [ScheduleSM(jD, hwCntrl) for jD in jData["schedules"]]
+        logging.info("Running schedulers!")
+
         while (1):
-            schSM.update(dt.datetime.now())
+            for schSM in schds:
+                schSM.update(dt.datetime.now())
             time.sleep(30)
 
 
-        print("---- Scheduler ending ----")
+        logging.info("---- Scheduler ending ----")
 
 
 
 
 def test():
-    hwCntrl=None
-    if (1):
+    with grpc.insecure_channel('localhost:50051') as channel:
+        hwCntrl = HardwareControlClient(channel)
+        hwCntrl.echo()
+
         with open(confFile,'r') as f:
             jData = json.load(f)
-        print(jData['sunrise_hhmm'])
-        print(jData['sunset_hhmm'])
+
         #print(timeToHhmm(dt.datetime.now()))
 
-        schSM = ScheduleSM(jData, hwCntrl)
-        print("---- Running scheduler! ----")
+        schds = [ScheduleSM(jD, hwCntrl) for jD in jData["schedules"]]
+
+        logging.info("Running schedulers!")
         t = dt.datetime.now()
         while (1):
-            schSM.update(t)
-            #time.sleep(0.1)
-            t += dt.timedelta(seconds=30)
-            #print(t)
+            for schSM in schds:
+                schSM.update(t)
+            time.sleep(0.1)
+            t += dt.timedelta(seconds=60)
+            print(t)
             if (t > dt.datetime.now() + dt.timedelta(days=2)):
                 break
 
 
 
-        print("---- Scheduler ending ----")
+        logging.info("---- Scheduler ending ----")
 
 
 
 if __name__ == '__main__':
+    logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    logging.getLogger().setLevel(logging.INFO)
     main()
 
