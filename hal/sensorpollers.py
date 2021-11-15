@@ -117,7 +117,12 @@ class PhSensorPoller(object):
         while (True):
             self.phSensor.write('R')
             time.sleep(self.readDelay_s)
-            theData = float(self.phSensor.read())  #TODO add error handling for failed reads
+            try:
+                theData = float(self.phSensor.read())  #TODO add error handling for failed reads
+            except ValueError as e:
+                logging.warning(f"Problem with ph reading! {e}")
+                theData = 0.0
+
             v = (dt.datetime.now(), theData)
             logging.debug(f"PH: Pushing ({v[0].strftime('%Y-%m-%d-%H:%M:%S')}, {v[1]:.3f}) onto deque")
             self.deque.append(v)

@@ -46,7 +46,7 @@ class Light():
 
     def changeState(self, state):
         if (state == hardwareControl_pb2.LightState_Off):
-            print(f"Turning {self.name} off!")
+            logging.info(f"Turning {self.name} off!")
             if (self.enable_relay):
                 self.enable_relay.gpioObj.off()
 
@@ -56,7 +56,7 @@ class Light():
             self.state = state
 
         elif (state == hardwareControl_pb2.LightState_Day):
-            print(f"Turning {self.name} to day mode!")
+            logging.info(f"Turning {self.name} to day mode!")
             if (self.mode_relay):
                 self.mode_relay.gpioObj.on()
 
@@ -66,7 +66,7 @@ class Light():
             self.state = state
 
         elif (state == hardwareControl_pb2.LightState_Night):
-            print(f"Turning {self.name} to night mode!")
+            logging.info(f"Turning {self.name} to night mode!")
 
             if (self.mode_relay):
                 self.mode_relay.gpioObj.off()
@@ -94,20 +94,20 @@ class HardwareMap():
 
     def setup(self,  configFile):
 
-        print(f"Loading config from {configFile}...\n", flush=True)
+        logging.info(f"Loading config from {configFile}...\n")
         with open(configFile, 'r') as f:
             self.jData = json.load(f)
 
         RelayObj = namedtuple('RelayObj',['name','gpioObj'])
 
-        print(f"Creating relay objects...\n", flush=True)
+        logging.info(f"Creating relay objects...\n")
 
         self.relayObjs = []
         for r in self.jData['relays']:
             obj =  RelayObj(name=r['name'], gpioObj=gz.DigitalOutputDevice(pin=r['pin'], active_high=r['active_hi']))
             self.relayObjs.append(obj)
 
-        print(f"Creating light objects...\n", flush=True)
+        logging.info(f"Creating light objects...\n")
 
         def lookupRly(name):
             """

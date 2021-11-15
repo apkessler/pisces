@@ -193,6 +193,11 @@ if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)
     logging.info(f"Starting SCHEDULER")
     main()
+    try:
+        main()
+    except Exception as e:
+        logging.error(f"{e}")
+
     logging.info(f"Stopping SCHEDULER")
 
 
