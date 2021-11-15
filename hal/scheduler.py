@@ -122,7 +122,7 @@ class ScheduleSM():
             #Raise exception?
 
 
-        logging.info(f"{self.lastTime}\t {self.name} Scheduler: {self.presentState} --> {newState}")
+        logging.info(f"{self.name} Scheduler: {self.presentState} --> {newState}")
         self.presentState = newState
 
     @staticmethod
@@ -142,14 +142,13 @@ class ScheduleSM():
 def main():
     with grpc.insecure_channel('localhost:50051') as channel:
         hwCntrl = HardwareControlClient(channel)
-        hwCntrl.echo()
 
         with open(confFile,'r') as f:
             jData = json.load(f)
 
 
         schds = [ScheduleSM(jD, hwCntrl) for jD in jData["schedules"]]
-        logging.info("Running schedulers!")
+        logging.info("Schedulers initialized")
 
         while (1):
             for schSM in schds:
@@ -157,7 +156,7 @@ def main():
             time.sleep(30)
 
 
-        logging.info("---- Scheduler ending ----")
+        logging.info("Scheduler ending")
 
 
 
@@ -165,8 +164,6 @@ def main():
 def test():
     with grpc.insecure_channel('localhost:50051') as channel:
         hwCntrl = HardwareControlClient(channel)
-        hwCntrl.echo()
-
         with open(confFile,'r') as f:
             jData = json.load(f)
 
@@ -192,7 +189,10 @@ def test():
 
 
 if __name__ == '__main__':
-    logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    logging.basicConfig(filename='/home/pi/log/scheduler.log', format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     logging.getLogger().setLevel(logging.INFO)
+    logging.info(f"Starting SCHEDULER")
     main()
+    logging.info(f"Stopping SCHEDULER")
+
 
