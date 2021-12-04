@@ -27,11 +27,6 @@
             "name": "GrowLight1",
             "enable_relay": null,
             "mode_relay": "RelayCh1"
-        },
-        {
-            "name": "GrowLight2",
-            "enable_relay": null,
-            "mode_relay": "RelayCh2"
         }
     ],
 

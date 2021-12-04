@@ -16,7 +16,7 @@
         },
         {
             "name":"GrowLights",
-            "lights": ["GrowLight1", "GrowLight2"],
+            "lights": ["GrowLight1"],
             "sunrise_hhmm": 830,
             "sunset_hhmm": 1730,
 
