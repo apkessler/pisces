@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# A script for runnign the stepper
+# A script for running the stepper
 #
 #
 import logging
@@ -31,7 +31,7 @@ def main():
         hwCntrl = HardwareControlClient(channel)
         logging.info("Turning off tank lights for pump")
         #Just manually disable the enable relay for tnk lights... this should be smarter.
-        #Shh I am ashamed. This shoudl really be handled on server side
+        #Shh I am ashamed. This should really be handled on server side
         hwCntrl.setRelayState(5, False) #Tank Light 1
         hwCntrl.setRelayState(7, False) #Tank Light 2
 
