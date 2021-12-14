@@ -40,8 +40,8 @@ class Subwindow(object):
         self.master.title(title)
         self.master.grab_set()
 
-        btn = tk.Button(self.master, text="EXIT", command=self.exit)
-        btn.pack()
+        btn = tk.Button(self.master, text="Back", width=7, height=2, bg='#ff5733', command=self.exit)
+        btn.place(x=250, y=10)
 
     def exit(self):
         self.master.destroy()
@@ -61,6 +61,34 @@ class SettingsPage(Subwindow):
     def __init__(self):
         super().__init__("Settings")
 
+        tk.Label(self.master, text=f"IP Address: {get_ip()}", font=("Arial", 10)).grid(row=1, column=0, padx=5, pady= 5)
+        tk.Label(self.master, text=f"", font=("Arial", 10)).grid(row=2, column=0)
+        tk.Label(self.master, text=f"", font=("Arial", 10)).grid(row=3, column=0)
+
+
+        btn = tk.Button(self.master, text="Quit GUI", width=20, height = 2, command=self.quitGui)
+        btn.grid(row=4, column=0, padx=5, pady= 2)
+
+        btn = tk.Button(self.master, text="Reboot", width=20, height = 2, command=self.reboot)
+        btn.grid(row=5, column=0, padx=5, pady= 2)
+
+        btn = tk.Button(self.master, text="Shutdown", width=20, height = 2, command=self.shutdown)
+        btn.grid(row=6, column=0, padx=5, pady= 2)
+
+    def quitGui(self):
+        """Close this entire GUI program
+        """
+        self.master.quit()
+
+    def reboot(self):
+        """Reboot the Raspberry Pi"""
+        print("(not) Rebooting!", flush=True)
+        pass
+
+    def shutdown(self):
+        """Shutdown the Raspberry Pi"""
+        print("(not) Shutting down!", flush=True)
+
 
 
 class phPage(Subwindow):
@@ -69,14 +97,32 @@ class phPage(Subwindow):
         super().__init__("pH Info")
 
 
+class fertilizerPage(Subwindow):
+
+    def __init__(self):
+        super().__init__("Fertilizer Info")
+
+        l = tk.Label(self.master, text="Volume: 3mL", font=("Arial", 10)).grid(row=0, column=0)
+        #TODO: text for this button should auto pull from config file
+        btn = tk.Button(self.master, text="Dispense\n3mL", width=10, height = 4, command=self.dispenseNormal)
+        btn.grid(row=2, column=0, padx=5, pady=2)
+        #this is a large dispense to prime the line
+        btn = tk.Button(self.master, text="Dispense\n10mL", width=10, height = 4, command=self.dispense10mL)
+        btn.grid(row=2, column=1, padx=5, pady=2)
+
+        #l = tk.Label(self.master, text="3mL").grid(row=0, column=1)
+
+    def dispenseNormal(self):
+        pass
+
+    def dispense10mL(self):
+        pass
+
 
 class MainView(object):
 
 
-    def turnLightsOn(self):
-        pass
-
-    def turnLightsOff(self):
+    def toggleLights(self):
         pass
 
     def resumeSchedule(self):
@@ -87,6 +133,9 @@ class MainView(object):
 
     def openPhInfo(self):
         s = phPage()
+
+    def fertilizerInfo(self):
+        s = fertilizerPage()
 
     def openSettings(self):
         s = SettingsPage()
@@ -116,17 +165,17 @@ class MainView(object):
 
 
         buttons = [
-            ["All Lights\n On", self.turnLightsOn],
-            ["All Lights\n Off", self.turnLightsOff],
+            ["Toggle Lights\nDay/Night/Off", self.toggleLights],
             ["Resume\nSchedule", self.resumeSchedule],
             [self.tempText, self.openTempInfo],
             [self.phText, self.openPhInfo],
+            ["Fertilizer\nInfo", self.fertilizerInfo],
             ["Settings", self.openSettings]
         ]
 
 
         for inx, bInfo in  enumerate(buttons):
-            f = tk.Frame(frame, width=90, height=90, padx=5, pady=5) #make a frame where button goes
+            f = tk.Frame(frame, width=100, height=100, padx=5, pady=5) #make a frame where button goes
             if (type(bInfo[0]) is str):
                 b = tk.Button(f, text=bInfo[0], command=bInfo[1])
             else:
