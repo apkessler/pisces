@@ -91,17 +91,17 @@ class PhSensorPoller(object):
         self.interval_s = interval_s
         self.readDelay_s = 3
         self.deque = deque(maxlen=1)
-        # try:
-        self.phSensor = Atlas.AtlasI2C(address = 99, moduletype = "pH")
+        try:
+            self.phSensor = Atlas.AtlasI2C(address = 99, moduletype = "pH")
 
-        logging.info(f"Found ph sensor!")
+            logging.info(f"Found ph sensor!")
 
-        self.thread = threading.Thread(target=self._poll, args=(), daemon=True)
-        self.thread.start()
-        # except IndexError:
-        #     logging.warn("Ph sensor not found!!!")
-        #     v = (dt.datetime.now(),  0) #Push a fake reading so code will run
-        #     self.deque.append(v)
+            self.thread = threading.Thread(target=self._poll, args=(), daemon=True)
+            self.thread.start()
+        except IndexError:
+            logging.warn("Ph sensor not found!!!")
+            v = (dt.datetime.now(),  0) #Push a fake reading so code will run
+            self.deque.append(v)
 
 
     def getLatestDatum(self):
