@@ -10,8 +10,8 @@
 
 import tkinter as tk
 import socket
-from typing import NewType
 
+import datetime
 
 ### Helper functions
 
@@ -123,9 +123,11 @@ class MainView(object):
 
 
     def toggleLights(self):
+        #TODO: this should actually toggle lights
         pass
 
     def resumeSchedule(self):
+        #TODO: actually resume schedule
         pass
 
     def openTempInfo(self):
@@ -140,12 +142,6 @@ class MainView(object):
     def openSettings(self):
         s = SettingsPage()
 
-    def func(self):
-        self.count +=1
-        print(f"Button hit {self.count} times", flush=True)
-        self.tempText.set(f"Temperature\n{self.count:0.2f}°F")
-        self.phText.set(f"pH\n{self.count:0.2f}")
-
 
     def __init__(self, master):
 
@@ -157,6 +153,11 @@ class MainView(object):
 
         self.phText = tk.StringVar()
         self.phText.set(f"pH\n{self.count:0.2f}")
+
+        self.lastTimeText = tk.StringVar()
+        self.lastTimeText.set("???")
+        l = tk.Label(self.master, textvariable=self.lastTimeText)
+        l.place(x=0, y=0)
 
 
         frame = tk.Frame(master)
@@ -181,8 +182,6 @@ class MainView(object):
             else:
                 b = tk.Button(f, textvariable=bInfo[0], command=bInfo[1])
 
-
-
             f.rowconfigure(0, weight=1)
             f.columnconfigure(0, weight = 1)
             f.grid_propagate(0)
@@ -190,6 +189,21 @@ class MainView(object):
             f.grid(row = int(inx/3), column=inx%3)
             b.grid(sticky="NWSE")
 
+        #After we're done setting everything up...
+        self.refresh_data()
+
+    def refresh_data(self):
+        now = datetime.datetime.now()
+        print(f"refreshing at {now}", flush=True)
+
+        #Update all things that need updating
+        self.lastTimeText.set(now)
+
+        #todo: update temp
+        #todo: update pH
+
+
+        self.master.after(1000, self.refresh_data)
 
 
 if __name__ == "__main__":
