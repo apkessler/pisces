@@ -105,7 +105,7 @@ class HardwareMap():
     """
 
     def __init__(self):
-        self.bufferedLightCmdDict = {}
+        self.bufferedLightCmdList = []
         self.scope = ""
 
     def setup(self,  configFile):
@@ -166,7 +166,7 @@ class HardwareMap():
             self.thermometerPoller = sensorpollers.SimulatedPoller(interval_s = self.jData['thermometer']['poll_interval_sec'], minV=-10, maxV=100, stepV=0.1)
             self.phSensorPoller = sensorpollers.SimulatedPoller(interval_s= self.jData['ph_sensor']['poll_interval_sec'], minV=0, maxV=10, stepV=0.01)
 
-    def bufferLightCmd(self, lightId, state):
+    def bufferLightCmd(self, lightInx, state):
         """Record the given command to be applied later (when scope is released)
         Parameters
         ----------
@@ -175,15 +175,21 @@ class HardwareMap():
         state : [type]
             [description]
         """
-        self.bufferedLightCmdDict[lightId] = state
+        self.bufferedLightCmdList[lightInx] = state
 
     def applyBufferedLightCmds(self):
         """Take any buffered light commands, and apply them. Then reset buffered cmds
         """
-        for lightId in self.bufferedLightCmdDict:
-            self.lightObjs[lightId - 1].changeState(self.bufferedLightCmdDict[lightId])
+        for inx, state in enumerate(self.bufferedLightCmdList):
+            self.lightObjs[inx].changeState(state)
 
-        self.bufferedLightCmdDict = {}
+        self.bufferedLightCmdList = [] #Reset this to enforce proper ordering of func calls (i.e. saveLightStatesToBuffer is called first)
+
+    def saveLightStatesToBuffer(self):
+        """ Initiate light buffer by storing current states in buffer to be restored defaults when scope restored"""
+        self.bufferedLightCmdList = len(self.lightObjs) * [None]
+        for inx, lightObj in enumerate(self.lightObjs):
+            self.bufferedLightCmdList[inx] = lightObj.getState()
 
 
 hwMap = HardwareMap()
@@ -246,7 +252,7 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
             #Requester does not have control. Buffer the requests (only no scoped commands get buffered)
             try:
                 logging.info("Buffering command until scope released")
-                hwMap.bufferLightCmd(request.lightId, request.state)
+                hwMap.bufferLightCmd(request.lightId - 1, request.state)
             except IndexError:
                 context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
                 context.set_details(f"Invalid light channel ({request.lightId})")
@@ -292,14 +298,34 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
     def SetScope(self, request, context):
         """Handles scope set/reset
         """
-        hwMap.scope = request.scope
+        #Is our existing scope empty?
         if (hwMap.scope == ""):
-            logging.info(f"Scope reset!")
-            logging.info(f"Buffered cmds: {hwMap.bufferedLightCmdDict}")
-            hwMap.applyBufferedLightCmds()
+            #Is new scope empty?
+            if (request.scope == ""):
+                #Yes, there's nothing to do here.
+                pass
+            else:
+                #We're setting a new scope. We should buffer existing lights states.
+                hwMap.saveLightStatesToBuffer()
+                logging.info(f"Set scope to \"{request.scope}\". Buffered cmds: {hwMap.bufferedLightCmdList}")
+                hwMap.scope = request.scope
         else:
-            logging.info(f"Setting scope to \"{hwMap.scope}\".")
-            hwMap.bufferedLightCmdDict = {} #reset this, even though it should already be empty
+            #We have an existing scope...
+            #Is the new scope empty?
+            if (request.scope == ""):
+                #Yes, this is a clearing of scope!
+                logging.info(f"Scope reset!")
+                logging.info(f"Buffered cmds: {hwMap.bufferedLightCmdList}")
+                hwMap.applyBufferedLightCmds()
+                hwMap.scope = ""
+            elif (request.scope == hwMap.scope):
+                #Scope is not changing, ignore
+                pass
+            else:
+                #No... rewriting scope is currently not supported
+                logging.info(f'Ignoring request to change scope to "{request.scope}" when scope is already "{hwMap.scope}"')
+                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
+                context.set_details(f'Scope is already set to {hwMap.scope}')
 
         return hardwareControl_pb2.Empty()
 

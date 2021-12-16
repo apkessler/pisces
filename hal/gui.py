@@ -97,7 +97,12 @@ class MainWindow(Window):
     def __init__(self, root, hwCntrl):
         super().__init__("Main Window", root)
         self.hwCntrl = hwCntrl
-        self.count = 0
+        self.hwCntrl.setScope() #Reset scope to make sure schedule is running
+        self.lightToggleModes = ['Schedule', 'All On', 'All Night', 'All Off']
+        self.currentLightToggleModeInx = 0
+
+        self.lightModeText = tk.StringVar()
+        self.lightModeText.set(self.lightToggleModes[self.currentLightToggleModeInx])
 
         self.tempText = tk.StringVar()
         self.tempText.set(f"Temperature\n???°F")
@@ -107,7 +112,7 @@ class MainWindow(Window):
 
 
         buttons = [
-            ["Toggle Lights\nDay/Night/Off/\nSchedule", self.dummy],
+            ["Toggle Lights\nDay/Night/Off/\nSchedule", self.toggle_lights],
             [self.tempText, lambda: TemperaturePage()],
             [self.phText, lambda: PhPage()],
             ["Fertilizer\nInfo", lambda: ManualFertilizerPage()],
@@ -118,6 +123,30 @@ class MainWindow(Window):
 
         #After we're done setting everything up...
         self.refresh_data()
+
+    def toggle_lights(self):
+        self.currentLightToggleModeInx = (self.currentLightToggleModeInx + 1) % len(self.lightToggleModes)
+
+        myScope = 'gui'
+        newMode = self.lightToggleModes[self.currentLightToggleModeInx]
+        print(f"Toggled to mode {newMode}", flush=True)
+        if (newMode == 'Schedule'):
+            self.hwCntrl.setScope()
+        elif (newMode == 'All On'):
+            self.hwCntrl.setScope(scope=myScope)
+            for lightId in [1,2,3]:
+                self.hwCntrl.setLightState(lightId, hardwareControl_pb2.LightState_Day, scope=myScope)
+
+        elif (newMode == 'All Night'):
+            self.hwCntrl.setScope(scope=myScope)
+            for lightId in [1,2,3]:
+                self.hwCntrl.setLightState(lightId, hardwareControl_pb2.LightState_Night, scope=myScope)
+
+        elif (newMode == 'All Off'):
+            self.hwCntrl.setScope(scope=myScope)
+            for lightId in [1,2,3]:
+                self.hwCntrl.setLightState(lightId, hardwareControl_pb2.LightState_Off, scope=myScope)
+
 
     def refresh_data(self):
         now = datetime.datetime.now()

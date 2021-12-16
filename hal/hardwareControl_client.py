@@ -73,6 +73,11 @@ class HardwareControlClient():
         """
         response = self.stub.MoveStepper(hardwareControl_pb2.StepperCommand(numSteps=numSteps, isReverse=isReverse))
 
+    def setScope(self, scope=""):
+        """Set the Light Control scope.
+        """
+        response = self.stub.SetScope(hardwareControl_pb2.Scope(scope=scope))
+
 def test():
     """
         Exercise available interfaces for testing.
