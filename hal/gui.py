@@ -103,6 +103,7 @@ class MainWindow(Window):
 
         self.lightModeText = tk.StringVar()
         self.lightModeText.set(self.lightToggleModes[self.currentLightToggleModeInx])
+        #self.lightModeText.place(x=10, y=5)
 
         self.tempText = tk.StringVar()
         self.tempText.set(f"Temperature\n???°F")
@@ -115,7 +116,7 @@ class MainWindow(Window):
             ["Toggle Lights\nDay/Night/Off/\nSchedule", self.toggle_lights],
             [self.tempText, lambda: TemperaturePage()],
             [self.phText, lambda: PhPage()],
-            ["Fertilizer\nInfo", lambda: ManualFertilizerPage()],
+            ["Manual\nFertilizer", lambda: ManualFertilizerPage()],
             ["Settings", lambda: SettingsPage()]
         ]
 
@@ -208,9 +209,6 @@ class SettingsPage(Subwindow):
     def __init__(self):
         super().__init__("Settings")
 
-        frame = tk.Frame(self.master)
-        frame.place(in_=self.master, anchor='c', relx=0.5, rely=0.5)
-
         buttons = [
             ["Reboot", self.dummy],
             ["Aquarium\nLights", self.dummy],
@@ -220,20 +218,7 @@ class SettingsPage(Subwindow):
             ["System Settings", lambda: SystemSettingsPage()]
         ]
 
-
-        for inx, bInfo in enumerate(buttons):
-            f = tk.Frame(frame, width=100, height=100, padx=5, pady=5) #make a frame where button goes
-            if (type(bInfo[0]) is str):
-                b = tk.Button(f, text=bInfo[0], command=bInfo[1])
-            else:
-                b = tk.Button(f, textvariable=bInfo[0], command=bInfo[1])
-
-            f.rowconfigure(0, weight=1)
-            f.columnconfigure(0, weight = 1)
-            f.grid_propagate(0)
-
-            f.grid(row = int(inx/3), column=inx%3)
-            b.grid(sticky="NWSE")
+        self.drawButtonGrid(buttons)
 
 
 
@@ -245,8 +230,7 @@ class SystemSettingsPage(Subwindow):
         tk.Label(self.master, text=f"IP Address: {get_ip()}", font=("Arial", 10)).grid(row=1, column=0, padx=5, pady= 5)
         tk.Label(self.master, text=f"", font=("Arial", 10)).grid(row=2, column=0)
         tk.Label(self.master, text=f"", font=("Arial", 10)).grid(row=3, column=0)
-        frame = tk.Frame(self.master)
-        frame.place(in_=self.master, anchor='c', relx=0.5, rely=0.5)
+
 
         buttons = [
             ["About", self.dummy],
@@ -257,20 +241,7 @@ class SystemSettingsPage(Subwindow):
             ["Restore\nDefaults", self.dummy]
         ]
 
-
-        for inx, bInfo in enumerate(buttons):
-            f = tk.Frame(frame, width=100, height=100, padx=5, pady=5) #make a frame where button goes
-            if (type(bInfo[0]) is str):
-                b = tk.Button(f, text=bInfo[0], command=bInfo[1])
-            else:
-                b = tk.Button(f, textvariable=bInfo[0], command=bInfo[1])
-
-            f.rowconfigure(0, weight=1)
-            f.columnconfigure(0, weight = 1)
-            f.grid_propagate(0)
-
-            f.grid(row = int(inx/3), column=inx%3)
-            b.grid(sticky="NWSE")
+        self.drawButtonGrid(buttons)
 
 
     def quitGui(self):
@@ -290,23 +261,13 @@ class ManualFertilizerPage(Subwindow):
     def __init__(self):
         super().__init__("Fertilizer Info")
 
-        l = tk.Label(self.master, text="Volume: 3mL", font=("Arial", 10)).grid(row=0, column=0)
-        #TODO: text for this button should auto pull from config file
-        btn = tk.Button(self.master, text="Dispense\n3mL", width=10, height = 4, command=self.dispenseNormal)
-        btn.grid(row=2, column=0, padx=5, pady=2)
-        #this is a large dispense to prime the line
-        btn = tk.Button(self.master, text="Dispense\n10mL", width=10, height = 4, command=self.dispense10mL)
-        btn.grid(row=2, column=1, padx=5, pady=2)
-
-        #this is a large dispense to prime the line
-        btn = tk.Button(self.master, text="Prime\n(start)", width=10, height = 4, command=self.primeToggle)
-        btn.grid(row=3, column=0, padx=5, pady=2)
-
-        #this is a large dispense to prime the line
-        btn = tk.Button(self.master, text="Timer\nSettings", width=10, height = 4, command=lambda: SettingsPage())
-        btn.grid(row=3, column=1, padx=5, pady=2)
-
-        #l = tk.Label(self.master, text="3mL").grid(row=0, column=1)
+        buttons = [
+            ["Dispense\n3mL", self.dummy],
+            ["Dispense\n10mL", self.dummy],
+            ["Prime Line\nPush to start", self.dummy],
+            ["Timer\nSettings", lambda:SettingsPage()]
+        ]
+        self.drawButtonGrid(buttons)
 
     def dispenseNormal(self):
         pass
