@@ -12,6 +12,14 @@ import tkinter as tk
 import socket
 
 import datetime
+import hardwareControl_pb2
+import hardwareControl_pb2_grpc
+from hardwareControl_client import HardwareControlClient
+import grpc
+
+ADDRESS = "localhost"
+PORT = "50051"
+
 
 ### Helper functions
 
@@ -86,15 +94,16 @@ class MainWindow(Window):
         [description]
     """
 
-    def __init__(self, root):
+    def __init__(self, root, hwCntrl):
         super().__init__("Main Window", root)
+        self.hwCntrl = hwCntrl
         self.count = 0
 
         self.tempText = tk.StringVar()
-        self.tempText.set(f"Temperature\n{self.count:0.2f}°F")
+        self.tempText.set(f"Temperature\n???°F")
 
         self.phText = tk.StringVar()
-        self.phText.set(f"pH\n{self.count:0.2f}")
+        self.phText.set(f"pH\n???")
 
 
         buttons = [
@@ -116,8 +125,15 @@ class MainWindow(Window):
 
         #Update all things that need updating
 
-        #todo: update temp
-        #todo: update pH
+        #Update the temperature reading
+        temp_degC = self.hwCntrl.getTemperature_degC()
+        temp_degF = (temp_degC * 9.0) / 5.0 + 32.0
+        self.tempText.set(f"Temperature\n{temp_degF:0.2f}°F")
+
+        #Update the pH Reading
+        ph = self.hwCntrl.getPH()
+        self.phText.set(f"pH\n{ph:0.2f}")
+
 
         self.master.after(1000, self.refresh_data)
 
@@ -274,8 +290,11 @@ class ManualFertilizerPage(Subwindow):
 
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    main = MainWindow(root)
-    #root.attributes('-fullscreen', True) #Uncomment to make fullscreen
+    with grpc.insecure_channel(f"{ADDRESS}:{PORT}") as channel:
+        hwCntrl = HardwareControlClient(channel)
+        hwCntrl.echo()
+        root = tk.Tk()
+        main = MainWindow(root, hwCntrl)
+        #root.attributes('-fullscreen', True) #Uncomment to make fullscreen
 
-    root.mainloop()
+        root.mainloop()

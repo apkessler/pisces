@@ -12,7 +12,13 @@ from collections import deque
 import logging
 import datetime as dt
 import math
-import AtlasI2C as Atlas
+try:
+    import AtlasI2C as Atlas
+except ModuleNotFoundError:
+    print("Unable to fully import AtlasI2C library")
+    #ok for simulated system
+
+import random
 
 class ThermometerPoller(object):
     """
@@ -128,6 +134,40 @@ class PhSensorPoller(object):
             self.deque.append(v)
 
             time.sleep(max(self.interval_s - self.readDelay_s, 0.1))
+
+class SimulatedPoller(object):
+    """
+        A simulated poller for fake sensors
+    """
+    def __init__(self, interval_s = 5, minV=0, maxV=100, stepV=0.1):
+        self.interval_s = interval_s
+        self.minV = minV
+        self.maxV = maxV
+        self.stepV = stepV
+
+        self.deque = deque(maxlen=1)
+        self.thread = threading.Thread(target=self._poll, args=(), daemon=True)
+        self.thread.start()
+
+
+
+    def getLatestDatum(self):
+        return self.deque[0] #Peek from Deck to never consume
+
+    def _poll(self):
+        """
+            This method should run as in its own thread.
+        """
+
+        logging.info(f"Starting fake polling thread")
+
+        while True:
+
+            value = random.random()*(self.maxV - self.minV) + self.minV
+            v = (dt.datetime.now(),  value)
+            logging.debug(f"THERM: Pushing ({v[0].strftime('%Y-%m-%d-%H:%M:%S')}, {v[1]:.3f}°C) onto deque")
+            self.deque.append(v)
+            time.sleep(self.interval_s)
 
 def main():
 

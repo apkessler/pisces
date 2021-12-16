@@ -5,7 +5,15 @@
 #
 #
 
-import gpiozero as gz
+try:
+    import gpiozero as gz
+    print("Raspberry pi config detected")
+    isRealHw = True
+except ModuleNotFoundError:
+    isRealHw = False
+    import fakegpio as gz
+    print("Not on raspberry pi - running in simulated mode")
+
 import time
 import threading, queue
 from enum import Enum

@@ -14,7 +14,16 @@ import os
 import hardwareControl_pb2
 import hardwareControl_pb2_grpc
 
-import gpiozero as gz
+try:
+    import gpiozero as gz
+    print("Raspberry pi config detected")
+    isRealHw = True
+except ModuleNotFoundError:
+    isRealHw = False
+    import fakegpio as gz
+    print("Not on raspberry pi - running in simulated mode")
+
+
 
 #Custom libraries
 import stepper
@@ -87,6 +96,9 @@ class Light():
 
 
 
+
+
+
 class HardwareMap():
     """
         This class exists to map the config json file to an object that holds handles to hw objects
@@ -104,7 +116,10 @@ class HardwareMap():
 
         self.relayObjs = []
         for r in self.jData['relays']:
-            obj =  RelayObj(name=r['name'], gpioObj=gz.DigitalOutputDevice(pin=r['pin'], active_high=r['active_hi']))
+            obj =  RelayObj(
+                name=r['name'],
+                gpioObj=gz.DigitalOutputDevice(pin=r['pin'], active_high=r['active_hi'])
+                )
             self.relayObjs.append(obj)
 
         logging.info(f"Creating light objects...\n")
@@ -140,11 +155,12 @@ class HardwareMap():
             self.jData['stepper']['ms3_pin']
             )
 
-        #Thermometer poller
-        self.thermometerPoller = sensorpollers.ThermometerPoller(interval_s = self.jData['thermometer']['poll_interval_sec'])
-
-        #PH Sensor Poller
-        self.phSensorPoller = sensorpollers.PhSensorPoller(interval_s= self.jData['ph_sensor']['poll_interval_sec'])
+        if (isRealHw):
+            self.thermometerPoller = sensorpollers.ThermometerPoller(interval_s = self.jData['thermometer']['poll_interval_sec'])
+            self.phSensorPoller = sensorpollers.PhSensorPoller(interval_s= self.jData['ph_sensor']['poll_interval_sec'])
+        else:
+            self.thermometerPoller = sensorpollers.SimulatedPoller(interval_s = self.jData['thermometer']['poll_interval_sec'], minV=-10, maxV=100, stepV=0.1)
+            self.phSensorPoller = sensorpollers.SimulatedPoller(interval_s= self.jData['ph_sensor']['poll_interval_sec'], minV=0, maxV=10, stepV=0.01)
 
 hwMap = HardwareMap()
 
@@ -244,7 +260,7 @@ def serve():
     """
 
     """
-    hwMap.setup("/home/pi/Repositories/pisces/hal/hwconfig.json")
+    hwMap.setup("hwconfig.json")
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     hardwareControl_pb2_grpc.add_HardwareControlServicer_to_server(HardwareControl(), server)
@@ -254,7 +270,7 @@ def serve():
 
 if __name__ == '__main__':
     logging.basicConfig(
-        filename='/home/pi/log/server.log',
+        filename='server.log',
         format='%(asctime)s %(levelname)-8s %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S')
     logging.getLogger().setLevel(logging.INFO)
