@@ -53,11 +53,11 @@ class HardwareControlClient():
         response = self.stub.GetRelayStates(hardwareControl_pb2.Empty())
         return [r.isEngaged for r in response.states]
 
-    def setLightState(self, lightId, state):
+    def setLightState(self, lightId, state, scope=""):
         """
             Set state on given light to given state
         """
-        response = self.stub.SetLightState(hardwareControl_pb2.LightState(lightId=lightId, state=state))
+        response = self.stub.SetLightState(hardwareControl_pb2.LightState(lightId=lightId, state=state, scope=scope))
 
     def getLightStates(self):
         """

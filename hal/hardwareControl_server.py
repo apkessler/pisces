@@ -104,6 +104,10 @@ class HardwareMap():
         This class exists to map the config json file to an object that holds handles to hw objects
     """
 
+    def __init__(self):
+        self.bufferedLightCmdDict = {}
+        self.scope = ""
+
     def setup(self,  configFile):
 
         logging.info(f"Loading config from {configFile}...\n")
@@ -162,6 +166,26 @@ class HardwareMap():
             self.thermometerPoller = sensorpollers.SimulatedPoller(interval_s = self.jData['thermometer']['poll_interval_sec'], minV=-10, maxV=100, stepV=0.1)
             self.phSensorPoller = sensorpollers.SimulatedPoller(interval_s= self.jData['ph_sensor']['poll_interval_sec'], minV=0, maxV=10, stepV=0.01)
 
+    def bufferLightCmd(self, lightId, state):
+        """Record the given command to be applied later (when scope is released)
+        Parameters
+        ----------
+        lightId : [type]
+            [description]
+        state : [type]
+            [description]
+        """
+        self.bufferedLightCmdDict[lightId] = state
+
+    def applyBufferedLightCmds(self):
+        """Take any buffered light commands, and apply them. Then reset buffered cmds
+        """
+        for lightId in self.bufferedLightCmdDict:
+            self.lightObjs[lightId - 1].changeState(self.bufferedLightCmdDict[lightId])
+
+        self.bufferedLightCmdDict = {}
+
+
 hwMap = HardwareMap()
 
 class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
@@ -180,7 +204,7 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
         """
             Set relay state, return nothing
         """
-        logging.debug(f"[SERVER] Got relay request: {request.channel} <-- {request.isEngaged}")
+        logging.debug(f"Got relay request: {request.channel} <-- {request.isEngaged}")
 
         inx = request.channel - 1
         try:
@@ -208,14 +232,26 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
         """
             Set light state, return nothing
         """
-        logging.info(f"[SERVER] Got light request: {request.lightId} <-- {request.state}")
+        logging.info(f"Got request with scope \"{request.scope}\": Light{request.lightId} <-- {request.state}")
 
-        try:
-            hwMap.lightObjs[request.lightId - 1].changeState(request.state)
-        except IndexError:
-            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-            context.set_details(f"Invalid light channel ({request.lightId})")
-            #TODO add handling for bad state enum
+        if (hwMap.scope == "" or hwMap.scope == request.scope):
+            #We are OK to set this directly
+            try:
+                hwMap.lightObjs[request.lightId - 1].changeState(request.state)
+            except IndexError:
+                context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+                context.set_details(f"Invalid light channel ({request.lightId})")
+                #TODO add handling for bad state enum
+        elif request.scope == "":
+            #Requester does not have control. Buffer the requests (only no scoped commands get buffered)
+            try:
+                logging.info("Buffering command until scope released")
+                hwMap.bufferLightCmd(request.lightId, request.state)
+            except IndexError:
+                context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+                context.set_details(f"Invalid light channel ({request.lightId})")
+                #TODO add handling for bad state enum
+
 
         return hardwareControl_pb2.Empty()
 
@@ -250,6 +286,20 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
             Handle command to move stepper motor a certain number of steps
         """
         hwMap.stepper.sendCommand(request.numSteps, isReverse=request.isReverse)
+
+        return hardwareControl_pb2.Empty()
+
+    def SetScope(self, request, context):
+        """Handles scope set/reset
+        """
+        hwMap.scope = request.scope
+        if (hwMap.scope == ""):
+            logging.info(f"Scope reset!")
+            logging.info(f"Buffered cmds: {hwMap.bufferedLightCmdDict}")
+            hwMap.applyBufferedLightCmds()
+        else:
+            logging.info(f"Setting scope to \"{hwMap.scope}\".")
+            hwMap.bufferedLightCmdDict = {} #reset this, even though it should already be empty
 
         return hardwareControl_pb2.Empty()
 

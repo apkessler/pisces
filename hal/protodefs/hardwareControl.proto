@@ -29,6 +29,8 @@ service HardwareControl {
 
     rpc MoveStepper(StepperCommand) returns (Empty) {}
 
+    rpc SetScope(Scope) returns (Empty) {}
+
 }
 
 message Empty {
@@ -65,6 +67,7 @@ enum LightStateEnum {
 message LightState {
     uint32 lightId = 1; //Which light is being addressed
     LightStateEnum  state = 2;
+    string scope = 3;
 }
 
 message LightStates {
@@ -78,4 +81,8 @@ message pH {
 message StepperCommand {
     uint32 numSteps = 1;
     bool isReverse = 2;
+}
+
+message Scope {
+    string scope = 1;
 }
