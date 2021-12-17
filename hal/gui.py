@@ -86,7 +86,7 @@ class Window(object):
 
     def __init__(self, title, handle):
         self.master = handle
-        self.master.wm_geometry("320x240")
+        self.master.wm_geometry("640x480")
         self.master.title(title)
         if (yData['fullscreen']):
             self.master.attributes('-fullscreen', True)
@@ -107,7 +107,7 @@ class Window(object):
         frame = tk.Frame(self.master)
         frame.place(in_=self.master, anchor='c', relx=0.5, rely=0.55)
         for inx, bInfo in enumerate(buttonMap):
-            f = tk.Frame(frame, width=100, height=100, padx=5, pady=5) #make a frame where button goes
+            f = tk.Frame(frame, width=200, height=200, padx=10, pady=10) #make a frame where button goes
             if (type(bInfo[0]) is str):
                 b = tk.Button(f, text=bInfo[0], command=bInfo[1])
             else:
