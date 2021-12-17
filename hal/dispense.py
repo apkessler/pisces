@@ -1,37 +1,53 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# A script for running the stepper
-#
+# A script/library for running the fertilizer pump
+# to dispense fertilzier
 #
 import logging
-from tkinter import Label
 import grpc
 import time
-import json
 import argparse
 import threading
-from enum import Enum
-import datetime as dt
-import hardwareControl_pb2
-import hardwareControl_pb2_grpc
+import yaml
+import os
+
 from hardwareControl_client import HardwareControlClient
 
-STEP_BATCH = 500
+_yData = None
 
-def ml_to_steps(ml):
-    return 1000*ml
+#Do this setup up here so we get config and logging even if function is imported on its own
+with open(os.path.join(os.path.dirname(__file__), 'settings','dispense.yaml'), 'r') as yamlfile:
+    _yData = yaml.safe_load(yamlfile)
 
 
-def dispense(hwCntrl, volume_ml, stop_event):
+def ml_to_steps(ml:int) -> int:
+    """Convert from mL to number of stepper motor steps needed to dispense that volume.
+
+    Parameters
+    ----------
+    ml : int
+        Desired volume in mL
+
+    Returns
+    -------
+    int
+        Needed stepper motor steps
+    """
+    return _yData['steps_per_ml']*ml
+
+
+def dispense(hwCntrl, volume_ml:int, stop_event:threading.Event):
     """Blocking call to dispense a certain number of mL
 
     Parameters
     ----------
     hwCntrl : [type]
         HwCntrl stub
-    volume_ml : [type]
-        Volume to dispense
+    volume_ml : int
+        Volume to dispense, in mL
+    stop_event : Threading event
+        When event is set, function will not send anymore dispense commands and exit
     """
 
     logging.info("Turning off tank lights for pump")
@@ -48,7 +64,7 @@ def dispense(hwCntrl, volume_ml, stop_event):
 
     while total_nsteps > 0 and (not stop_event.is_set()):
 
-        stepsThisTime = STEP_BATCH if total_nsteps > STEP_BATCH else total_nsteps
+        stepsThisTime = _yData['steps_per_command'] if total_nsteps >  _yData['steps_per_command'] else total_nsteps
 
         hwCntrl.moveStepper(stepsThisTime)
         logging.info(f"Sending request to step {stepsThisTime}")
@@ -59,7 +75,7 @@ def dispense(hwCntrl, volume_ml, stop_event):
             if stop_event.is_set():
                 logging.info(f"Dispense got stop flag early!")
                 break
-        total_nsteps -= STEP_BATCH
+        total_nsteps -= _yData['steps_per_command']
 
     time.sleep(0.1)
 
@@ -72,18 +88,19 @@ def dispense(hwCntrl, volume_ml, stop_event):
 
 if __name__ == '__main__':
     logging.basicConfig(
-        filename='dispense.log',
-        format='%(asctime)s %(levelname)-8s %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S')
+    filename=_yData['log']['name'],
+    format='%(asctime)s %(levelname)-8s %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S')
     logging.getLogger().setLevel(logging.INFO)
 
+
     parser = argparse.ArgumentParser(description='Run the pump for a given number of mL')
-    parser.add_argument('volume_ml', type=int, help='The number of mL to dispense')
+    parser.add_argument('volume_ml', nargs='?', type=int, default=_yData['default_volume_ml'], help='The number of mL to dispense')
 
     args = parser.parse_args()
 
     stop_event = threading.Event()
-    with grpc.insecure_channel('localhost:50051') as channel:
+    with grpc.insecure_channel(f"{_yData['server']['ip']}:{_yData['server']['port']}") as channel:
         hwCntrl = HardwareControlClient(channel)
         stopFlag = False
         t = threading.Thread(target=dispense, args=(hwCntrl, args.volume_ml, stop_event), daemon=True)

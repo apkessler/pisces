@@ -8,19 +8,30 @@
 
 ### Imports
 
-import tkinter as tk
+# Standard imports
+import os
 import socket
 import logging
 import datetime
+import threading
+
+# 3rd party imports
+import tkinter as tk
+import grpc
+import yaml
+
+# Custom imports
 import hardwareControl_pb2
 import hardwareControl_pb2_grpc
 from hardwareControl_client import HardwareControlClient
-import grpc
-from run_stepper import dispense
-import threading
+from dispense import dispense
 
-ADDRESS = "localhost"
-PORT = "50051"
+
+##### Globals ####
+
+
+hwCntrl = None #Global stub, because its easiest
+yData = None #config data
 
 
 ### Helper functions
@@ -40,10 +51,29 @@ def get_ip():
         s.close()
     return IP
 
+def sys_call(cmd):
+    import subprocess
+    output = ""
+    try:
+        process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
+        output = process.communicate()[0]
+    except FileNotFoundError:
+        output = f"Could not execute sys call: '{cmd}'"
+    finally:
+        logging.info(output)
+
+
+def reboot_pi():
+    logging.info("restarting the Pi")
+    sys_call("/usr/bin/sudo /sbin/shutdown -r now")
+
+# modular function to shutdown Pi
+def shutdown_pi():
+    logging.info("shutting down the Pi")
+    sys_call("/usr/bin/sudo /sbin/shutdown -h now")
+
 
 ### TKinter Stuff
-
-hwCntrl = None #Global stub, because its easiest
 
 class Window(object):
     """Generic window object. Do not instantiate directly.
@@ -58,6 +88,8 @@ class Window(object):
         self.master = handle
         self.master.wm_geometry("320x240")
         self.master.title(title)
+        if (yData['fullscreen']):
+            self.master.attributes('-fullscreen', True)
 
 
     def dummy(self):
@@ -107,8 +139,12 @@ class MainWindow(Window):
         self.currentLightToggleModeInx = 0
 
         self.lightModeText = tk.StringVar()
-        self.lightModeText.set(self.lightToggleModes[self.currentLightToggleModeInx])
-        #self.lightModeText.place(x=10, y=5)
+        self.lightModeText.set("Lights:\n"+self.lightToggleModes[self.currentLightToggleModeInx])
+
+        self.timeText = tk.StringVar()
+        self.updateTimestamp()
+        tk.Label(root, textvariable=self.timeText, font=("Arial", 12)).place(x=220, y=5)
+
 
         self.tempText = tk.StringVar()
         self.tempText.set(f"Temperature\n???°F")
@@ -118,7 +154,7 @@ class MainWindow(Window):
 
 
         buttons = [
-            ["Toggle Lights\nDay/Night/Off/\nSchedule", self.toggle_lights],
+            [self.lightModeText, self.toggle_lights],
             [self.tempText, lambda: TemperaturePage()],
             [self.phText, lambda: PhPage()],
             ["Manual\nFertilizer", lambda: ManualFertilizerPage()],
@@ -127,15 +163,22 @@ class MainWindow(Window):
 
         self.drawButtonGrid(buttons)
 
+
         #After we're done setting everything up...
         self.refresh_data()
+
+    def updateTimestamp(self):
+        now = datetime.datetime.now()
+        self.timeText.set(now.strftime("%I:%M:%S %p"))
 
     def toggle_lights(self):
         self.currentLightToggleModeInx = (self.currentLightToggleModeInx + 1) % len(self.lightToggleModes)
 
+
         myScope = 'gui'
         newMode = self.lightToggleModes[self.currentLightToggleModeInx]
-        print(f"Toggled to mode {newMode}", flush=True)
+        self.lightModeText.set("Lights:\n"+newMode)
+        logging.info(f"Toggled to mode {newMode}")
         if (newMode == 'Schedule'):
             hwCntrl.setScope()
         elif (newMode == 'All On'):
@@ -155,8 +198,7 @@ class MainWindow(Window):
 
 
     def refresh_data(self):
-        now = datetime.datetime.now()
-        print(f"refreshing at {now}", flush=True)
+        self.updateTimestamp()
 
         #Update all things that need updating
 
@@ -169,12 +211,10 @@ class MainWindow(Window):
         ph = hwCntrl.getPH()
         self.phText.set(f"pH\n{ph:0.2f}")
 
-
         self.master.after(1000, self.refresh_data)
 
     def quit(self):
         self.root.quit()
-
 
 
 
@@ -195,7 +235,6 @@ class Subwindow(Window):
         btn = tk.Button(self.master, text="Back", width=7, height=1, bg='#ff5733', command=self.exit)
         btn.place(x=250, y=5)
 
-
     def exit(self):
         self.master.destroy()
         self.master.update()
@@ -215,7 +254,7 @@ class SettingsPage(Subwindow):
         super().__init__("Settings")
 
         buttons = [
-            ["Reboot", self.dummy],
+            ["Reboot\nBox", reboot_pi],
             ["Aquarium\nLights", self.dummy],
             ["Grow Lights", self.dummy],
             ["Fertilizer", self.dummy],
@@ -239,7 +278,7 @@ class SystemSettingsPage(Subwindow):
 
         buttons = [
             ["About", self.dummy],
-            ["Shutdown", self.dummy],
+            ["Shutdown\nBox", shutdown_pi],
             ["Exit GUI", self.quitGui],
             ["Network Info", self.dummy],
             ["Set Time", self.dummy],
@@ -267,19 +306,20 @@ class ManualFertilizerPage(Subwindow):
         super().__init__("Fertilizer Info")
 
         buttons = [
-            ["Dispense\n3mL",lambda: self.dispenseInThread(1)],
-            ["Dispense\n10mL", lambda: self.dispenseInThread(1)],
-            ["Prime Line\nPush to start", None],
+            ["Dispense\n3mL",lambda: self.dispenseInThread(3)],
+            ["Dispense\n10mL", lambda: self.dispenseInThread(10)],
+            ["Hold to\ndispense\ncontinuously", None],
             ["Timer\nSettings", lambda:SettingsPage()]
         ]
         self.drawButtonGrid(buttons)
 
+        #Link the hold to dispense button to press/release callbacks
         self.buttons[2].bind("<ButtonPress>", self.on_press)
         self.buttons[2].bind("<ButtonRelease>", self.on_release)
 
     def on_press(self, event):
         self.dispense_stop_event = threading.Event()
-        self.dispenseThread = threading.Thread(target=dispense, args=(hwCntrl, 50, self.dispense_stop_event), daemon=True)
+        self.dispenseThread = threading.Thread(target=dispense, args=(hwCntrl, 100, self.dispense_stop_event), daemon=True)
         self.dispenseThread.start()
 
 
@@ -287,10 +327,10 @@ class ManualFertilizerPage(Subwindow):
         if (self.dispenseThread.is_alive()):
             self.dispense_stop_event.set()
             self.dispenseThread.join()
-            print("Dispense thread killed", flush=True)
+            logging.info("Dispense thread killed")
         else:
             self.dispenseThread.join()
-            print("Dispense thread already dead", flush=True)
+            logging.info("Dispense thread already dead")
 
 
     def dispenseInThread(self, volume_ml):
@@ -300,24 +340,21 @@ class ManualFertilizerPage(Subwindow):
         self.thread.join()
 
 
-
-    def primeToggle(self):
-        pass
-
-
 if __name__ == "__main__":
+    #Load the config file
+    with open(os.path.join(os.path.dirname(__file__), 'settings','gui.yaml'), 'r') as yamlfile:
+        yData = yaml.safe_load(yamlfile)
+
     logging.basicConfig(
-        filename='gui.log',
+        filename=yData['log']['name'],
         format='%(asctime)s %(levelname)-8s %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S')
     logging.getLogger().setLevel(logging.INFO)
     logging.info("--------- GUI RESTART-------------")
 
-    with grpc.insecure_channel(f"{ADDRESS}:{PORT}") as channel:
+    with grpc.insecure_channel(f"{yData['server']['ip']}:{yData['server']['port']}") as channel:
         hwCntrl = HardwareControlClient(channel)
         hwCntrl.echo()
         root = tk.Tk()
         main = MainWindow(root)
-        #root.attributes('-fullscreen', True) #Uncomment to make fullscreen
-
         root.mainloop()

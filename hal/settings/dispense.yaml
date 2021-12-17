@@ -1,0 +1,16 @@
+# file: dispense.yaml
+# brief Settings for AquaPi Fertilizer dispensing
+# author: Andrew Kessler <Andrewkessler6@gmail.com>
+
+server:
+  ip: "localhost"
+  port: 50051
+
+log:
+  name: "logs/dispense.log"
+
+
+default_volume_ml: 3
+steps_per_ml: 1000 #This may need to be tweaked depending on pump characteristics
+steps_per_command: 500 #This is max amount of steps that will be sent in a single, uninterruptable command
+

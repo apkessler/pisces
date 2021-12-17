@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python /home/pi/Repositories/pisces/hal/run_stepper.py 3
+python /home/pi/Repositories/pisces/hal/dispense.py

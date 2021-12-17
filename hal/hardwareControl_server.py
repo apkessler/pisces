@@ -110,13 +110,13 @@ class HardwareMap():
 
     def setup(self,  configFile):
 
-        logging.info(f"Loading config from {configFile}...\n")
+        logging.info(f"Loading config from {configFile}...")
         with open(configFile, 'r') as f:
             self.jData = json.load(f)
 
         RelayObj = namedtuple('RelayObj',['name','gpioObj'])
 
-        logging.info(f"Creating relay objects...\n")
+        logging.info(f"Creating relay objects...")
 
         self.relayObjs = []
         for r in self.jData['relays']:
@@ -126,7 +126,7 @@ class HardwareMap():
                 )
             self.relayObjs.append(obj)
 
-        logging.info(f"Creating light objects...\n")
+        logging.info(f"Creating light objects...")
 
         def lookupRly(name):
             """
@@ -337,7 +337,7 @@ def serve():
 
     """
     hwMap.setup("hwconfig.json")
-
+    logging.info(f"IsRealHw={isRealHw}")
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     hardwareControl_pb2_grpc.add_HardwareControlServicer_to_server(HardwareControl(), server)
     server.add_insecure_port('[::]:50051')
@@ -346,10 +346,12 @@ def serve():
 
 if __name__ == '__main__':
     logging.basicConfig(
-        filename='server.log',
+        filename='logs/server.log',
         format='%(asctime)s %(levelname)-8s %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S')
     logging.getLogger().setLevel(logging.INFO)
+    logging.info("--------- SERVER RESTART-------------")
+
     serve()
 
 
