@@ -28,7 +28,7 @@ from dispense import dispense
 
 
 ##### Globals ####
-fontTuple = ('Arial', 14)
+fontTuple = ('Arial', 15)
 
 hwCntrl = None #Global stub, because its easiest
 yData = None #config data
@@ -109,7 +109,7 @@ class Window(object):
         for inx, bInfo in enumerate(buttonMap):
             f = tk.Frame(frame, width=200, height=200, padx=10, pady=10) #make a frame where button goes
             if (type(bInfo[0]) is str):
-                b = tk.Button(f, text=bInfo[0], command=bInfo[1])
+                b = tk.Button(f, text=bInfo[0], font=fontTuple, command=bInfo[1])
             else:
                 b = tk.Button(f, textvariable=bInfo[0], font=fontTuple, command=bInfo[1])
 
@@ -143,7 +143,7 @@ class MainWindow(Window):
 
         self.timeText = tk.StringVar()
         self.updateTimestamp()
-        tk.Label(root, textvariable=self.timeText, font=fontTuple).place(x=220, y=5)
+        tk.Label(root, textvariable=self.timeText, font=('Arial',18)).place(x=475, y=15)
 
 
         self.tempText = tk.StringVar()
@@ -232,8 +232,8 @@ class Subwindow(Window):
 
         self.master.grab_set()
 
-        btn = tk.Button(self.master, text="Back", font=fontTuple, width=14, height=2, bg='#ff5733', command=self.exit)
-        btn.place(x=550, y=10)
+        btn = tk.Button(self.master, text="Back", font=fontTuple, width=9, height=2, bg='#ff5733', command=self.exit)
+        btn.place(x=450, y=10)
 
     def exit(self):
         self.master.destroy()
