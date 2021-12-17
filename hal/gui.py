@@ -10,12 +10,14 @@
 
 import tkinter as tk
 import socket
-
+import logging
 import datetime
 import hardwareControl_pb2
 import hardwareControl_pb2_grpc
 from hardwareControl_client import HardwareControlClient
 import grpc
+from run_stepper import dispense
+import threading
 
 ADDRESS = "localhost"
 PORT = "50051"
@@ -40,6 +42,8 @@ def get_ip():
 
 
 ### TKinter Stuff
+
+hwCntrl = None #Global stub, because its easiest
 
 class Window(object):
     """Generic window object. Do not instantiate directly.
@@ -67,8 +71,9 @@ class Window(object):
         buttonMap : [type]
             [description]
         """
+        self.buttons = []
         frame = tk.Frame(self.master)
-        frame.place(in_=self.master, anchor='c', relx=0.5, rely=0.5)
+        frame.place(in_=self.master, anchor='c', relx=0.5, rely=0.55)
         for inx, bInfo in enumerate(buttonMap):
             f = tk.Frame(frame, width=100, height=100, padx=5, pady=5) #make a frame where button goes
             if (type(bInfo[0]) is str):
@@ -82,6 +87,7 @@ class Window(object):
 
             f.grid(row = int(inx/3), column=inx%3)
             b.grid(sticky="NWSE")
+            self.buttons.append(b)
 
 
 
@@ -94,10 +100,9 @@ class MainWindow(Window):
         [description]
     """
 
-    def __init__(self, root, hwCntrl):
+    def __init__(self, root):
         super().__init__("Main Window", root)
-        self.hwCntrl = hwCntrl
-        self.hwCntrl.setScope() #Reset scope to make sure schedule is running
+        hwCntrl.setScope() #Reset scope to make sure schedule is running
         self.lightToggleModes = ['Schedule', 'All On', 'All Night', 'All Off']
         self.currentLightToggleModeInx = 0
 
@@ -132,21 +137,21 @@ class MainWindow(Window):
         newMode = self.lightToggleModes[self.currentLightToggleModeInx]
         print(f"Toggled to mode {newMode}", flush=True)
         if (newMode == 'Schedule'):
-            self.hwCntrl.setScope()
+            hwCntrl.setScope()
         elif (newMode == 'All On'):
-            self.hwCntrl.setScope(scope=myScope)
+            hwCntrl.setScope(scope=myScope)
             for lightId in [1,2,3]:
-                self.hwCntrl.setLightState(lightId, hardwareControl_pb2.LightState_Day, scope=myScope)
+                hwCntrl.setLightState(lightId, hardwareControl_pb2.LightState_Day, scope=myScope)
 
         elif (newMode == 'All Night'):
-            self.hwCntrl.setScope(scope=myScope)
+            hwCntrl.setScope(scope=myScope)
             for lightId in [1,2,3]:
-                self.hwCntrl.setLightState(lightId, hardwareControl_pb2.LightState_Night, scope=myScope)
+                hwCntrl.setLightState(lightId, hardwareControl_pb2.LightState_Night, scope=myScope)
 
         elif (newMode == 'All Off'):
-            self.hwCntrl.setScope(scope=myScope)
+            hwCntrl.setScope(scope=myScope)
             for lightId in [1,2,3]:
-                self.hwCntrl.setLightState(lightId, hardwareControl_pb2.LightState_Off, scope=myScope)
+                hwCntrl.setLightState(lightId, hardwareControl_pb2.LightState_Off, scope=myScope)
 
 
     def refresh_data(self):
@@ -156,12 +161,12 @@ class MainWindow(Window):
         #Update all things that need updating
 
         #Update the temperature reading
-        temp_degC = self.hwCntrl.getTemperature_degC()
+        temp_degC = hwCntrl.getTemperature_degC()
         temp_degF = (temp_degC * 9.0) / 5.0 + 32.0
         self.tempText.set(f"Temperature\n{temp_degF:0.2f}°F")
 
         #Update the pH Reading
-        ph = self.hwCntrl.getPH()
+        ph = hwCntrl.getPH()
         self.phText.set(f"pH\n{ph:0.2f}")
 
 
@@ -262,29 +267,57 @@ class ManualFertilizerPage(Subwindow):
         super().__init__("Fertilizer Info")
 
         buttons = [
-            ["Dispense\n3mL", self.dummy],
-            ["Dispense\n10mL", self.dummy],
-            ["Prime Line\nPush to start", self.dummy],
+            ["Dispense\n3mL",lambda: self.dispenseInThread(1)],
+            ["Dispense\n10mL", lambda: self.dispenseInThread(1)],
+            ["Prime Line\nPush to start", None],
             ["Timer\nSettings", lambda:SettingsPage()]
         ]
         self.drawButtonGrid(buttons)
 
-    def dispenseNormal(self):
-        pass
+        self.buttons[2].bind("<ButtonPress>", self.on_press)
+        self.buttons[2].bind("<ButtonRelease>", self.on_release)
 
-    def dispense10mL(self):
-        pass
+    def on_press(self, event):
+        self.dispense_stop_event = threading.Event()
+        self.dispenseThread = threading.Thread(target=dispense, args=(hwCntrl, 50, self.dispense_stop_event), daemon=True)
+        self.dispenseThread.start()
+
+
+    def on_release(self, event):
+        if (self.dispenseThread.is_alive()):
+            self.dispense_stop_event.set()
+            self.dispenseThread.join()
+            print("Dispense thread killed", flush=True)
+        else:
+            self.dispenseThread.join()
+            print("Dispense thread already dead", flush=True)
+
+
+    def dispenseInThread(self, volume_ml):
+        stop_event = threading.Event()
+        self.thread = threading.Thread(target=dispense, args=(hwCntrl, volume_ml, stop_event), daemon=True)
+        self.thread.start()
+        self.thread.join()
+
+
 
     def primeToggle(self):
         pass
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        filename='gui.log',
+        format='%(asctime)s %(levelname)-8s %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S')
+    logging.getLogger().setLevel(logging.INFO)
+    logging.info("--------- GUI RESTART-------------")
+
     with grpc.insecure_channel(f"{ADDRESS}:{PORT}") as channel:
         hwCntrl = HardwareControlClient(channel)
         hwCntrl.echo()
         root = tk.Tk()
-        main = MainWindow(root, hwCntrl)
+        main = MainWindow(root)
         #root.attributes('-fullscreen', True) #Uncomment to make fullscreen
 
         root.mainloop()
