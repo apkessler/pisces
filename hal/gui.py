@@ -28,7 +28,7 @@ from dispense import dispense
 
 
 ##### Globals ####
-
+fontTuple = ('Arial', 14)
 
 hwCntrl = None #Global stub, because its easiest
 yData = None #config data
@@ -111,7 +111,7 @@ class Window(object):
             if (type(bInfo[0]) is str):
                 b = tk.Button(f, text=bInfo[0], command=bInfo[1])
             else:
-                b = tk.Button(f, textvariable=bInfo[0], command=bInfo[1])
+                b = tk.Button(f, textvariable=bInfo[0], font=fontTuple, command=bInfo[1])
 
             f.rowconfigure(0, weight=1)
             f.columnconfigure(0, weight = 1)
@@ -143,7 +143,7 @@ class MainWindow(Window):
 
         self.timeText = tk.StringVar()
         self.updateTimestamp()
-        tk.Label(root, textvariable=self.timeText, font=("Arial", 12)).place(x=220, y=5)
+        tk.Label(root, textvariable=self.timeText, font=fontTuple).place(x=220, y=5)
 
 
         self.tempText = tk.StringVar()
@@ -232,8 +232,8 @@ class Subwindow(Window):
 
         self.master.grab_set()
 
-        btn = tk.Button(self.master, text="Back", width=7, height=1, bg='#ff5733', command=self.exit)
-        btn.place(x=250, y=5)
+        btn = tk.Button(self.master, text="Back", font=fontTuple, width=14, height=2, bg='#ff5733', command=self.exit)
+        btn.place(x=550, y=10)
 
     def exit(self):
         self.master.destroy()
@@ -271,9 +271,9 @@ class SystemSettingsPage(Subwindow):
     def __init__(self):
         super().__init__("System Settings")
 
-        tk.Label(self.master, text=f"IP Address: {get_ip()}", font=("Arial", 10)).grid(row=1, column=0, padx=5, pady= 5)
-        tk.Label(self.master, text=f"", font=("Arial", 10)).grid(row=2, column=0)
-        tk.Label(self.master, text=f"", font=("Arial", 10)).grid(row=3, column=0)
+        tk.Label(self.master, text=f"IP Address: {get_ip()}", font=("Arial", 12)).grid(row=1, column=0, padx=5, pady= 5)
+        tk.Label(self.master, text=f"", font=("Arial", 12)).grid(row=2, column=0)
+        tk.Label(self.master, text=f"", font=("Arial", 12)).grid(row=3, column=0)
 
 
         buttons = [
