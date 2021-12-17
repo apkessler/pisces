@@ -7,6 +7,6 @@ server:
   port: 50051
 
 log:
-  name: "logs/gui.log"
+  name: "/home/pi/logs/gui.log"
 
 fullscreen: true

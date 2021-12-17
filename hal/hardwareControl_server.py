@@ -336,7 +336,7 @@ def serve():
     """
 
     """
-    hwMap.setup("hwconfig.json")
+    hwMap.setup("/home/pi/Repositories/pisces/hal/hwconfig.json")
     logging.info(f"IsRealHw={isRealHw}")
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     hardwareControl_pb2_grpc.add_HardwareControlServicer_to_server(HardwareControl(), server)
@@ -346,7 +346,7 @@ def serve():
 
 if __name__ == '__main__':
     logging.basicConfig(
-        filename='logs/server.log',
+        filename='/home/pi/logs/server.log',
         format='%(asctime)s %(levelname)-8s %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S')
     logging.getLogger().setLevel(logging.INFO)
