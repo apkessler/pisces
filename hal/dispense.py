@@ -77,7 +77,8 @@ def dispense(hwCntrl, volume_ml:int, stop_event:threading.Event):
                 break
         total_nsteps -= _yData['steps_per_command']
 
-    time.sleep(1)#Allow some time for ongoing dispense to finish
+    logging.info("Not sending anymore dispense commands")
+    time.sleep(6)#Allow some time for ongoing dispense to finish
 
     #renable the lights
     logging.info("Reenabling lights")
