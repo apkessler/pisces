@@ -135,7 +135,7 @@ class MainWindow(Window):
     def __init__(self, root):
         super().__init__("Main Window", root)
         hwCntrl.setScope() #Reset scope to make sure schedule is running
-        self.lightToggleModes = ['Schedule', 'All On', 'All Night', 'All Off']
+        self.lightToggleModes = ['Schedule', 'All On', 'All Blue', 'All Off']
         self.currentLightToggleModeInx = 0
 
         self.lightModeText = tk.StringVar()
@@ -186,10 +186,12 @@ class MainWindow(Window):
             for lightId in [1,2,3]:
                 hwCntrl.setLightState(lightId, hardwareControl_pb2.LightState_Day, scope=myScope)
 
-        elif (newMode == 'All Night'):
+        elif (newMode == 'All Blue'):
             hwCntrl.setScope(scope=myScope)
-            for lightId in [1,2,3]:
+            for lightId in [1,2]:
                 hwCntrl.setLightState(lightId, hardwareControl_pb2.LightState_Night, scope=myScope)
+            hwCntrl.setLightState(3, hardwareControl_pb2.LightState_Day, scope=myScope) #Keep gro lights on
+
 
         elif (newMode == 'All Off'):
             hwCntrl.setScope(scope=myScope)
