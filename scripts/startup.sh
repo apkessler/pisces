@@ -11,6 +11,8 @@ pkill -INT -f hardwareControl_server.py
 pkill -INT -f scheduler.py
 pkill -INT -f gui.py
 
+export DISPLAY=:0.0 
+
 sleep 1
 
 echo "Restarting server"
