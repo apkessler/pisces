@@ -2,6 +2,7 @@ PY=python3
 
 PROTO_LOCATION=shared
 
+#TODO: make this a list?
 PROTO_FILE=./hal/protodefs/hardwareControl.proto
 
 protos: $(PROTO_FILE)
@@ -15,3 +16,5 @@ clean:
 
 install:
 	echo "Install?"
+	#add shared location to python path?
+	#add and enable services
