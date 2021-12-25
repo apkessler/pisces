@@ -15,7 +15,7 @@ import hardwareControl_pb2
 import hardwareControl_pb2_grpc
 from hardwareControl_client import HardwareControlClient
 
-confFile = "/home/pi/Repositories/pisces/hal/schedule.json"
+confFile = "/home/pi/Repositories/pisces/scheduler/schedule.json"
 
 class State(Enum):
     PINIT = 0
