@@ -1,0 +1,15 @@
+
+{
+  "server":
+  {
+    "ip":"localhost",
+    "port":50051
+  },
+
+  "log":
+  {
+    "name": "logs/gui.log"
+  },
+
+  "fullscreen":true
+}

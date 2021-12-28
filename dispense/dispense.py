@@ -9,16 +9,16 @@ import grpc
 import time
 import argparse
 import threading
-import yaml
+import json
 import os
 
 from hardwareControl_client import HardwareControlClient
 
-_yData = None
+_jData = None
 
 #Do this setup up here so we get config and logging even if function is imported on its own
-with open(os.path.join(os.path.dirname(__file__), 'settings','dispense.yaml'), 'r') as yamlfile:
-    _yData = yaml.safe_load(yamlfile)
+with open(os.path.join(os.path.dirname(__file__), 'settings','dispense.json'), 'r') as jsonfile:
+    _jData = json.load(jsondata)
 
 
 def ml_to_steps(ml:int) -> int:
@@ -34,7 +34,7 @@ def ml_to_steps(ml:int) -> int:
     int
         Needed stepper motor steps
     """
-    return _yData['steps_per_ml']*ml
+    return _jData['steps_per_ml']*ml
 
 
 def dispense(hwCntrl, volume_ml:int, stop_event:threading.Event):
@@ -64,7 +64,7 @@ def dispense(hwCntrl, volume_ml:int, stop_event:threading.Event):
 
     while total_nsteps > 0 and (not stop_event.is_set()):
 
-        stepsThisTime = _yData['steps_per_command'] if total_nsteps >  _yData['steps_per_command'] else total_nsteps
+        stepsThisTime = _jData['steps_per_command'] if total_nsteps >  _jData['steps_per_command'] else total_nsteps
 
         hwCntrl.moveStepper(stepsThisTime)
         logging.info(f"Sending request to step {stepsThisTime}")
@@ -75,7 +75,7 @@ def dispense(hwCntrl, volume_ml:int, stop_event:threading.Event):
             if stop_event.is_set():
                 logging.info(f"Dispense got stop flag early!")
                 break
-        total_nsteps -= _yData['steps_per_command']
+        total_nsteps -= _jData['steps_per_command']
 
     logging.info("Not sending anymore dispense commands")
     time.sleep(6)#Allow some time for ongoing dispense to finish
@@ -89,19 +89,19 @@ def dispense(hwCntrl, volume_ml:int, stop_event:threading.Event):
 
 if __name__ == '__main__':
     logging.basicConfig(
-    filename=_yData['log']['name'],
+    filename=_jData['log']['name'],
     format='%(asctime)s %(levelname)-8s %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S')
     logging.getLogger().setLevel(logging.INFO)
 
 
     parser = argparse.ArgumentParser(description='Run the pump for a given number of mL')
-    parser.add_argument('volume_ml', nargs='?', type=int, default=_yData['default_volume_ml'], help='The number of mL to dispense')
+    parser.add_argument('volume_ml', nargs='?', type=int, default=_jData['default_volume_ml'], help='The number of mL to dispense')
 
     args = parser.parse_args()
 
     stop_event = threading.Event()
-    with grpc.insecure_channel(f"{_yData['server']['ip']}:{_yData['server']['port']}") as channel:
+    with grpc.insecure_channel(f"{_jData['server']['ip']}:{_jData['server']['port']}") as channel:
         hwCntrl = HardwareControlClient(channel)
         stopFlag = False
         t = threading.Thread(target=dispense, args=(hwCntrl, args.volume_ml, stop_event), daemon=True)

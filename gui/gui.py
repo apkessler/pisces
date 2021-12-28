@@ -18,7 +18,7 @@ import threading
 # 3rd party imports
 import tkinter as tk
 import grpc
-import yaml
+import json
 
 # Custom imports
 import hardwareControl_pb2
@@ -344,17 +344,17 @@ class ManualFertilizerPage(Subwindow):
 
 if __name__ == "__main__":
     #Load the config file
-    with open(os.path.join(os.path.dirname(__file__), 'settings','gui.yaml'), 'r') as yamlfile:
-        yData = yaml.safe_load(yamlfile)
+    with open(os.path.join(os.path.dirname(__file__), 'settings','gui.json'), 'r') as jsonfile:
+        jData = json.load(jsonfile)
 
     logging.basicConfig(
-        filename=yData['log']['name'],
+        filename=jData['log']['name'],
         format='%(asctime)s %(levelname)-8s %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S')
     logging.getLogger().setLevel(logging.INFO)
     logging.info("--------- GUI RESTART-------------")
 
-    with grpc.insecure_channel(f"{yData['server']['ip']}:{yData['server']['port']}") as channel:
+    with grpc.insecure_channel(f"{jData['server']['ip']}:{jData['server']['port']}") as channel:
         hwCntrl = HardwareControlClient(channel)
         hwCntrl.echo()
         root = tk.Tk()
