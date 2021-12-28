@@ -351,7 +351,7 @@ if __name__ == "__main__":
         filename=jData['log']['name'],
         format='%(asctime)s %(levelname)-8s %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S')
-    logging.getLogger().setLevel(logging.INFO)
+    logging.getLogger().setLevel(jData['log']['level'])
     logging.info("--------- GUI RESTART-------------")
 
     with grpc.insecure_channel(f"{jData['server']['ip']}:{jData['server']['port']}") as channel:

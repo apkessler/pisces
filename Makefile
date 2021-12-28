@@ -38,6 +38,7 @@ build: protos
 	mkdir -p $(BUILD_SHARED)
 	mkdir -p $(BUILD_SETTINGS)
 	mkdir -p $(BUILD_BIN)
+	mkdir -p $(BUILD_PATH)/logs
 
 	echo "Copying files..."
 #   Move settings files over (better way to do this?)

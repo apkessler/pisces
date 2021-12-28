@@ -18,7 +18,7 @@ _jData = None
 
 #Do this setup up here so we get config and logging even if function is imported on its own
 with open(os.path.join(os.path.dirname(__file__), 'settings','dispense.json'), 'r') as jsonfile:
-    _jData = json.load(jsondata)
+    _jData = json.load(jsonfile)
 
 
 def ml_to_steps(ml:int) -> int:
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     filename=_jData['log']['name'],
     format='%(asctime)s %(levelname)-8s %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S')
-    logging.getLogger().setLevel(logging.INFO)
+    logging.getLogger().setLevel(_jData['log']['level'])
 
 
     parser = argparse.ArgumentParser(description='Run the pump for a given number of mL')

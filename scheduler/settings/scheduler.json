@@ -1,4 +1,14 @@
 {
+    "server":
+    {
+        "ip":"localhost",
+        "port":50051
+    },
+    "log":
+    {
+        "name":"logs/scheduler.log",
+        "level":"INFO"
+    },
     "schedules":
     [
         {

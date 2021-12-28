@@ -108,11 +108,8 @@ class HardwareMap():
         self.bufferedLightCmdList = []
         self.scope = ""
 
-    def setup(self,  configFile):
-
-        logging.info(f"Loading config from {configFile}...")
-        with open(configFile, 'r') as f:
-            self.jData = json.load(f)
+    def setup(self,  jData):
+        self.jData= jData
 
         RelayObj = namedtuple('RelayObj',['name','gpioObj'])
 
@@ -332,28 +329,25 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
 
 
 
-def serve():
-    """
+if __name__ == '__main__':
+    #Load the config file
+    with open(os.path.join('settings','hwcontrol.json'), 'r') as jsonfile:
+        jData = json.load(jsonfile)
 
-    """
-    hwMap.setup("settings/hwconfig.json")
+    logging.basicConfig(
+        filename=jData['log']['name'],
+        format='%(asctime)s %(levelname)-8s %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S')
+    logging.getLogger().setLevel(jData['log']['level'])
+    logging.info("--------- SERVER RESTART-------------")
+
+    hwMap.setup(jData['hwmap'])
     logging.info(f"IsRealHw={isRealHw}")
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     hardwareControl_pb2_grpc.add_HardwareControlServicer_to_server(HardwareControl(), server)
-    server.add_insecure_port('[::]:50051')
+    server.add_insecure_port(f"[::]:{jData['server']['port']}")
     server.start()
     server.wait_for_termination()
-
-if __name__ == '__main__':
-    logging.basicConfig(
-        filename='logs/server.log',
-        format='%(asctime)s %(levelname)-8s %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S')
-    logging.getLogger().setLevel(logging.INFO)
-    logging.info("--------- SERVER RESTART-------------")
-
-    serve()
-
 
 
 

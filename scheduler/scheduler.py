@@ -8,14 +8,15 @@ import logging
 import grpc
 import time
 import json
-
+import os
 from enum import Enum
 import datetime as dt
+
+# Custom imports
 import hardwareControl_pb2
 import hardwareControl_pb2_grpc
 from hardwareControl_client import HardwareControlClient
 
-confFile = "/home/pi/Repositories/pisces/scheduler/schedule.json"
 
 class State(Enum):
     PINIT = 0
@@ -138,29 +139,6 @@ class ScheduleSM():
             return State.NIGHT
 
 
-
-def main():
-    with grpc.insecure_channel('localhost:50051') as channel:
-        hwCntrl = HardwareControlClient(channel)
-
-        with open(confFile,'r') as f:
-            jData = json.load(f)
-
-
-        schds = [ScheduleSM(jD, hwCntrl) for jD in jData["schedules"]]
-        logging.info("Schedulers initialized")
-
-        while (1):
-            for schSM in schds:
-                schSM.update(dt.datetime.now())
-            time.sleep(30)
-
-
-        logging.info("Scheduler ending")
-
-
-
-
 def test():
     with grpc.insecure_channel('localhost:50051') as channel:
         hwCntrl = HardwareControlClient(channel)
@@ -189,12 +167,30 @@ def test():
 
 
 if __name__ == '__main__':
-    logging.basicConfig(filename='/home/pi/logs/scheduler.log', format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-    logging.getLogger().setLevel(logging.INFO)
+
+    with open(os.path.join('settings','scheduler.json'),'r') as f:
+        jData = json.load(f)
+
+    logging.basicConfig(
+        filename=jData['log']['name'],
+        format='%(asctime)s %(levelname)-8s %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S')
+    logging.getLogger().setLevel(jData['log']['level'])
+
     logging.info(f"Starting SCHEDULER")
-    main()
+
     try:
-        main()
+        with grpc.insecure_channel(f"{jData['server']['ip']}:{jData['server']['port']}") as channel:
+            hwCntrl = HardwareControlClient(channel)
+
+            schds = [ScheduleSM(jD, hwCntrl) for jD in jData["schedules"]]
+            logging.info("Schedulers initialized")
+
+            while (1):
+                for schSM in schds:
+                    schSM.update(dt.datetime.now())
+                time.sleep(30)
+
     except Exception as e:
         logging.error(f"{e}")
 

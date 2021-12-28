@@ -4,7 +4,8 @@
     "port": 50051
   },
   "log": {
-    "name": "logs/dispense.log"
+    "name": "logs/dispense.log",
+    "level": "INFO"
   },
   "default_volume_ml": 3,
   "steps_per_ml": 1000,
