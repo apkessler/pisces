@@ -54,12 +54,14 @@ build: protos
 
 
 # 	Move executables over
-	cp gui/gui.py		$(BUILD_BIN)
+	cp gui/gui.py					$(BUILD_BIN)
 	cp hal/hardwareControl_server.py $(BUILD_BIN)
-	cp dispense/dispense.py	$(BUILD_BIN)
-	cp scheduler/scheduler.py $(BUILD_BIN)
+	cp dispense/dispense.py			$(BUILD_BIN)
+	cp scheduler/scheduler.py 		$(BUILD_BIN)
+	cp scripts/*					$(BUILD_BIN)
 
 	echo "Done!"
+
 install:
 	echo "Install?"
 	#add shared location to python path?
