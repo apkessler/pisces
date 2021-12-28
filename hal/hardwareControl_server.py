@@ -16,12 +16,12 @@ import hardwareControl_pb2_grpc
 
 try:
     import gpiozero as gz
-    print("Raspberry pi config detected")
+    print(f"{__file__} Raspberry pi config detected")
     isRealHw = True
 except ModuleNotFoundError:
     isRealHw = False
     import fakegpio as gz
-    print("Not on raspberry pi - running in simulated mode")
+    print(f"{__file__} Not on raspberry pi - running in simulated mode")
 
 
 
@@ -336,7 +336,7 @@ def serve():
     """
 
     """
-    hwMap.setup("/home/pi/Repositories/pisces/hal/hwconfig.json")
+    hwMap.setup("settings/hwconfig.json")
     logging.info(f"IsRealHw={isRealHw}")
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     hardwareControl_pb2_grpc.add_HardwareControlServicer_to_server(HardwareControl(), server)
@@ -346,7 +346,7 @@ def serve():
 
 if __name__ == '__main__':
     logging.basicConfig(
-        filename='/home/pi/logs/server.log',
+        filename='logs/server.log',
         format='%(asctime)s %(levelname)-8s %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S')
     logging.getLogger().setLevel(logging.INFO)

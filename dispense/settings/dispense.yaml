@@ -7,7 +7,7 @@ server:
   port: 50051
 
 log:
-  name: "/home/pi/logs/dispense.log"
+  name: "logs/dispense.log"
 
 
 default_volume_ml: 3
