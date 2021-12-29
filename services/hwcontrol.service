@@ -8,7 +8,7 @@ Type=simple
 Restart=never
 RestartSec=1
 #User=pi
-WorkingDirectory=~/pisces/build/
+WorkingDirectory=/home/pi/pisces/build/
 ExecStart=/usr/bin/env python3 $INSTALL_DIR/bin/hwcontrol_server.py
 Environment="INSTALL_DIR=~/Repositories/pisces/build"
 Environment="PYTHONPATH=$INSTALL_DIR/shared"
