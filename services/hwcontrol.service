@@ -1,18 +1,19 @@
 [Unit]
 Description=Pisces HW Control Service
-After=network.target
-StartLimitIntervalSec=0
+#After=network.target
+#StartLimitIntervalSec=0
 
 [Service]
-Type=notify
-Restart=always
+Type=simple
+Restart=never
 RestartSec=1
-User=pi
+#User=pi
+WorkingDirectory=~/pisces/build/
 ExecStart=/usr/bin/env python3 $INSTALL_DIR/bin/hwcontrol_server.py
 Environment="INSTALL_DIR=~/Repositories/pisces/build"
 Environment="PYTHONPATH=$INSTALL_DIR/shared"
 #StandardOutput=
-#StandatdError=inherit
+#StandardError=inherit
 
 #[Install]
 #WantedBy=multi-user.target
