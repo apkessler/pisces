@@ -344,7 +344,7 @@ class ManualFertilizerPage(Subwindow):
 
 if __name__ == "__main__":
     #Load the config file
-    with open(os.path.join(os.path.dirname(__file__), 'settings','gui.json'), 'r') as jsonfile:
+    with open(os.path.join('settings','gui.json'), 'r') as jsonfile:
         jData = json.load(jsonfile)
 
     logging.basicConfig(
