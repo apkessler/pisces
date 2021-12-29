@@ -14,5 +14,5 @@ Environment="PYTHONPATH=$INSTALL_DIR/shared"
 #StandardOutput=
 #StandatdError=inherit
 
-[Install]
-WantedBy=multi-user.target
+#[Install]
+#WantedBy=multi-user.target
