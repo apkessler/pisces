@@ -1,6 +1,6 @@
 [Unit]
 Description=Pisces GUI Service
-After=network.target hwnctrl.service scheduler.service
+After=network.target hwcontrol.service scheduler.service
 #StartLimitIntervalSec=0
 
 [Service]

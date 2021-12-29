@@ -1,6 +1,6 @@
 [Unit]
 Description=Pisces Scheduler Service
-After=network.target hwnctrl.service
+After=network.target hwcontrol.service
 #StartLimitIntervalSec=0
 
 [Service]
