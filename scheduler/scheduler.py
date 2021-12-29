@@ -15,7 +15,7 @@ import datetime as dt
 # Custom imports
 import hardwareControl_pb2
 import hardwareControl_pb2_grpc
-from hardwareControl_client import HardwareControlClient
+from hwcontrol_client import HardwareControlClient
 
 
 class State(Enum):

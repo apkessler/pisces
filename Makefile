@@ -52,13 +52,12 @@ build: protos
 	cp hal/client/*		$(BUILD_SHARED)
 	cp dispense/*.py 	$(BUILD_SHARED)
 
-
 # 	Move executables over
-	cp gui/gui.py					$(BUILD_BIN)
-	cp hal/hardwareControl_server.py $(BUILD_BIN)
-	cp dispense/dispense.py			$(BUILD_BIN)
-	cp scheduler/scheduler.py 		$(BUILD_BIN)
-	cp scripts/*					$(BUILD_BIN)
+	cp gui/gui.py				$(BUILD_BIN)
+	cp hal/hwcontrol_server.py 	$(BUILD_BIN)
+	cp dispense/dispense.py		$(BUILD_BIN)
+	cp scheduler/scheduler.py 	$(BUILD_BIN)
+	cp scripts/*				$(BUILD_BIN)
 
 	echo "Done!"
 

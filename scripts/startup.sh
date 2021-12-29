@@ -12,7 +12,7 @@ export PYTHONPATH=$INSTALL_DIR/shared
 PY=python3
 #Kill if already running
 echo "Killing processes..."
-pkill -INT -f hardwareControl_server.py
+pkill -INT -f hwcontrol_server.py
 pkill -INT -f scheduler.py
 pkill -INT -f gui.py
 
@@ -23,7 +23,7 @@ sleep 2
 
 echo "Restarting server"
 #start the grpc server
-$PY $INSTALL_DIR/bin/hardwareControl_server.py &
+$PY $INSTALL_DIR/bin/hwcontrol_server.py &
 
 #launch the scheduler client task
 sleep 5

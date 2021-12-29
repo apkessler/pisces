@@ -1,0 +1,18 @@
+[Unit]
+Description=Pisces GUI Service
+After=network.target hwnctrl.service scheduler.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=pi
+ExecStart=/usr/bin/env python3 /home/pi/build/bin/gui.py
+Environment="PYTHONPATH=/home/pi/build/shared"
+Environment="DISPLAY=:0.0"
+#StandardOutput=
+#StandatdError=inherit
+
+[Install]
+WantedBy=multi-user.target
