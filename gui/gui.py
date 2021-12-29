@@ -31,7 +31,7 @@ from dispense import dispense
 fontTuple = ('Arial', 15)
 
 hwCntrl = None #Global stub, because its easiest
-yData = None #config data
+jData = None #config data
 
 
 ### Helper functions
@@ -88,7 +88,7 @@ class Window(object):
         self.master = handle
         self.master.wm_geometry("640x480")
         self.master.title(title)
-        if (yData['fullscreen']):
+        if (jData['fullscreen']):
             self.master.attributes('-fullscreen', True)
 
 
@@ -344,7 +344,7 @@ class ManualFertilizerPage(Subwindow):
 
 if __name__ == "__main__":
     #Load the config file
-    with open(os.path.join('settings','gui.json'), 'r') as jsonfile:
+    with open(os.path.join( 'settings','gui.json'), 'r') as jsonfile:
         jData = json.load(jsonfile)
 
     logging.basicConfig(
