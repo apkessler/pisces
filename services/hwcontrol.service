@@ -9,7 +9,7 @@ Restart=no
 #RestartSec=1
 #User=pi
 WorkingDirectory=/home/pi/Repositories/pisces/build/
-ExecStart=/usr/bin/env python3 /home/pi/Repositories/pisces/bin/hwcontrol_server.py
+ExecStart=/usr/bin/env python3 /home/pi/Repositories/pisces/build/bin/hwcontrol_server.py
 Environment="PYTHONPATH=/home/pi/Repositories/pisces/build/shared"
 #StandardOutput=
 #StandardError=inherit
