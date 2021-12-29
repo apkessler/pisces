@@ -324,7 +324,7 @@ if __name__ == '__main__':
     #Load the config file
     with open(os.path.join('settings','hwcontrol.json'), 'r') as jsonfile:
         jData = json.load(jsonfile)
-
+    print("Loaded conf file", flush=True)
     logging.basicConfig(
         filename=jData['log_name'],
         format='%(asctime)s %(levelname)-8s %(message)s',
@@ -347,7 +347,7 @@ if __name__ == '__main__':
             raise Exception(msg)
 
     hwMap.setup(jData['hwmap'], use_mock_hw=jData['use_mock_hw'])
-
+    print("launching grpc server", flush=True)
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     hardwareControl_pb2_grpc.add_HardwareControlServicer_to_server(HardwareControl(), server)
     server.add_insecure_port(jData['server'])
