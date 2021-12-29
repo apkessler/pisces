@@ -8,8 +8,9 @@ Type=notify
 Restart=always
 RestartSec=1
 User=pi
-ExecStart=/usr/bin/env python3 /home/pi/build/bin/hwcontrol_server.py
-Environment="PYTHONPATH=/home/pi/build/shared"
+ExecStart=/usr/bin/env python3 $INSTALL_DIR/bin/hwcontrol_server.py
+Environment="INSTALL_DIR=~/Repositories/pisces/build"
+Environment="PYTHONPATH=$INSTALL_DIR/shared"
 #StandardOutput=
 #StandatdError=inherit
 
