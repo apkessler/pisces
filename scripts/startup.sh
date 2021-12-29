@@ -5,7 +5,7 @@
 # as a startup task.
 # (TODO: Move these to be managed by systemd instead)
 
-INSTALL_DIR=/home/pi/pisces-deploy
+INSTALL_DIR=~/Repositories/pisces/build
 
 export PYTHONPATH=$INSTALL_DIR/shared
 
@@ -16,9 +16,10 @@ pkill -INT -f hardwareControl_server.py
 pkill -INT -f scheduler.py
 pkill -INT -f gui.py
 
+echo "Processes dead."
 export DISPLAY=:0.0
 
-sleep 1
+sleep 2
 
 echo "Restarting server"
 #start the grpc server
