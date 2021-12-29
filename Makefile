@@ -63,5 +63,6 @@ build: protos
 
 install:
 	echo "Install?"
+	cp services/* ~/.config/systemd/user
 	#add shared location to python path?
 	#add and enable services

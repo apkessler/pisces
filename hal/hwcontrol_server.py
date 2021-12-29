@@ -346,13 +346,22 @@ if __name__ == '__main__':
             logging.error(msg)
             raise Exception(msg)
 
-
     hwMap.setup(jData['hwmap'], use_mock_hw=jData['use_mock_hw'])
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     hardwareControl_pb2_grpc.add_HardwareControlServicer_to_server(HardwareControl(), server)
     server.add_insecure_port(jData['server'])
     server.start()
+
+    #Tell systemd that this service is ready go, if possible
+    try:
+        import systemd.daemon
+        logging.info("Loaded systemd module")
+        systemd.daemon.notify('READY=1')
+    except ModuleNotFoundError:
+        logging.warning("Unable to load systemd module - skipping notify.")
+
+
     server.wait_for_termination()
 
 

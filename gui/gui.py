@@ -23,7 +23,7 @@ import json
 # Custom imports
 import hardwareControl_pb2
 import hardwareControl_pb2_grpc
-from hardwareControl_client import HardwareControlClient
+from hwcontrol_client import HardwareControlClient
 from dispense import dispense
 
 

@@ -12,7 +12,7 @@ import threading
 import json
 import os
 
-from hardwareControl_client import HardwareControlClient
+from hwcontrol_client import HardwareControlClient
 
 _jData = None
 
