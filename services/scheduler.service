@@ -1,15 +1,17 @@
 [Unit]
 Description=Pisces Scheduler Service
 After=network.target hwnctrl.service
-StartLimitIntervalSec=0
+#StartLimitIntervalSec=0
 
 [Service]
 Type=simple
 Restart=always
 RestartSec=1
-User=pi
-ExecStart=/usr/bin/env python3 /home/pi/build/bin/gui.py
-Environment="PYTHONPATH=/home/pi/build/shared"
+#User=pi
+WorkingDirectory=/home/pi/Repositories/pisces/build/
+ExecStart=/usr/bin/env python3 /home/pi/Repositories/pisces/build/bin/scheduler.py
+Environment="PYTHONPATH=/home/pi/Repositories/pisces/build/shared"
+
 #StandardOutput=
 #StandatdError=inherit
 
