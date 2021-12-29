@@ -1,13 +1,9 @@
 {
-    "server":
-    {
-        "port":50051
-    },
-    "log":
-    {
-        "name":"logs/hwcontrol_server.log",
-        "level":"INFO"
-    },
+    "server": "[::]:50051",
+    "log_name": "logs/hwcontrol_server.log",
+    "log_level": "INFO",
+    "use_mock_hw": true,
+
     "hwmap":
     {
         "relays":

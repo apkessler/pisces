@@ -172,15 +172,15 @@ if __name__ == '__main__':
         jData = json.load(f)
 
     logging.basicConfig(
-        filename=jData['log']['name'],
+        filename=jData['log_name'],
         format='%(asctime)s %(levelname)-8s %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S')
-    logging.getLogger().setLevel(jData['log']['level'])
+    logging.getLogger().setLevel(jData['log_level'])
 
     logging.info(f"Starting SCHEDULER")
 
     try:
-        with grpc.insecure_channel(f"{jData['server']['ip']}:{jData['server']['port']}") as channel:
+        with grpc.insecure_channel(jData['server']) as channel:
             hwCntrl = HardwareControlClient(channel)
 
             schds = [ScheduleSM(jD, hwCntrl) for jD in jData["schedules"]]

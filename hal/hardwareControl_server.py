@@ -11,23 +11,13 @@ import grpc, json
 from collections import namedtuple
 import os
 
-import hardwareControl_pb2
-import hardwareControl_pb2_grpc
-
-try:
-    import gpiozero as gz
-    print(f"{__file__} Raspberry pi config detected")
-    isRealHw = True
-except ModuleNotFoundError:
-    isRealHw = False
-    import fakegpio as gz
-    print(f"{__file__} Not on raspberry pi - running in simulated mode")
-
-
+#Note: Lazy import of gpiozero below to support mock hw
 
 #Custom libraries
 import stepper
 import sensorpollers
+import hardwareControl_pb2
+import hardwareControl_pb2_grpc
 
 class Light():
     """
@@ -108,7 +98,7 @@ class HardwareMap():
         self.bufferedLightCmdList = []
         self.scope = ""
 
-    def setup(self,  jData):
+    def setup(self,  jData, use_mock_hw=False):
         self.jData= jData
 
         RelayObj = namedtuple('RelayObj',['name','gpioObj'])
@@ -153,10 +143,11 @@ class HardwareMap():
             self.jData['stepper']['nen_pin'],
             self.jData['stepper']['ms1_pin'],
             self.jData['stepper']['ms2_pin'],
-            self.jData['stepper']['ms3_pin']
+            self.jData['stepper']['ms3_pin'],
+            use_mock_hw = use_mock_hw
             )
 
-        if (isRealHw):
+        if (not 'use_mock_hw'):
             self.thermometerPoller = sensorpollers.ThermometerPoller(interval_s = self.jData['thermometer']['poll_interval_sec'])
             self.phSensorPoller = sensorpollers.PhSensorPoller(interval_s= self.jData['ph_sensor']['poll_interval_sec'])
         else:
@@ -335,17 +326,32 @@ if __name__ == '__main__':
         jData = json.load(jsonfile)
 
     logging.basicConfig(
-        filename=jData['log']['name'],
+        filename=jData['log_name'],
         format='%(asctime)s %(levelname)-8s %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S')
-    logging.getLogger().setLevel(jData['log']['level'])
+    logging.getLogger().setLevel(jData['log_level'])
     logging.info("--------- SERVER RESTART-------------")
 
-    hwMap.setup(jData['hwmap'])
-    logging.info(f"IsRealHw={isRealHw}")
+    logging.info(f"UseMockHw={jData['use_mock_hw']}")
+
+    if (jData['use_mock_hw']):
+        import fakegpio as gz
+        logging.info("Loaded fakegpio module.")
+    else:
+        try:
+            import gpiozero as gz
+            logging.info("Loaded gpiozero module")
+        except ModuleNotFoundError:
+            msg = "Unable to load gpiozero module! Not running on RPi?"
+            logging.error(msg)
+            raise Exception(msg)
+
+
+    hwMap.setup(jData['hwmap'], use_mock_hw=jData['use_mock_hw'])
+
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     hardwareControl_pb2_grpc.add_HardwareControlServicer_to_server(HardwareControl(), server)
-    server.add_insecure_port(f"[::]:{jData['server']['port']}")
+    server.add_insecure_port(jData['server'])
     server.start()
     server.wait_for_termination()
 

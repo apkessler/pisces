@@ -89,10 +89,10 @@ def dispense(hwCntrl, volume_ml:int, stop_event:threading.Event):
 
 if __name__ == '__main__':
     logging.basicConfig(
-    filename=_jData['log']['name'],
+    filename=_jData['log_name'],
     format='%(asctime)s %(levelname)-8s %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S')
-    logging.getLogger().setLevel(_jData['log']['level'])
+    logging.getLogger().setLevel(_jData['log_level'])
 
 
     parser = argparse.ArgumentParser(description='Run the pump for a given number of mL')
@@ -101,7 +101,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     stop_event = threading.Event()
-    with grpc.insecure_channel(f"{_jData['server']['ip']}:{_jData['server']['port']}") as channel:
+    with grpc.insecure_channel(_jData['server']) as channel:
         hwCntrl = HardwareControlClient(channel)
         stopFlag = False
         t = threading.Thread(target=dispense, args=(hwCntrl, args.volume_ml, stop_event), daemon=True)

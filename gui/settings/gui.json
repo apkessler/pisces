@@ -1,16 +1,8 @@
 
 {
-  "server":
-  {
-    "ip":"localhost",
-    "port":50051
-  },
-
-  "log":
-  {
-    "name": "logs/gui.log",
-    "level": "INFO"
-  },
+  "server": "localhost:50051",
+  "log_name": "logs/gui.log",
+  "log_level": "INFO",
 
   "fullscreen":true
 }
