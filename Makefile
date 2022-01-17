@@ -21,7 +21,7 @@ PROTO_LOCATION=$(BUILD_SHARED)
 
 #TODO: make this a list?
 PROTOS_DIR=./protodefs
-PYTHON_OUT_DIR=./shared/protos
+PYTHON_OUT_DIR=./protos
 
 all: clean build
 
