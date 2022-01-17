@@ -8,9 +8,9 @@ Type=simple
 Restart=always
 RestartSec=1
 #User=pi
-WorkingDirectory=/home/pi/Repositories/pisces/build/
-ExecStart=/usr/bin/env python3 /home/pi/Repositories/pisces/build/bin/gui.py
-Environment="PYTHONPATH=/home/pi/Repositories/pisces/build/shared"
+WorkingDirectory=/home/pi/Repositories/pisces
+ExecStart=/usr/bin/env python3 /home/pi/Repositories/pisces/gui/gui.py
+Environment="PYTHONPATH=/home/pi/Repositories/pisces/shared"
 Environment="DISPLAY=:0.0"
 #StandardOutput=
 #StandatdError=inherit
