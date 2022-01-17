@@ -168,8 +168,8 @@ def test():
 
 if __name__ == '__main__':
 
-    with open(os.path.join('settings','scheduler.json'),'r') as f:
-        jData = json.load(f)
+    with open(os.path.join(os.path.dirname(__file__), 'scheduler.json'), 'r') as jsonfile:
+        jData = json.load(jsonfile)
 
     logging.basicConfig(
         filename=jData['log_name'],

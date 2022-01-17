@@ -322,7 +322,7 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
 
 if __name__ == '__main__':
     #Load the config file
-    with open(os.path.join('settings','hwcontrol.json'), 'r') as jsonfile:
+    with open(os.path.join(os.path.dirname(__file__), 'hwcontrol_server.json'), 'r') as jsonfile:
         jData = json.load(jsonfile)
     print("Loaded conf file", flush=True)
     logging.basicConfig(

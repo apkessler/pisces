@@ -5,7 +5,7 @@
 # as a startup task.
 # (TODO: Move these to be managed by systemd instead)
 
-INSTALL_DIR=~/Repositories/pisces/build
+INSTALL_DIR=~/Repositories/pisces
 
 export PYTHONPATH=$INSTALL_DIR/shared
 
@@ -23,14 +23,14 @@ sleep 2
 
 echo "Restarting server"
 #start the grpc server
-$PY $INSTALL_DIR/bin/hwcontrol_server.py &
+$PY $INSTALL_DIR/hwcontrol/server/hwcontrol_server.py &
 
 #launch the scheduler client task
 sleep 5
 echo "Restarting scheduler"
-$PY $INSTALL_DIR/bin/scheduler.py &
+$PY $INSTALL_DIR/scheduler/scheduler.py &
 
 sleep 1
 echo "Restarting GUI"
-$PY $INSTALL_DIR/bin/gui.py &
+$PY $INSTALL_DIR/gui/gui.py &
 

@@ -17,7 +17,7 @@ from hwcontrol_client import HardwareControlClient
 _jData = None
 
 #Do this setup up here so we get config and logging even if function is imported on its own
-with open(os.path.join('settings','dispense.json'), 'r') as jsonfile:
+with open(os.path.join(os.path.dirname(__file__), 'dispense.json'), 'r') as jsonfile:
     _jData = json.load(jsonfile)
 
 

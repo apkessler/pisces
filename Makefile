@@ -21,18 +21,17 @@ PROTO_LOCATION=$(BUILD_SHARED)
 
 #TODO: make this a list?
 PROTOS_DIR=./protodefs
-PYTHON_OUT_DIR=./shared
+PYTHON_OUT_DIR=./shared/protos
 
 all: clean build
 
 .PHONY: protos
 protos:
-	mkdir -p $(PYTHON_OUT_DIR)
 	$(PY) -m grpc_tools.protoc -I$(PROTOS_DIR) --python_out=./$(PYTHON_OUT_DIR) --grpc_python_out=./$(PYTHON_OUT_DIR) $(PROTOS_DIR)/*.proto
 
 
 clean:
-	rm -rf $(BUILD_PATH)
+
 
 .PHONY: build
 build: protos

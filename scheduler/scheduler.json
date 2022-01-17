@@ -1,6 +1,6 @@
 {
     "server": "localhost:50051",
-    "log_name": "logs/scheduler.log",
+    "log_name": "scheduler.log",
     "log_level": "INFO",
 
     "schedules":

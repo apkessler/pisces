@@ -28,7 +28,7 @@ service HardwareControl {
     rpc GetPH(Empty) returns (pH) {}
 
     rpc MoveStepper(StepperCommand) returns (Empty) {}
-    rpc StopStepper(Empty) return (Empty) {}
+    rpc StopStepper(Empty) returns (Empty) {}
     rpc GetStepperState(Empty) returns (StepperState) {}
 
     rpc SetScope(Scope) returns (Empty) {}
