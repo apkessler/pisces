@@ -1,7 +1,5 @@
 {
     "server": "[::]:50051",
-    "log_name": "hwcontrol_server.log",
-    "log_level": "INFO",
     "use_mock_hw": true,
 
     "hwmap":

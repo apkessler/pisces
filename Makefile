@@ -69,3 +69,18 @@ install:
 	systemctl --user daemon-reload
 	#add shared location to python path?
 	#add and enable services
+
+.PHONY: start_all
+start_all:
+	systemctl --user start hwcontrol.service
+	sleep 1
+	systemctl --user start scheduler.service
+	sleep 1
+	systemctl --user start gui.service
+
+
+.PHONY: stop_all
+stop_all:
+	systemctl --user stop gui.service
+	systemctl --user stop scheduler.service
+	systemctl --user stop hwcontrol.service

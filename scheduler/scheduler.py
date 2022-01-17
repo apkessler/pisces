@@ -4,13 +4,14 @@
 # Scheduler task for aquarium lights.
 #
 #
-import logging
 import grpc
 import time
 import json
 import os
 from enum import Enum
 import datetime as dt
+
+from loguru import logger
 
 # Custom imports
 import hardwareControl_pb2
@@ -51,7 +52,7 @@ class ScheduleSM():
         self.sunset_time = hhmmToTime(jData['sunset_hhmm'])
 
         for light in self.jData["lights"]:
-            logging.info(f"Found light {light} ({lightKeys[light]})")
+            logger.info(f"Found light {light} ({lightKeys[light]})")
 
 
     def update(self, dt_now):
@@ -113,17 +114,17 @@ class ScheduleSM():
                 self.hwCntrl.setLightState(lightKeys[light], hardwareControl_pb2.LightState_Night)
 
         elif (newState == State.ECLIPSE):
-            logging.info(f"Starting eclipse! Ends at {self.eclipseEndTime}")
+            logger.info(f"Starting eclipse! Ends at {self.eclipseEndTime}")
             for light in self.jData["lights"]:
                 self.hwCntrl.setLightState(lightKeys[light], hardwareControl_pb2.LightState_Night)
 
 
         else:
-            logging.warning(f"{self.name}: Unhandled state in changeStateTo():{newState}")
+            logger.warning(f"{self.name}: Unhandled state in changeStateTo():{newState}")
             #Raise exception?
 
 
-        logging.info(f"{self.name} Scheduler: {self.presentState} --> {newState}")
+        logger.info(f"{self.name} Scheduler: {self.presentState} --> {newState}")
         self.presentState = newState
 
     @staticmethod
@@ -149,7 +150,7 @@ def test():
 
         schds = [ScheduleSM(jD, hwCntrl) for jD in jData["schedules"]]
 
-        logging.info("Running schedulers!")
+        logger.info("Running schedulers!")
         t = dt.datetime.now()
         while (1):
             for schSM in schds:
@@ -162,29 +163,24 @@ def test():
 
 
 
-        logging.info("---- Scheduler ending ----")
+        logger.info("---- Scheduler ending ----")
 
 
 
 if __name__ == '__main__':
 
+    logger.add('scheduler.log', format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}", rotation="100MB")
+    logger.info("--------- SCHEDULER RESTART-------------")
+
     with open(os.path.join(os.path.dirname(__file__), 'scheduler.json'), 'r') as jsonfile:
         jData = json.load(jsonfile)
-
-    logging.basicConfig(
-        filename=jData['log_name'],
-        format='%(asctime)s %(levelname)-8s %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S')
-    logging.getLogger().setLevel(jData['log_level'])
-
-    logging.info(f"Starting SCHEDULER")
 
     try:
         with grpc.insecure_channel(jData['server']) as channel:
             hwCntrl = HardwareControlClient(channel)
 
             schds = [ScheduleSM(jD, hwCntrl) for jD in jData["schedules"]]
-            logging.info("Schedulers initialized")
+            logger.info("Schedulers initialized")
 
             while (1):
                 for schSM in schds:
@@ -192,8 +188,8 @@ if __name__ == '__main__':
                 time.sleep(30)
 
     except Exception as e:
-        logging.error(f"{e}")
+        logger.error(f"{e}")
 
-    logging.info(f"Stopping SCHEDULER")
+    logger.info(f"Stopping SCHEDULER")
 
 

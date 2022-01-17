@@ -6,10 +6,11 @@
 #
 
 from concurrent import futures
-import logging
 import grpc, json
 from collections import namedtuple
 import os
+
+from loguru import logger
 
 #Note: Lazy import of gpiozero below to support mock hw
 
@@ -45,7 +46,7 @@ class Light():
 
     def changeState(self, state):
         if (state == hardwareControl_pb2.LightState_Off):
-            logging.info(f"Turning {self.name} off!")
+            logger.info(f"Turning {self.name} off!")
             if (self.enable_relay):
                 self.enable_relay.gpioObj.off()
 
@@ -55,7 +56,7 @@ class Light():
             self.state = state
 
         elif (state == hardwareControl_pb2.LightState_Day):
-            logging.info(f"Turning {self.name} to day mode!")
+            logger.info(f"Turning {self.name} to day mode!")
             if (self.mode_relay):
                 self.mode_relay.gpioObj.on()
 
@@ -65,7 +66,7 @@ class Light():
             self.state = state
 
         elif (state == hardwareControl_pb2.LightState_Night):
-            logging.info(f"Turning {self.name} to night mode!")
+            logger.info(f"Turning {self.name} to night mode!")
 
             if (self.mode_relay):
                 self.mode_relay.gpioObj.off()
@@ -103,7 +104,7 @@ class HardwareMap():
 
         RelayObj = namedtuple('RelayObj',['name','gpioObj'])
 
-        logging.info(f"Creating relay objects...")
+        logger.info(f"Creating relay objects...")
 
         self.relayObjs = []
         for r in self.jData['relays']:
@@ -113,7 +114,7 @@ class HardwareMap():
                 )
             self.relayObjs.append(obj)
 
-        logging.info(f"Creating light objects...")
+        logger.info(f"Creating light objects...")
 
         def lookupRly(name):
             """
@@ -198,7 +199,7 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
         """
             Set relay state, return nothing
         """
-        logging.debug(f"Got relay request: {request.channel} <-- {request.isEngaged}")
+        logger.debug(f"Got relay request: {request.channel} <-- {request.isEngaged}")
 
         inx = request.channel - 1
         try:
@@ -226,7 +227,7 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
         """
             Set light state, return nothing
         """
-        logging.info(f"Got request with scope \"{request.scope}\": Light{request.lightId} <-- {request.state}")
+        logger.info(f"Got request with scope \"{request.scope}\": Light{request.lightId} <-- {request.state}")
 
         if (hwMap.scope == "" or hwMap.scope == request.scope):
             #We are OK to set this directly
@@ -239,7 +240,7 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
         elif request.scope == "":
             #Requester does not have control. Buffer the requests (only no scoped commands get buffered)
             try:
-                logging.info("Buffering command until scope released")
+                logger.info("Buffering command until scope released")
                 hwMap.bufferLightCmd(request.lightId - 1, request.state)
             except IndexError:
                 context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
@@ -295,15 +296,15 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
             else:
                 #We're setting a new scope. We should buffer existing lights states.
                 hwMap.saveLightStatesToBuffer()
-                logging.info(f"Set scope to \"{request.scope}\". Buffered cmds: {hwMap.bufferedLightCmdList}")
+                logger.info(f"Set scope to \"{request.scope}\". Buffered cmds: {hwMap.bufferedLightCmdList}")
                 hwMap.scope = request.scope
         else:
             #We have an existing scope...
             #Is the new scope empty?
             if (request.scope == ""):
                 #Yes, this is a clearing of scope!
-                logging.info(f"Scope reset!")
-                logging.info(f"Buffered cmds: {hwMap.bufferedLightCmdList}")
+                logger.info(f"Scope reset!")
+                logger.info(f"Buffered cmds: {hwMap.bufferedLightCmdList}")
                 hwMap.applyBufferedLightCmds()
                 hwMap.scope = ""
             elif (request.scope == hwMap.scope):
@@ -311,7 +312,7 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
                 pass
             else:
                 #No... rewriting scope is currently not supported
-                logging.info(f'Ignoring request to change scope to "{request.scope}" when scope is already "{hwMap.scope}"')
+                logger.info(f'Ignoring request to change scope to "{request.scope}" when scope is already "{hwMap.scope}"')
                 context.set_code(grpc.StatusCode.PERMISSION_DENIED)
                 context.set_details(f'Scope is already set to {hwMap.scope}')
 
@@ -321,33 +322,32 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
 
 
 if __name__ == '__main__':
+
+    logger.add('hwcontrol_server.log', format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}", rotation="100MB")
+
+    logger.info("--------- SERVER RESTART-------------")
+
     #Load the config file
     with open(os.path.join(os.path.dirname(__file__), 'hwcontrol_server.json'), 'r') as jsonfile:
         jData = json.load(jsonfile)
-    print("Loaded conf file", flush=True)
-    logging.basicConfig(
-        filename=jData['log_name'],
-        format='%(asctime)s %(levelname)-8s %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S')
-    logging.getLogger().setLevel(jData['log_level'])
-    logging.info("--------- SERVER RESTART-------------")
 
-    logging.info(f"UseMockHw={jData['use_mock_hw']}")
+    logger.info("Loaded conf file", flush=True)
+    logger.info(f"UseMockHw={jData['use_mock_hw']}")
 
     if (jData['use_mock_hw']):
         import fakegpio as gz
-        logging.info("Loaded fakegpio module.")
+        logger.info("Loaded fakegpio module.")
     else:
         try:
             import gpiozero as gz
-            logging.info("Loaded gpiozero module")
+            logger.info("Loaded gpiozero module")
         except ModuleNotFoundError:
             msg = "Unable to load gpiozero module! Not running on RPi?"
-            logging.error(msg)
+            logger.error(msg)
             raise Exception(msg)
 
     hwMap.setup(jData['hwmap'], use_mock_hw=jData['use_mock_hw'])
-    print("launching grpc server", flush=True)
+    logger.debug("launching grpc server")
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     hardwareControl_pb2_grpc.add_HardwareControlServicer_to_server(HardwareControl(), server)
     server.add_insecure_port(jData['server'])
@@ -356,10 +356,10 @@ if __name__ == '__main__':
     #Tell systemd that this service is ready go, if possible
     try:
         import systemd.daemon
-        logging.info("Loaded systemd module")
+        logger.info("Loaded systemd module")
         systemd.daemon.notify('READY=1')
     except ModuleNotFoundError:
-        logging.warning("Unable to load systemd module - skipping notify.")
+        logger.warning("Unable to load systemd module - skipping notify.")
 
 
     server.wait_for_termination()

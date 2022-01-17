@@ -11,7 +11,6 @@
 # Standard imports
 import os
 import socket
-import logging
 import datetime
 import threading
 
@@ -19,6 +18,7 @@ import threading
 import tkinter as tk
 import grpc
 import json
+from loguru import logger
 
 # Custom imports
 import hardwareControl_pb2
@@ -60,16 +60,16 @@ def sys_call(cmd):
     except FileNotFoundError:
         output = f"Could not execute sys call: '{cmd}'"
     finally:
-        logging.info(output)
+        logger.info(output)
 
 
 def reboot_pi():
-    logging.info("restarting the Pi")
+    logger.info("restarting the Pi")
     sys_call("/usr/bin/sudo /sbin/shutdown -r now")
 
 # modular function to shutdown Pi
 def shutdown_pi():
-    logging.info("shutting down the Pi")
+    logger.info("shutting down the Pi")
     sys_call("/usr/bin/sudo /sbin/shutdown -h now")
 
 
@@ -178,7 +178,7 @@ class MainWindow(Window):
         myScope = 'gui'
         newMode = self.lightToggleModes[self.currentLightToggleModeInx]
         self.lightModeText.set("Lights:\n"+newMode)
-        logging.info(f"Toggled to mode {newMode}")
+        logger.info(f"Toggled to mode {newMode}")
         if (newMode == 'Schedule'):
             hwCntrl.setScope()
         elif (newMode == 'All On'):
@@ -329,10 +329,10 @@ class ManualFertilizerPage(Subwindow):
         if (self.dispenseThread.is_alive()):
             self.dispense_stop_event.set()
             self.dispenseThread.join()
-            logging.info("Dispense thread killed")
+            logger.info("Dispense thread killed")
         else:
             self.dispenseThread.join()
-            logging.info("Dispense thread already dead")
+            logger.info("Dispense thread already dead")
 
 
     def dispenseInThread(self, volume_ml):
@@ -343,20 +343,26 @@ class ManualFertilizerPage(Subwindow):
 
 
 if __name__ == "__main__":
+
+    logger.add('gui.log', format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}", rotation="100MB")
+    logger.info("--------- GUI RESTART-------------")
+
     #Load the config file
     with open(os.path.join(os.path.dirname(__file__), 'gui.json'), 'r') as jsonfile:
         jData = json.load(jsonfile)
 
-    logging.basicConfig(
-        filename=jData['log_name'],
-        format='%(asctime)s %(levelname)-8s %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S')
-    logging.getLogger().setLevel(jData['log_level'])
-    logging.info("--------- GUI RESTART-------------")
 
     with grpc.insecure_channel(jData['server']) as channel:
         hwCntrl = HardwareControlClient(channel)
-        hwCntrl.echo()
-        root = tk.Tk()
-        main = MainWindow(root)
-        root.mainloop()
+        try:
+            hwCntrl.echo()
+            root = tk.Tk()
+            main = MainWindow(root)
+            root.mainloop()
+        except grpc.RpcError as rpc_error:
+            logger.error(f"Unable to connect to server! {rpc_error.code()}")
+            exit()
+
+
+
+

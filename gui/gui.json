@@ -1,8 +1,5 @@
 
 {
   "server": "localhost:50051",
-  "log_name": "gui.log",
-  "log_level": "INFO",
-
   "fullscreen":true
 }
