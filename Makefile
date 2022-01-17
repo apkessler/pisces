@@ -3,7 +3,7 @@ PY=python3
 BUILD_PATH=./build
 
 BUILD_SETTINGS=$(BUILD_PATH)/settings
-BUILD_SHARED=$(BUILD_PATH)/shared
+BUILD_SHARED=shared
 BUILD_BIN=$(BUILD_PATH)/bin
 
 PROTO_LOCATION=$(BUILD_SHARED)
@@ -20,18 +20,21 @@ PROTO_LOCATION=$(BUILD_SHARED)
 #	  +-- dispense.py
 
 #TODO: make this a list?
-PROTO_FILE=./hal/protodefs/hardwareControl.proto
+PROTOS_DIR=./protodefs
+PYTHON_OUT_DIR=./shared
 
 all: clean build
 
-protos: $(PROTO_FILE)
-	mkdir -p $(PROTO_LOCATION)
-	$(PY) -m grpc_tools.protoc -I./hal/protodefs/ --python_out=./$(PROTO_LOCATION) --grpc_python_out=./$(PROTO_LOCATION) $(PROTO_FILE)
+.PHONY: protos
+protos:
+	mkdir -p $(PYTHON_OUT_DIR)
+	$(PY) -m grpc_tools.protoc -I$(PROTOS_DIR) --python_out=./$(PYTHON_OUT_DIR) --grpc_python_out=./$(PYTHON_OUT_DIR) $(PROTOS_DIR)/*.proto
 
 
 clean:
 	rm -rf $(BUILD_PATH)
 
+.PHONY: build
 build: protos
 	echo "Creating build directory..."
 	mkdir -p $(BUILD_PATH)
