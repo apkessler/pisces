@@ -8,7 +8,7 @@
 import time
 import threading, queue
 from enum import Enum
-import logging
+from loguru import logger
 
 #Note: Lazy import of gpiozero module in __init__
 
@@ -26,14 +26,14 @@ class StepperMotor(object):
         #Lazy import here to better support mock hw case
         if (use_mock_hw):
             import fakegpio as gz
-            logging.info("Loaded fakegpio module for stepper.")
+            logger.info("Loaded fakegpio module for stepper.")
         else:
             try:
                 import gpiozero as gz
-                logging.info("Loaded gpiozero module for stepper")
+                logger.info("Loaded gpiozero module for stepper")
             except ModuleNotFoundError:
                 msg = "Unable to load gpiozero module for stepper! Not running on RPi?"
-                logging.error(msg)
+                logger.error(msg)
                 raise Exception(msg)
 
         self.gpio_step = gz.DigitalOutputDevice(pin=step)
@@ -53,6 +53,11 @@ class StepperMotor(object):
             self.gpios_msx[2] = gz.DigitalOutputDevice(pin=ms3)
 
         self.queue = queue.Queue()
+        self.stop_event = threading.Event()
+        self.is_active_flag = threading.Event()
+
+        self.stop_event.clear()
+        self.is_active_flag.clear()
 
         self.gpio_nen.on() #Assert to disable driver
 
@@ -61,11 +66,11 @@ class StepperMotor(object):
 
 
     def enableDriver(self):
-        logging.debug("Enabling stepper")
+        logger.debug("Enabling stepper")
         self.gpio_nen.off()
 
     def disableDriver(self):
-        logging.debug("Disabling stepper")
+        logger.debug("Disabling stepper")
         self.gpio_nen.on()
 
     def takeStep(self, delay_s=0.005):
@@ -79,9 +84,16 @@ class StepperMotor(object):
 
     def sendCommand(self, steps, isReverse=False, mode=StepMode.FULL_STEP):
         cmd = {'steps':steps, 'isReverse':isReverse, 'mode':mode}
-        logging.debug(f"Enqueing cmd {cmd}")
+        logger.debug(f"Enqueing cmd {cmd}")
         self.queue.put(cmd, timeout=1)
 
+    def sendStop(self):
+        ''' Tell the stepper thread to stop what its doing'''
+        self.stop_event.set()
+
+    def getIsActive(self):
+        ''' Return whether or not stepper is currently doing something'''
+        return self.is_active_flag.is_set()
 
     def setMode(self, mode):
         """
@@ -106,55 +118,36 @@ class StepperMotor(object):
             over the message queue, then executes them.
         """
 
-        logging.info(f"Running pump cmd handler thread")
+        logger.info(f"Running pump cmd handler thread")
 
         while (1):
             cmd = self.queue.get() #Blocking wait for new command
 
-            logging.debug(f"Dequeing cmd: {cmd}")
+            logger.debug(f"Dequeing cmd: {cmd}")
+            self.is_active_flag.set()
 
             if (cmd['isReverse']):
                 self.gpio_dir.on()
             else:
                 self.gpio_dir.off()
 
+            self.stop_event.clear() #Clear any lingering stop events
             self.enableDriver()
             time.sleep(0.1)
 
             for i in range(cmd['steps']):
-                logging.debug(f"Rising edge {i}")
                 self.takeStep()
+                if (self.stop_event.is_set()):
+                    logger.info(f"Stepper thread got STOP command")
+                    break
 
             time.sleep(0.1)
 
             self.disableDriver()
 
-            logging.info(f"Done with stepper cmd")
-
-        logging.debug(f"Stepper run thread compelte")
-
-
-def main():
+            self.is_active_flag.clear()
+            logger.info(f"Done with stepper cmd")
 
 
-    stepperObj = StepperMotor('GPIO17', 'GPIO27', 'GPIO22', None, None, None)
+        logger.error(f"Stepper run thread exiting (uh-oh)")
 
-    while (1):
-        cmd = input("Input command: (dir,mode,steps): ")
-        tokens = [int(x) for x in cmd.split(',')]
-        dir =tokens[0]
-        mode = StepMode(tokens[1])
-        steps = tokens[2]
-        #print(f"DIR:{dir}, Mode:{mode}, Steps:{steps}")
-
-        stepperObj.sendCommand(steps, dir, mode)
-        time.sleep(1)
-
-
-if __name__ == '__main__':
-    logging.basicConfig()
-    logging.getLogger().setLevel(logging.DEBUG)
-    try:
-        main()
-    except KeyboardInterrupt:
-        print("Ending program")

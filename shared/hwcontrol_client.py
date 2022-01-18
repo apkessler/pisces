@@ -67,13 +67,24 @@ class HardwareControlClient():
         response = self.stub.GetLightStates(hardwareControl_pb2.Empty())
         return [r.state for r in response.states]
 
-    def moveStepper(self, numSteps, isReverse=False):
+    def moveStepper(self, numSteps:int, isReverse:bool =False) -> None:
         """
             Move stepper motor specified number of steps
         """
         response = self.stub.MoveStepper(hardwareControl_pb2.StepperCommand(numSteps=numSteps, isReverse=isReverse))
 
-    def setScope(self, scope=""):
+    def stopStepper(self) -> None:
+        """ Stop the stepper motor from doing any motion
+        """
+        response = self.stub.StopStepper(hardwareControl_pb2.Empty())
+
+    def getIsStepperActive(self) -> bool:
+        """ Get true/false if stepper is active right now
+        """
+        response = self.stub.IsStepperActive(hardwareControl_pb2.Empty())
+        return response.isActive
+
+    def setScope(self, scope="") -> None:
         """Set the Light Control scope.
         """
         response = self.stub.SetScope(hardwareControl_pb2.Scope(scope=scope))

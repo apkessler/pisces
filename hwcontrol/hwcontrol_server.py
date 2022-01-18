@@ -284,6 +284,17 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
 
         return hardwareControl_pb2.Empty()
 
+    def StopStepper(self, request, context):
+        """ Handle command to stop any active stepper motor activity
+        """
+        hwMap.stepper.sendStop()
+        return hardwareControl_pb2.Empty()
+
+    def IsStepperActive(self, request, context):
+        """ Respond with whether or not stepper is actively doing something
+        """
+        return hardwareControl_pb2.StepperState(isActive=hwMap.stepper.getIsActive())
+
     def SetScope(self, request, context):
         """Handles scope set/reset
         """

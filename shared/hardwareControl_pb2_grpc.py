@@ -59,8 +59,8 @@ class HardwareControlStub(object):
                 request_serializer=hardwareControl__pb2.Empty.SerializeToString,
                 response_deserializer=hardwareControl__pb2.Empty.FromString,
                 )
-        self.GetStepperState = channel.unary_unary(
-                '/hardwarecontrol.HardwareControl/GetStepperState',
+        self.IsStepperActive = channel.unary_unary(
+                '/hardwarecontrol.HardwareControl/IsStepperActive',
                 request_serializer=hardwareControl__pb2.Empty.SerializeToString,
                 response_deserializer=hardwareControl__pb2.StepperState.FromString,
                 )
@@ -129,7 +129,7 @@ class HardwareControlServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetStepperState(self, request, context):
+    def IsStepperActive(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -189,8 +189,8 @@ def add_HardwareControlServicer_to_server(servicer, server):
                     request_deserializer=hardwareControl__pb2.Empty.FromString,
                     response_serializer=hardwareControl__pb2.Empty.SerializeToString,
             ),
-            'GetStepperState': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetStepperState,
+            'IsStepperActive': grpc.unary_unary_rpc_method_handler(
+                    servicer.IsStepperActive,
                     request_deserializer=hardwareControl__pb2.Empty.FromString,
                     response_serializer=hardwareControl__pb2.StepperState.SerializeToString,
             ),
@@ -363,7 +363,7 @@ class HardwareControl(object):
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
-    def GetStepperState(request,
+    def IsStepperActive(request,
             target,
             options=(),
             channel_credentials=None,
@@ -373,7 +373,7 @@ class HardwareControl(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/hardwarecontrol.HardwareControl/GetStepperState',
+        return grpc.experimental.unary_unary(request, target, '/hardwarecontrol.HardwareControl/IsStepperActive',
             hardwareControl__pb2.Empty.SerializeToString,
             hardwareControl__pb2.StepperState.FromString,
             options, channel_credentials,
