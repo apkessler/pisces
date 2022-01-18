@@ -344,7 +344,7 @@ class ManualFertilizerPage(Subwindow):
 
 if __name__ == "__main__":
 
-    logger.add('gui.log', format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}", rotation="100MB")
+    logger.add('gui.log', format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}", level="INFO", rotation="10MB")
     logger.info("--------- GUI RESTART-------------")
 
     #Load the config file

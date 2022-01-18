@@ -334,7 +334,7 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
 
 if __name__ == '__main__':
 
-    logger.add('hwcontrol_server.log', format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}", rotation="100MB")
+    logger.add('hwcontrol_server.log', format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}", rotation="10MB", level="INFO")
 
     logger.info("--------- SERVER RESTART-------------")
 

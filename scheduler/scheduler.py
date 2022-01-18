@@ -169,7 +169,7 @@ def test():
 
 if __name__ == '__main__':
 
-    logger.add('scheduler.log', format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}", rotation="100MB")
+    logger.add('scheduler.log', format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}", rotation="10MB", level="INFO")
     logger.info("--------- SCHEDULER RESTART-------------")
 
     with open(os.path.join(os.path.dirname(__file__), 'scheduler.json'), 'r') as jsonfile:
