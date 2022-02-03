@@ -18,7 +18,22 @@ import threading
 import tkinter as tk
 import grpc
 import json
+
+import pandas as pd
+from matplotlib.figure import Figure
+
+
 from loguru import logger
+
+import numpy as np #Don't need?
+import matplotlib as plt
+from matplotlib.figure import (Figure, )
+from matplotlib.backends.backend_tkagg import (
+    FigureCanvasTkAgg, NavigationToolbar2Tk)
+# Implement the default Matplotlib key bindings.
+from matplotlib.backend_bases import key_press_handler
+
+
 
 # Custom imports
 import hardwareControl_pb2
@@ -247,8 +262,91 @@ class TemperaturePage(Subwindow):
     def __init__(self):
         super().__init__("Temperature Info")
 
-        btn = tk.Button(self.master, text="Temp Stuff")
-        btn.pack()
+        #Read in the dataframe and parse timestamp strings to datetime
+        self.df = pd.read_csv('test/telemetry.csv', parse_dates=["Timestamp"])
+
+        #Set the index to timestamp column so we can index by it
+        self.df.set_index('Timestamp', inplace=True)
+
+        self.fig = Figure(figsize=(5,4), dpi = 100)
+        self.ax = self.fig.add_subplot()
+
+
+        top = tk.Frame(self.master)
+        bottom = tk.Frame(self.master)
+        top.pack(side=tk.TOP)
+        bottom.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+
+
+        self.canvas = FigureCanvasTkAgg(self.fig, master=bottom) # A tk.DrawingArea
+        self.canvas.draw()
+
+
+        #By default, show the last week of data
+        self.initial_now = datetime.datetime.now()
+        one_week = datetime.timedelta(days=7)
+        self.plot_data(self.initial_now - one_week, self.initial_now)
+
+        # pack_toolbar=False will make it easier to use a layout manager later on.
+        self.toolbar = NavigationToolbar2Tk(self.canvas, self.master, pack_toolbar=False)
+        self.toolbar.update()
+
+        def show_previous_week():
+            try:
+                self.initial_now -= one_week
+                self.plot_data(self.initial_now - one_week, self.initial_now)
+            except IndexError:
+                logger.info("Cannot go back any further!")
+                self.initial_now += one_week #Undo what we just tried...
+
+        def show_next_week():
+            self.initial_now += one_week
+            now = datetime.datetime.now()
+            if (self.initial_now > now):
+                self.initial_now = now
+            self.plot_data(self.initial_now - one_week, self.initial_now)
+
+        def show_this_week():
+            self.initial_now = datetime.datetime.now()
+            self.plot_data(self.initial_now - one_week, self.initial_now)
+
+        def show_all_time():
+            self.plot_data(self.df.index.min(), self.df.index.max())
+
+        #We need to manually recreate the Back button since it got wiped by the matplotlib canvas
+        back_btn = tk.Button(self.master, text="Back", font=fontTuple, width=9, height=2, bg='#ff5733', command=self.exit)
+        last_week_btn = tk.Button(self.master, text="Back\n 1 Week", command=show_previous_week,  font=fontTuple, width=9, height=2)
+        next_week_btn = tk.Button(self.master, text="Forward\n1 Week", command=show_next_week,  font=fontTuple, width=9, height=2)
+        this_week_btn = tk.Button(self.master, text="This\nWeek", command=show_this_week,  font=fontTuple, width=9, height=2)
+
+        all_time_btn = tk.Button(self.master, text="All\nTime", command=show_all_time,  font=fontTuple, width=9, height=2)
+
+
+        # Packing order is important. Widgets are processed sequentially and if there
+        # is no space left, because the window is too small, they are not displayed.
+        # The canvas is rather flexible in its size, so we pack it last which makes
+        # sure the UI controls are displayed as long as possible.
+
+        last_week_btn.pack(in_=top, side=tk.LEFT)
+        next_week_btn.pack(in_=top, side=tk.LEFT)
+
+        this_week_btn.pack(in_=top, side=tk.LEFT)
+        all_time_btn.pack(in_=top, side=tk.LEFT)
+
+        back_btn.pack(in_=top, side=tk.LEFT)
+        #self.toolbar.pack(in_=bottom, side=tk.BOTTOM, fill=tk.X)
+
+        self.canvas.get_tk_widget().pack(in_=bottom, side=tk.TOP, fill=tk.BOTH, expand=1)
+
+    def plot_data(self, start_time:datetime.datetime, end_time: datetime.datetime):
+
+        self.ax.cla()
+        self.df[start_time: end_time].plot(y=['Temperature (F)'], ax=self.ax)
+        self.ax.set_ylabel('Temperature (F)')
+        self.ax.set_xlabel('')
+        self.fig.subplots_adjust(bottom=0.166)
+        self.canvas.draw()
+
 
 class SettingsPage(Subwindow):
 
