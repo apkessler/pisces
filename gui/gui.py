@@ -16,6 +16,7 @@ import threading
 
 # 3rd party imports
 import tkinter as tk
+from graphviz import Graph
 import grpc
 import json
 
@@ -170,8 +171,8 @@ class MainWindow(Window):
 
         buttons = [
             [self.lightModeText, self.toggle_lights],
-            [self.tempText, lambda: TemperaturePage()],
-            [self.phText, lambda: PhPage()],
+            [self.tempText, lambda: GraphPage('Temperature (F)')],
+            [self.phText, lambda: GraphPage('pH')],
             ["Manual\nFertilizer", lambda: ManualFertilizerPage()],
             ["Settings", lambda: SettingsPage()]
         ]
@@ -257,10 +258,10 @@ class Subwindow(Window):
         self.master.update()
 
 
-class TemperaturePage(Subwindow):
+class GraphPage(Subwindow):
 
-    def __init__(self):
-        super().__init__("Temperature Info")
+    def __init__(self, field:str):
+        super().__init__(field)
 
         #Read in the dataframe and parse timestamp strings to datetime
         self.df = pd.read_csv('test/telemetry.csv', parse_dates=["Timestamp"])
@@ -271,6 +272,7 @@ class TemperaturePage(Subwindow):
         self.fig = Figure(figsize=(5,4), dpi = 100)
         self.ax = self.fig.add_subplot()
 
+        self.field = field
 
         top = tk.Frame(self.master)
         bottom = tk.Frame(self.master)
@@ -341,8 +343,8 @@ class TemperaturePage(Subwindow):
     def plot_data(self, start_time:datetime.datetime, end_time: datetime.datetime):
 
         self.ax.cla()
-        self.df[start_time: end_time].plot(y=['Temperature (F)'], ax=self.ax)
-        self.ax.set_ylabel('Temperature (F)')
+        self.df[start_time: end_time].plot(y=[self.field], ax=self.ax)
+        self.ax.set_ylabel(self.field)
         self.ax.set_xlabel('')
         self.fig.subplots_adjust(bottom=0.166)
         self.canvas.draw()
@@ -393,11 +395,6 @@ class SystemSettingsPage(Subwindow):
         """
         self.master.quit()
 
-
-class PhPage(Subwindow):
-
-    def __init__(self):
-        super().__init__("pH Info")
 
 
 class ManualFertilizerPage(Subwindow):
