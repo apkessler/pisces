@@ -69,6 +69,31 @@ class HardwareControlStub(object):
                 request_serializer=hardwareControl__pb2.Scope.SerializeToString,
                 response_deserializer=hardwareControl__pb2.Empty.FromString,
                 )
+        self.SetPHSampleTime = channel.unary_unary(
+                '/hardwarecontrol.HardwareControl/SetPHSampleTime',
+                request_serializer=hardwareControl__pb2.SampleTime.SerializeToString,
+                response_deserializer=hardwareControl__pb2.Empty.FromString,
+                )
+        self.GetPHSampleTime = channel.unary_unary(
+                '/hardwarecontrol.HardwareControl/GetPHSampleTime',
+                request_serializer=hardwareControl__pb2.Empty.SerializeToString,
+                response_deserializer=hardwareControl__pb2.SampleTime.FromString,
+                )
+        self.SetTemperatureSampleTime = channel.unary_unary(
+                '/hardwarecontrol.HardwareControl/SetTemperatureSampleTime',
+                request_serializer=hardwareControl__pb2.SampleTime.SerializeToString,
+                response_deserializer=hardwareControl__pb2.Empty.FromString,
+                )
+        self.GetTemperatureSampleTime = channel.unary_unary(
+                '/hardwarecontrol.HardwareControl/GetTemperatureSampleTime',
+                request_serializer=hardwareControl__pb2.Empty.SerializeToString,
+                response_deserializer=hardwareControl__pb2.SampleTime.FromString,
+                )
+        self.SendPHCommand = channel.unary_unary(
+                '/hardwarecontrol.HardwareControl/SendPHCommand',
+                request_serializer=hardwareControl__pb2.PHCommand.SerializeToString,
+                response_deserializer=hardwareControl__pb2.PHResponse.FromString,
+                )
 
 
 class HardwareControlServicer(object):
@@ -141,6 +166,36 @@ class HardwareControlServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def SetPHSampleTime(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetPHSampleTime(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def SetTemperatureSampleTime(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetTemperatureSampleTime(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def SendPHCommand(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_HardwareControlServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -198,6 +253,31 @@ def add_HardwareControlServicer_to_server(servicer, server):
                     servicer.SetScope,
                     request_deserializer=hardwareControl__pb2.Scope.FromString,
                     response_serializer=hardwareControl__pb2.Empty.SerializeToString,
+            ),
+            'SetPHSampleTime': grpc.unary_unary_rpc_method_handler(
+                    servicer.SetPHSampleTime,
+                    request_deserializer=hardwareControl__pb2.SampleTime.FromString,
+                    response_serializer=hardwareControl__pb2.Empty.SerializeToString,
+            ),
+            'GetPHSampleTime': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetPHSampleTime,
+                    request_deserializer=hardwareControl__pb2.Empty.FromString,
+                    response_serializer=hardwareControl__pb2.SampleTime.SerializeToString,
+            ),
+            'SetTemperatureSampleTime': grpc.unary_unary_rpc_method_handler(
+                    servicer.SetTemperatureSampleTime,
+                    request_deserializer=hardwareControl__pb2.SampleTime.FromString,
+                    response_serializer=hardwareControl__pb2.Empty.SerializeToString,
+            ),
+            'GetTemperatureSampleTime': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetTemperatureSampleTime,
+                    request_deserializer=hardwareControl__pb2.Empty.FromString,
+                    response_serializer=hardwareControl__pb2.SampleTime.SerializeToString,
+            ),
+            'SendPHCommand': grpc.unary_unary_rpc_method_handler(
+                    servicer.SendPHCommand,
+                    request_deserializer=hardwareControl__pb2.PHCommand.FromString,
+                    response_serializer=hardwareControl__pb2.PHResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -393,5 +473,90 @@ class HardwareControl(object):
         return grpc.experimental.unary_unary(request, target, '/hardwarecontrol.HardwareControl/SetScope',
             hardwareControl__pb2.Scope.SerializeToString,
             hardwareControl__pb2.Empty.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def SetPHSampleTime(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/hardwarecontrol.HardwareControl/SetPHSampleTime',
+            hardwareControl__pb2.SampleTime.SerializeToString,
+            hardwareControl__pb2.Empty.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetPHSampleTime(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/hardwarecontrol.HardwareControl/GetPHSampleTime',
+            hardwareControl__pb2.Empty.SerializeToString,
+            hardwareControl__pb2.SampleTime.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def SetTemperatureSampleTime(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/hardwarecontrol.HardwareControl/SetTemperatureSampleTime',
+            hardwareControl__pb2.SampleTime.SerializeToString,
+            hardwareControl__pb2.Empty.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetTemperatureSampleTime(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/hardwarecontrol.HardwareControl/GetTemperatureSampleTime',
+            hardwareControl__pb2.Empty.SerializeToString,
+            hardwareControl__pb2.SampleTime.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def SendPHCommand(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/hardwarecontrol.HardwareControl/SendPHCommand',
+            hardwareControl__pb2.PHCommand.SerializeToString,
+            hardwareControl__pb2.PHResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x15hardwareControl.proto\x12\x0fhardwarecontrol\x1a\x1fgoogle/protobuf/timestamp.proto\"\x07\n\x05\x45mpty\"\x1e\n\x0b\x45\x63hoRequest\x12\x0f\n\x07payload\x18\x01 \x01(\t\"\x1f\n\x0c\x45\x63hoResponse\x12\x0f\n\x07payback\x18\x01 \x01(\t\"0\n\nRelayState\x12\x0f\n\x07\x63hannel\x18\x01 \x01(\r\x12\x11\n\tisEngaged\x18\x02 \x01(\x08\":\n\x0bRelayStates\x12+\n\x06states\x18\x01 \x03(\x0b\x32\x1b.hardwarecontrol.RelayState\"\'\n\x0bTemperature\x12\x18\n\x10temperature_degC\x18\x01 \x01(\x02\"\\\n\nLightState\x12\x0f\n\x07lightId\x18\x01 \x01(\r\x12.\n\x05state\x18\x02 \x01(\x0e\x32\x1f.hardwarecontrol.LightStateEnum\x12\r\n\x05scope\x18\x03 \x01(\t\":\n\x0bLightStates\x12+\n\x06states\x18\x01 \x03(\x0b\x32\x1b.hardwarecontrol.LightState\"\x10\n\x02pH\x12\n\n\x02pH\x18\x01 \x01(\x02\"5\n\x0eStepperCommand\x12\x10\n\x08numSteps\x18\x01 \x01(\r\x12\x11\n\tisReverse\x18\x02 \x01(\x08\" \n\x0cStepperState\x12\x10\n\x08isActive\x18\x01 \x01(\x08\"\x16\n\x05Scope\x12\r\n\x05scope\x18\x01 \x01(\t*N\n\x0eLightStateEnum\x12\x12\n\x0eLightState_Off\x10\x00\x12\x12\n\x0eLightState_Day\x10\x01\x12\x14\n\x10LightState_Night\x10\x02\x32\x93\x06\n\x0fHardwareControl\x12\x45\n\x04\x45\x63ho\x12\x1c.hardwarecontrol.EchoRequest\x1a\x1d.hardwarecontrol.EchoResponse\"\x00\x12\x46\n\rSetRelayState\x12\x1b.hardwarecontrol.RelayState\x1a\x16.hardwarecontrol.Empty\"\x00\x12H\n\x0eGetRelayStates\x12\x16.hardwarecontrol.Empty\x1a\x1c.hardwarecontrol.RelayStates\"\x00\x12H\n\x0eGetTemperature\x12\x16.hardwarecontrol.Empty\x1a\x1c.hardwarecontrol.Temperature\"\x00\x12\x46\n\rSetLightState\x12\x1b.hardwarecontrol.LightState\x1a\x16.hardwarecontrol.Empty\"\x00\x12H\n\x0eGetLightStates\x12\x16.hardwarecontrol.Empty\x1a\x1c.hardwarecontrol.LightStates\"\x00\x12\x36\n\x05GetPH\x12\x16.hardwarecontrol.Empty\x1a\x13.hardwarecontrol.pH\"\x00\x12H\n\x0bMoveStepper\x12\x1f.hardwarecontrol.StepperCommand\x1a\x16.hardwarecontrol.Empty\"\x00\x12?\n\x0bStopStepper\x12\x16.hardwarecontrol.Empty\x1a\x16.hardwarecontrol.Empty\"\x00\x12J\n\x0fIsStepperActive\x12\x16.hardwarecontrol.Empty\x1a\x1d.hardwarecontrol.StepperState\"\x00\x12<\n\x08SetScope\x12\x16.hardwarecontrol.Scope\x1a\x16.hardwarecontrol.Empty\"\x00\x62\x06proto3'
+  serialized_pb=b'\n\x15hardwareControl.proto\x12\x0fhardwarecontrol\x1a\x1fgoogle/protobuf/timestamp.proto\"\x07\n\x05\x45mpty\"\x1e\n\x0b\x45\x63hoRequest\x12\x0f\n\x07payload\x18\x01 \x01(\t\"\x1f\n\x0c\x45\x63hoResponse\x12\x0f\n\x07payback\x18\x01 \x01(\t\"0\n\nRelayState\x12\x0f\n\x07\x63hannel\x18\x01 \x01(\r\x12\x11\n\tisEngaged\x18\x02 \x01(\x08\":\n\x0bRelayStates\x12+\n\x06states\x18\x01 \x03(\x0b\x32\x1b.hardwarecontrol.RelayState\"\'\n\x0bTemperature\x12\x18\n\x10temperature_degC\x18\x01 \x01(\x02\"\\\n\nLightState\x12\x0f\n\x07lightId\x18\x01 \x01(\r\x12.\n\x05state\x18\x02 \x01(\x0e\x32\x1f.hardwarecontrol.LightStateEnum\x12\r\n\x05scope\x18\x03 \x01(\t\":\n\x0bLightStates\x12+\n\x06states\x18\x01 \x03(\x0b\x32\x1b.hardwarecontrol.LightState\"\x10\n\x02pH\x12\n\n\x02pH\x18\x01 \x01(\x02\"5\n\x0eStepperCommand\x12\x10\n\x08numSteps\x18\x01 \x01(\r\x12\x11\n\tisReverse\x18\x02 \x01(\x08\" \n\x0cStepperState\x12\x10\n\x08isActive\x18\x01 \x01(\x08\"\x16\n\x05Scope\x12\r\n\x05scope\x18\x01 \x01(\t\"&\n\nSampleTime\x12\x18\n\x10sample_time_msec\x18\x01 \x01(\r\"\x18\n\tPHCommand\x12\x0b\n\x03\x63md\x18\x01 \x01(\t\"\x1e\n\nPHResponse\x12\x10\n\x08response\x18\x01 \x01(\t*N\n\x0eLightStateEnum\x12\x12\n\x0eLightState_Off\x10\x00\x12\x12\n\x0eLightState_Day\x10\x01\x12\x14\n\x10LightState_Night\x10\x02\x32\x99\t\n\x0fHardwareControl\x12\x45\n\x04\x45\x63ho\x12\x1c.hardwarecontrol.EchoRequest\x1a\x1d.hardwarecontrol.EchoResponse\"\x00\x12\x46\n\rSetRelayState\x12\x1b.hardwarecontrol.RelayState\x1a\x16.hardwarecontrol.Empty\"\x00\x12H\n\x0eGetRelayStates\x12\x16.hardwarecontrol.Empty\x1a\x1c.hardwarecontrol.RelayStates\"\x00\x12H\n\x0eGetTemperature\x12\x16.hardwarecontrol.Empty\x1a\x1c.hardwarecontrol.Temperature\"\x00\x12\x46\n\rSetLightState\x12\x1b.hardwarecontrol.LightState\x1a\x16.hardwarecontrol.Empty\"\x00\x12H\n\x0eGetLightStates\x12\x16.hardwarecontrol.Empty\x1a\x1c.hardwarecontrol.LightStates\"\x00\x12\x36\n\x05GetPH\x12\x16.hardwarecontrol.Empty\x1a\x13.hardwarecontrol.pH\"\x00\x12H\n\x0bMoveStepper\x12\x1f.hardwarecontrol.StepperCommand\x1a\x16.hardwarecontrol.Empty\"\x00\x12?\n\x0bStopStepper\x12\x16.hardwarecontrol.Empty\x1a\x16.hardwarecontrol.Empty\"\x00\x12J\n\x0fIsStepperActive\x12\x16.hardwarecontrol.Empty\x1a\x1d.hardwarecontrol.StepperState\"\x00\x12<\n\x08SetScope\x12\x16.hardwarecontrol.Scope\x1a\x16.hardwarecontrol.Empty\"\x00\x12H\n\x0fSetPHSampleTime\x12\x1b.hardwarecontrol.SampleTime\x1a\x16.hardwarecontrol.Empty\"\x00\x12H\n\x0fGetPHSampleTime\x12\x16.hardwarecontrol.Empty\x1a\x1b.hardwarecontrol.SampleTime\"\x00\x12Q\n\x18SetTemperatureSampleTime\x12\x1b.hardwarecontrol.SampleTime\x1a\x16.hardwarecontrol.Empty\"\x00\x12Q\n\x18GetTemperatureSampleTime\x12\x16.hardwarecontrol.Empty\x1a\x1b.hardwarecontrol.SampleTime\"\x00\x12J\n\rSendPHCommand\x12\x1a.hardwarecontrol.PHCommand\x1a\x1b.hardwarecontrol.PHResponse\"\x00\x62\x06proto3'
   ,
   dependencies=[google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
 
@@ -50,8 +50,8 @@ _LIGHTSTATEENUM = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=585,
-  serialized_end=663,
+  serialized_start=683,
+  serialized_end=761,
 )
 _sym_db.RegisterEnumDescriptor(_LIGHTSTATEENUM)
 
@@ -466,6 +466,102 @@ _SCOPE = _descriptor.Descriptor(
   serialized_end=583,
 )
 
+
+_SAMPLETIME = _descriptor.Descriptor(
+  name='SampleTime',
+  full_name='hardwarecontrol.SampleTime',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='sample_time_msec', full_name='hardwarecontrol.SampleTime.sample_time_msec', index=0,
+      number=1, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=585,
+  serialized_end=623,
+)
+
+
+_PHCOMMAND = _descriptor.Descriptor(
+  name='PHCommand',
+  full_name='hardwarecontrol.PHCommand',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='cmd', full_name='hardwarecontrol.PHCommand.cmd', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=625,
+  serialized_end=649,
+)
+
+
+_PHRESPONSE = _descriptor.Descriptor(
+  name='PHResponse',
+  full_name='hardwarecontrol.PHResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='response', full_name='hardwarecontrol.PHResponse.response', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=651,
+  serialized_end=681,
+)
+
 _RELAYSTATES.fields_by_name['states'].message_type = _RELAYSTATE
 _LIGHTSTATE.fields_by_name['state'].enum_type = _LIGHTSTATEENUM
 _LIGHTSTATES.fields_by_name['states'].message_type = _LIGHTSTATE
@@ -481,6 +577,9 @@ DESCRIPTOR.message_types_by_name['pH'] = _PH
 DESCRIPTOR.message_types_by_name['StepperCommand'] = _STEPPERCOMMAND
 DESCRIPTOR.message_types_by_name['StepperState'] = _STEPPERSTATE
 DESCRIPTOR.message_types_by_name['Scope'] = _SCOPE
+DESCRIPTOR.message_types_by_name['SampleTime'] = _SAMPLETIME
+DESCRIPTOR.message_types_by_name['PHCommand'] = _PHCOMMAND
+DESCRIPTOR.message_types_by_name['PHResponse'] = _PHRESPONSE
 DESCRIPTOR.enum_types_by_name['LightStateEnum'] = _LIGHTSTATEENUM
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -568,6 +667,27 @@ Scope = _reflection.GeneratedProtocolMessageType('Scope', (_message.Message,), {
   })
 _sym_db.RegisterMessage(Scope)
 
+SampleTime = _reflection.GeneratedProtocolMessageType('SampleTime', (_message.Message,), {
+  'DESCRIPTOR' : _SAMPLETIME,
+  '__module__' : 'hardwareControl_pb2'
+  # @@protoc_insertion_point(class_scope:hardwarecontrol.SampleTime)
+  })
+_sym_db.RegisterMessage(SampleTime)
+
+PHCommand = _reflection.GeneratedProtocolMessageType('PHCommand', (_message.Message,), {
+  'DESCRIPTOR' : _PHCOMMAND,
+  '__module__' : 'hardwareControl_pb2'
+  # @@protoc_insertion_point(class_scope:hardwarecontrol.PHCommand)
+  })
+_sym_db.RegisterMessage(PHCommand)
+
+PHResponse = _reflection.GeneratedProtocolMessageType('PHResponse', (_message.Message,), {
+  'DESCRIPTOR' : _PHRESPONSE,
+  '__module__' : 'hardwareControl_pb2'
+  # @@protoc_insertion_point(class_scope:hardwarecontrol.PHResponse)
+  })
+_sym_db.RegisterMessage(PHResponse)
+
 
 
 _HARDWARECONTROL = _descriptor.ServiceDescriptor(
@@ -577,8 +697,8 @@ _HARDWARECONTROL = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=666,
-  serialized_end=1453,
+  serialized_start=764,
+  serialized_end=1941,
   methods=[
   _descriptor.MethodDescriptor(
     name='Echo',
@@ -687,6 +807,56 @@ _HARDWARECONTROL = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_SCOPE,
     output_type=_EMPTY,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
+    name='SetPHSampleTime',
+    full_name='hardwarecontrol.HardwareControl.SetPHSampleTime',
+    index=11,
+    containing_service=None,
+    input_type=_SAMPLETIME,
+    output_type=_EMPTY,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
+    name='GetPHSampleTime',
+    full_name='hardwarecontrol.HardwareControl.GetPHSampleTime',
+    index=12,
+    containing_service=None,
+    input_type=_EMPTY,
+    output_type=_SAMPLETIME,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
+    name='SetTemperatureSampleTime',
+    full_name='hardwarecontrol.HardwareControl.SetTemperatureSampleTime',
+    index=13,
+    containing_service=None,
+    input_type=_SAMPLETIME,
+    output_type=_EMPTY,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
+    name='GetTemperatureSampleTime',
+    full_name='hardwarecontrol.HardwareControl.GetTemperatureSampleTime',
+    index=14,
+    containing_service=None,
+    input_type=_EMPTY,
+    output_type=_SAMPLETIME,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
+    name='SendPHCommand',
+    full_name='hardwarecontrol.HardwareControl.SendPHCommand',
+    index=15,
+    containing_service=None,
+    input_type=_PHCOMMAND,
+    output_type=_PHRESPONSE,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
   ),
