@@ -6,9 +6,10 @@
 #
 
 import logging
+from xmlrpc.client import boolean
 import grpc
 import time
-
+from typing import List
 import hardwareControl_pb2
 import hardwareControl_pb2_grpc
 
@@ -18,34 +19,41 @@ class HardwareControlClient():
         self.stub = hardwareControl_pb2_grpc.HardwareControlStub(channel)
 
 
-    def getTemperature_degC(self):
+    def getTemperature_degC(self) -> float:
         """
-            Get the latest temperature reading.
+            Get the latest temperature reading in degrees C
         """
         response = self.stub.GetTemperature(hardwareControl_pb2.Empty())
         return response.temperature_degC
 
-    def getPH(self):
+    def getTemperature_degF(self) -> float:
+        """
+            Get the latest temperature reading in degrees F
+        """
+        response = self.stub.GetTemperature(hardwareControl_pb2.Empty())
+        return (response.temperature_degC * 9.0) / 5.0 + 32.0
+
+    def getPH(self) -> float:
         """
             Get the latest pH reading.
         """
         response = self.stub.GetPH(hardwareControl_pb2.Empty())
         return response.pH
 
-    def echo(self, payload='Test123'):
+    def echo(self, payload='Test123') -> None:
         """
             Send and receive a loopback test of given string.
         """
         response = self.stub.Echo(hardwareControl_pb2.EchoRequest(payload=payload))
         print(f"Echo returned: {response.payback}")
 
-    def setRelayState(self, chn, isEngaged):
+    def setRelayState(self, chn, isEngaged) -> None:
         """
             Set state on given channel to given state
         """
         response = self.stub.SetRelayState(hardwareControl_pb2.RelayState(channel=chn, isEngaged=isEngaged))
 
-    def getRelayStates(self):
+    def getRelayStates(self) -> List[bool]:
         """
             Get all relay states as list.
             Unpack from GRPC object and return as native Python list.
@@ -53,13 +61,13 @@ class HardwareControlClient():
         response = self.stub.GetRelayStates(hardwareControl_pb2.Empty())
         return [r.isEngaged for r in response.states]
 
-    def setLightState(self, lightId, state, scope=""):
+    def setLightState(self, lightId, state, scope="") -> None:
         """
             Set state on given light to given state
         """
         response = self.stub.SetLightState(hardwareControl_pb2.LightState(lightId=lightId, state=state, scope=scope))
 
-    def getLightStates(self):
+    def getLightStates(self) -> List:
         """
             Get all light states as list.
             Unpack from GRPC object and return as native Python list.
