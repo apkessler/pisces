@@ -264,7 +264,7 @@ class GraphPage(Subwindow):
         super().__init__(field)
 
         #Read in the dataframe and parse timestamp strings to datetime
-        self.df = pd.read_csv('test/telemetry.csv', parse_dates=["Timestamp"])
+        self.df = pd.read_csv(jData['telemetry_file'], parse_dates=["Timestamp"])
 
         #Set the index to timestamp column so we can index by it
         self.df.set_index('Timestamp', inplace=True)

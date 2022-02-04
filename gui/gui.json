@@ -1,5 +1,6 @@
 
 {
   "server": "localhost:50051",
-  "fullscreen":true
+  "fullscreen":true,
+  "telemetry_file":"~/Repositories/pisces/data/telemetry.csv"
 }
