@@ -1,7 +1,7 @@
 
 {
   "server": "localhost:50051",
-  "fullscreen":true,
+  "fullscreen": false,
   "telemetry_file":"~/Repositories/pisces/data/telemetry.csv",
   "temp_hi_degF": 80,
   "temp_lo_degF": 60,

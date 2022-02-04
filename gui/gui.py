@@ -245,12 +245,12 @@ class Subwindow(Window):
         [description]
     """
 
-    def __init__(self, title):
+    def __init__(self, title, exit_button_text="Back"):
         super().__init__(title, tk.Toplevel())
 
         self.master.grab_set()
 
-        btn = tk.Button(self.master, text="Back", font=fontTuple, width=9, height=2, bg='#ff5733', command=self.exit)
+        btn = tk.Button(self.master, text=exit_button_text, font=fontTuple, width=9, height=2, bg='#ff5733', command=self.exit)
         btn.place(x=450, y=10)
 
     def exit(self):
@@ -373,7 +373,7 @@ class SettingsPage(Subwindow):
             ["Aquarium\nLights", self.dummy],
             ["Grow Lights", self.dummy],
             ["Fertilizer", self.dummy],
-            ["Calibrate pH", self.dummy],
+            ["Calibrate pH", lambda: CalibratePhStartPage()],
             ["System Settings", lambda: SystemSettingsPage()]
         ]
 
@@ -448,6 +448,91 @@ class ManualFertilizerPage(Subwindow):
         self.thread = threading.Thread(target=dispense, args=(hwCntrl, volume_ml, stop_event), daemon=True)
         self.thread.start()
         self.thread.join()
+
+
+class CalibratePhStartPage(Subwindow):
+
+    def __init__(self):
+        super().__init__("pH Sensor Calibration")
+
+        msg = "To calibrate the pH sensor, you will need all three\nof the calibration solutions (pH=7.0, 4.0, 10.0)." + \
+               "\n\nIf you've got those ready, go ahead\nand hit the START button!" + \
+                "\n\nWARNING: Starting this process will\nerase any existing calibration."
+
+        tk.Label(self.master, text=msg, font=('Arial',18), justify=tk.LEFT).place(x=50, y=100)
+
+        btn = tk.Button(self.master, text="Start!", font=fontTuple, width=15, height=4, bg='#00ff00', command=self.run_sequence)
+        btn.place(x=250, y=330)
+
+    def run_sequence(self):
+
+        CalibratePhProcessPage()
+        self.exit()
+
+
+class CalibratePhDonePage(Subwindow):
+
+    def __init__(self):
+        super().__init__("pH Sensor Calibration")
+
+        msg = "pH Sensor calibration complete! Woohoo!"
+
+        tk.Label(self.master, text=msg, font=('Arial',18), justify=tk.LEFT).place(x=50, y=100)
+
+        btn = tk.Button(self.master, text="Done", font=fontTuple, width=15, height=6, bg='#00ff00', command=self.exit)
+        btn.place(x=250, y=250)
+
+
+
+class CalibratePhProcessPage(Subwindow):
+
+    def __init__(self):
+        super().__init__(f"pH Sensor Calibration", exit_button_text="Abort")
+
+        self.index = 0
+        self.sequence = ['7.0', '4.0', '10.0']
+
+        self.titleText = tk.StringVar()
+        self.titleText.set(f"Calibrate @ pH={self.sequence[self.index]}")
+        tk.Label(self.master, textvar=self.titleText, font=('Arial',22), justify=tk.LEFT).place(x=20, y=20)
+
+        msg = f"1. Get the indicated calibration solution.\n"
+        msg += "2. Briefly rinse off the probe.\n"
+        msg += "3. Cut off the top of the calibration solution pouch.\n"
+        msg += "4. Place the pH probe inside the pouch.\n"
+        msg += "5. Wait for the pH reading to stabilize (1-2min).\nWhen it does, hit \"Next\".\n"
+
+        tk.Label(self.master, text=msg, font=('Arial',18), justify=tk.LEFT).place(x=50, y=100)
+
+        self.phText = tk.StringVar()
+        self.phText.set(f"pH\n???")
+        tk.Label(self.master, textvariable=self.phText, font=('Arial',22)).place(x=100, y=300)
+
+        btn = tk.Button(self.master, text="Next", font=fontTuple, width=12, height=4, bg='#00ff00', command=self.save_calibration)
+        btn.place(x=350, y=300)
+
+        self.refresh_data()
+
+    def refresh_data(self):
+
+        #Update the pH Reading
+        ph = hwCntrl.getPH()
+        self.phText.set(f"pH\n{ph:0.2f}")
+
+        self.master.after(500, self.refresh_data)
+
+    def save_calibration(self):
+        '''
+            TODO: Send the save calibration command to sensor...
+        '''
+        logger.info("Sending save cal command")
+        self.index += 1
+        if (self.index >= len(self.sequence)):
+            CalibratePhDonePage()
+            self.exit()
+        else:
+            self.titleText.set(f"Calibrate @ pH={self.sequence[self.index]}")
+
 
 
 if __name__ == "__main__":
