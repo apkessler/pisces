@@ -329,7 +329,17 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
 
         return hardwareControl_pb2.Empty()
 
+    def SetPHSampleTime(self, request, context):
+        pass
 
+    def GetPHSampleTime(self, request, context):
+        return hardwareControl_pb2.SampleTime(sample_time_msec=1) #TODO
+
+
+    def SendPHCommand(self, request, context):
+        """ Send the given command to the ph sensor, and return the result. Hopefully will be quick enough
+        """
+        return hardwareControl_pb2.PHResponse(response=hwMap.phSensorPoller.send_command(request.cmd))
 
 
 if __name__ == '__main__':

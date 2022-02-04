@@ -97,6 +97,19 @@ class HardwareControlClient():
         """
         response = self.stub.SetScope(hardwareControl_pb2.Scope(scope=scope))
 
+    def setPhSensorSampleTime(self, time_msec:int) -> None:
+        response = self.stub.SetPHSampleTime(hardwareControl_pb2.SampleTime(sample_time_msec=time_msec))
+
+    def getPhSensorSampleTime(self) -> int:
+        response = self.stub.GetPHSampleTime(hardwareControl_pb2.Empty())
+        return response.sample_time_msec
+
+    def sendPhSensorCommand(self, cmd:str) -> str:
+        response = self.stub.SendPHCommand(hardwareControl_pb2.PHCommand(cmd=cmd))
+        return response.response
+
+
+
 def test():
     """
         Exercise available interfaces for testing.
