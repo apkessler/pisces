@@ -33,6 +33,16 @@ service HardwareControl {
 
     rpc SetScope(Scope) returns (Empty) {}
 
+    rpc SetPHSampleTime(SampleTime) returns (Empty) {}
+    rpc GetPHSampleTime(Empty) returns (SampleTime) {}
+
+    rpc SetTemperatureSampleTime(SampleTime) returns (Empty) {}
+    rpc GetTemperatureSampleTime(Empty) returns (SampleTime) {}
+
+    rpc SendPHCommand(PHCommand) returns (PHResponse) {}
+
+
+
 }
 
 message Empty {
@@ -92,3 +102,16 @@ message StepperState {
 message Scope {
     string scope = 1;
 }
+
+message SampleTime {
+    uint32 sample_time_msec = 1;
+}
+
+message PHCommand{
+    string cmd = 1;
+}
+
+message PHResponse{
+    string response = 1;
+}
+

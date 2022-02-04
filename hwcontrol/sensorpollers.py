@@ -135,6 +135,12 @@ class PhSensorPoller(object):
 
             time.sleep(max(self.interval_s - self.readDelay_s, 0.1))
 
+    def send_command(self, cmd:str) -> str:
+        #TODO wait for poller to be (check semaphore)
+        #Send command, get response
+        #release lock
+        return cmd
+
 class SimulatedPoller(object):
     """
         A simulated poller for fake sensors
