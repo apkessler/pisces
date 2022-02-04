@@ -269,6 +269,17 @@ class GraphPage(Subwindow):
         #Set the index to timestamp column so we can index by it
         self.df.set_index('Timestamp', inplace=True)
 
+        #Pull the safe hi/lo bounds to plot horz lines from config file
+        if (field == 'Temperature (F)'):
+            self.safe_ylim_hi = jData['temp_hi_degF']
+            self.safe_ylim_lo = jData['temp_lo_degF']
+        elif (field == 'pH'):
+            self.safe_ylim_hi = jData['ph_hi']
+            self.safe_ylim_lo = jData['ph_lo']
+        else:
+            raise Exception(f"Bad Graph Type {field}")
+
+
         self.fig = Figure(figsize=(5,4), dpi = 100)
         self.ax = self.fig.add_subplot()
 
@@ -344,6 +355,8 @@ class GraphPage(Subwindow):
 
         self.ax.cla()
         self.df[start_time: end_time].plot(y=[self.field], ax=self.ax)
+        self.ax.hlines(y=[self.safe_ylim_lo, self.safe_ylim_hi], xmin=[start_time], xmax=[end_time], colors='red', linestyles='--', lw=1)
+
         self.ax.set_ylabel(self.field)
         self.ax.set_xlabel('')
         self.fig.subplots_adjust(bottom=0.166)
