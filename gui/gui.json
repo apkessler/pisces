@@ -4,7 +4,7 @@
   "fullscreen": false,
   "telemetry_file":"~/Repositories/pisces/data/telemetry.csv",
   "temp_hi_degF": 80,
-  "temp_lo_degF": 60,
-  "ph_hi": 8.0,
-  "ph_lo": 6.0
+  "temp_lo_degF": 75,
+  "ph_hi": 7.2,
+  "ph_lo": 6.8
 }

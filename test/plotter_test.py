@@ -22,11 +22,11 @@ def generate_data():
         writer.writerow(['Timestamp', 'Temperature (F)', 'pH'])
         the_time = datetime.datetime(2021, 10, 1, 0)
         dt = datetime.timedelta(hours=1)
-        temp = 70.0
+        temp = 77.0
         ph = 7.0
         while (the_time <  datetime.datetime.now()):
             temp += 0.1*(random.random() - 0.5)
-            ph += 0.1*(random.random() - 0.5)
+            ph += 0.01*(random.random() - 0.5)
             writer.writerow([the_time, round(temp,2), round(ph,2)])
             the_time += dt
 
