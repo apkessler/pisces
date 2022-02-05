@@ -1,23 +1,5 @@
 PY=python3
 
-BUILD_PATH=./build
-
-BUILD_SETTINGS=$(BUILD_PATH)/settings
-BUILD_SHARED=shared
-BUILD_BIN=$(BUILD_PATH)/bin
-
-PROTO_LOCATION=$(BUILD_SHARED)
-
-#Build env strucure
-# pisces-deploy
-# |
-# +-- shared (grpc files, client)
-# +-- settings (json, yaml)
-# +-- bin
-#     +-- gui.py
-#	  +-- hwControl_server.py
-#     +-- scheduler.py
-#	  +-- dispense.py
 
 #TODO: make this a list?
 PROTOS_DIR=./protodefs
@@ -30,7 +12,8 @@ protos:
 	$(PY) -m grpc_tools.protoc -I$(PROTOS_DIR) --python_out=./$(PYTHON_OUT_DIR) --grpc_python_out=./$(PYTHON_OUT_DIR) $(PROTOS_DIR)/*.proto
 
 
-install:
+.PHONY: install
+install: backup_configs
 	echo "Install?"
 	cp services/* ~/.config/systemd/user
 	systemctl --user daemon-reload
@@ -40,6 +23,16 @@ install:
 	echo "0 * * * * PYTHONPATH=/home/pi/Repositories/pisces/shared python3 /home/pi/Repositories/pisces/shared/record_stats.py" >> tempcron
 	crontab tempcron
 	rm tempcron
+
+.PHONY: backup_configs
+backup_configs:
+	echo "Backing up default configs"
+	cp shared/dispense.json shared/dispense.json.default
+	cp scheduler/scheduler.json scheduler/scheduler.json.default
+	cp hwcontrol/hwcontrol_server.json hwcontrol/hwcontrol_server.json.default
+	cp gui/gui.json	gui/gui.json.default
+
+
 .PHONY: start_all
 start_all:
 	systemctl --user start hwcontrol.service
