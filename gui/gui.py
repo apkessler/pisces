@@ -195,24 +195,26 @@ class MainWindow(Window):
         newMode = self.lightToggleModes[self.currentLightToggleModeInx]
         self.lightModeText.set("Lights:\n"+newMode)
         logger.info(f"Toggled to mode {newMode}")
+
         if (newMode == 'Schedule'):
-            hwCntrl.setScope()
+            hwCntrl.setScope() #Release scope, return to normal schedule
+
         elif (newMode == 'All On'):
             hwCntrl.setScope(scope=myScope)
             for lightId in [1,2,3]:
-                hwCntrl.setLightState(lightId, hardwareControl_pb2.LightState_Day, scope=myScope)
+                hwCntrl.setLightColor(lightId, 'white', scope=myScope)
 
         elif (newMode == 'All Blue'):
             hwCntrl.setScope(scope=myScope)
             for lightId in [1,2]:
-                hwCntrl.setLightState(lightId, hardwareControl_pb2.LightState_Night, scope=myScope)
-            hwCntrl.setLightState(3, hardwareControl_pb2.LightState_Day, scope=myScope) #Keep gro lights on
+                hwCntrl.setLightColor(lightId, 'blue', scope=myScope)
+            hwCntrl.setLightColor(3, 'white', scope=myScope) #Keep gro lights on
 
 
         elif (newMode == 'All Off'):
             hwCntrl.setScope(scope=myScope)
             for lightId in [1,2,3]:
-                hwCntrl.setLightState(lightId, hardwareControl_pb2.LightState_Off, scope=myScope)
+                hwCntrl.setLightColor(lightId, 'off', scope=myScope)
 
 
     def refresh_data(self):

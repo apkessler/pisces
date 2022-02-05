@@ -34,15 +34,15 @@ class HardwareControlStub(object):
                 request_serializer=hardwareControl__pb2.Empty.SerializeToString,
                 response_deserializer=hardwareControl__pb2.Temperature.FromString,
                 )
-        self.SetLightState = channel.unary_unary(
-                '/hardwarecontrol.HardwareControl/SetLightState',
-                request_serializer=hardwareControl__pb2.LightState.SerializeToString,
+        self.SetLightColor = channel.unary_unary(
+                '/hardwarecontrol.HardwareControl/SetLightColor',
+                request_serializer=hardwareControl__pb2.LightColor.SerializeToString,
                 response_deserializer=hardwareControl__pb2.Empty.FromString,
                 )
-        self.GetLightStates = channel.unary_unary(
-                '/hardwarecontrol.HardwareControl/GetLightStates',
+        self.GetLightColors = channel.unary_unary(
+                '/hardwarecontrol.HardwareControl/GetLightColors',
                 request_serializer=hardwareControl__pb2.Empty.SerializeToString,
-                response_deserializer=hardwareControl__pb2.LightStates.FromString,
+                response_deserializer=hardwareControl__pb2.LightColors.FromString,
                 )
         self.GetPH = channel.unary_unary(
                 '/hardwarecontrol.HardwareControl/GetPH',
@@ -123,14 +123,13 @@ class HardwareControlServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def SetLightState(self, request, context):
-        """Should these be in a different service?
-        """
+    def SetLightColor(self, request, context):
+        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetLightStates(self, request, context):
+    def GetLightColors(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -219,15 +218,15 @@ def add_HardwareControlServicer_to_server(servicer, server):
                     request_deserializer=hardwareControl__pb2.Empty.FromString,
                     response_serializer=hardwareControl__pb2.Temperature.SerializeToString,
             ),
-            'SetLightState': grpc.unary_unary_rpc_method_handler(
-                    servicer.SetLightState,
-                    request_deserializer=hardwareControl__pb2.LightState.FromString,
+            'SetLightColor': grpc.unary_unary_rpc_method_handler(
+                    servicer.SetLightColor,
+                    request_deserializer=hardwareControl__pb2.LightColor.FromString,
                     response_serializer=hardwareControl__pb2.Empty.SerializeToString,
             ),
-            'GetLightStates': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetLightStates,
+            'GetLightColors': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetLightColors,
                     request_deserializer=hardwareControl__pb2.Empty.FromString,
-                    response_serializer=hardwareControl__pb2.LightStates.SerializeToString,
+                    response_serializer=hardwareControl__pb2.LightColors.SerializeToString,
             ),
             'GetPH': grpc.unary_unary_rpc_method_handler(
                     servicer.GetPH,
@@ -358,7 +357,7 @@ class HardwareControl(object):
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
-    def SetLightState(request,
+    def SetLightColor(request,
             target,
             options=(),
             channel_credentials=None,
@@ -368,14 +367,14 @@ class HardwareControl(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/hardwarecontrol.HardwareControl/SetLightState',
-            hardwareControl__pb2.LightState.SerializeToString,
+        return grpc.experimental.unary_unary(request, target, '/hardwarecontrol.HardwareControl/SetLightColor',
+            hardwareControl__pb2.LightColor.SerializeToString,
             hardwareControl__pb2.Empty.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
-    def GetLightStates(request,
+    def GetLightColors(request,
             target,
             options=(),
             channel_credentials=None,
@@ -385,9 +384,9 @@ class HardwareControl(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/hardwarecontrol.HardwareControl/GetLightStates',
+        return grpc.experimental.unary_unary(request, target, '/hardwarecontrol.HardwareControl/GetLightColors',
             hardwareControl__pb2.Empty.SerializeToString,
-            hardwareControl__pb2.LightStates.FromString,
+            hardwareControl__pb2.LightColors.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

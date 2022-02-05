@@ -21,9 +21,8 @@ service HardwareControl {
 
     rpc GetTemperature (Empty) returns (Temperature) {}
 
-    //Should these be in a different service?
-    rpc SetLightState(LightState) returns (Empty) {}
-    rpc GetLightStates(Empty) returns (LightStates) {}
+    rpc SetLightColor(LightColor) returns (Empty) {}
+    rpc GetLightColors(Empty) returns (LightColors) {}
 
     rpc GetPH(Empty) returns (pH) {}
 
@@ -70,20 +69,20 @@ message Temperature {
     float temperature_degC = 1;
 }
 
-enum LightStateEnum {
-    LightState_Off = 0;
-    LightState_Day = 1;
-    LightState_Night = 2;
+enum LightColorEnum {
+    LightColor_Off = 0;
+    LightColor_White = 1;
+    LightColor_Blue = 2;
 }
 
-message LightState {
+message LightColor {
     uint32 lightId = 1; //Which light is being addressed
-    LightStateEnum  state = 2;
+    LightColorEnum  color_enum = 2;
     string scope = 3;
 }
 
-message LightStates {
-    repeated LightState states = 1;
+message LightColors {
+    repeated LightColor colors = 1;
 }
 
 message pH {

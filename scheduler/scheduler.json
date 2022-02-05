@@ -9,6 +9,8 @@
             "sunrise_hhmm": 830,
             "sunset_hhmm": 1730,
 
+            "blue_lights_at_night": false,
+
             "eclipse_enabled" : true,
             "eclipse_frequency_min": 30,
             "eclipse_duration_min": 1,
@@ -21,7 +23,7 @@
             "lights": ["GrowLight1"],
             "sunrise_hhmm": 830,
             "sunset_hhmm": 1730,
-
+            "blue_lights_at_night": false,
             "eclipse_enabled" : false
         }
     ]

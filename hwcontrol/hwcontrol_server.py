@@ -29,44 +29,49 @@ class Light():
         self.enable_relay = enable_relay
         self.mode_relay = mode_relay
 
-        self.state = hardwareControl_pb2.LightState_Off
+        self.color_enum = hardwareControl_pb2.LightColor_Off
 
-    def getState(self):
-        return self.state
+    def getColor(self) -> hardwareControl_pb2.LightColorEnum:
+        '''Get current state of this light as enum
 
-    def getStateStr(self):
-        if (self.state == hardwareControl_pb2.LightState_Off):
-            return "Off"
-        if (self.state == hardwareControl_pb2.LightState_Day):
-            return "Day"
-        if (self.state == hardwareControl_pb2.LightState_Night):
-            return "Night"
+        Returns
+        -------
+        hardwareControl_pb2.LightStateEnum
+            [description]
+        '''
+        return self.color_enum
 
-        return "???"
 
-    def changeState(self, state):
-        if (state == hardwareControl_pb2.LightState_Off):
-            logger.info(f"Turning {self.name} off!")
+    def changeColor(self, new_color: hardwareControl_pb2.LightColorEnum):
+        '''[summary]
+
+        Parameters
+        ----------
+        new_color : hardwareControl_pb2.LightStateEnum
+            [description]
+        '''
+        if (new_color == hardwareControl_pb2.LightColor_Off):
+            logger.info(f"Turning {self.name} to OFF ({new_color})!")
             if (self.enable_relay):
                 self.enable_relay.gpioObj.off()
 
             if (self.mode_relay):
                 self.mode_relay.gpioObj.off() #Not strictly necessary, but keeps states consistent
 
-            self.state = state
+            self.color_enum = new_color
 
-        elif (state == hardwareControl_pb2.LightState_Day):
-            logger.info(f"Turning {self.name} to day mode!")
+        elif (new_color == hardwareControl_pb2.LightColor_White):
+            logger.info(f"Turning {self.name} to WHITE ({new_color})!")
             if (self.mode_relay):
                 self.mode_relay.gpioObj.on()
 
             if (self.enable_relay):
                 self.enable_relay.gpioObj.on()
 
-            self.state = state
+            self.color_enum = new_color
 
-        elif (state == hardwareControl_pb2.LightState_Night):
-            logger.info(f"Turning {self.name} to night mode!")
+        elif (new_color == hardwareControl_pb2.LightColor_Blue):
+            logger.info(f"Turning {self.name} to BLUE ({new_color})!")
 
             if (self.mode_relay):
                 self.mode_relay.gpioObj.off()
@@ -74,16 +79,13 @@ class Light():
             if (self.enable_relay):
                 self.enable_relay.gpioObj.on()
 
-            self.state = state
+            self.color_enum = new_color
         else:
             #Unhandled!
             pass
 
-    def turnOff(self):
-        self.setState(hardwareControl_pb2.LightState_Off)
-
     def __str__(self):
-        return f"<{self.name}: {self.getStateStr()}>"
+        return f"<{self.name}: {self.color_enum}>"
 
 
 
@@ -170,7 +172,7 @@ class HardwareMap():
         """Take any buffered light commands, and apply them. Then reset buffered cmds
         """
         for inx, state in enumerate(self.bufferedLightCmdList):
-            self.lightObjs[inx].changeState(state)
+            self.lightObjs[inx].changeColor(state)
 
         self.bufferedLightCmdList = [] #Reset this to enforce proper ordering of func calls (i.e. saveLightStatesToBuffer is called first)
 
@@ -178,7 +180,7 @@ class HardwareMap():
         """ Initiate light buffer by storing current states in buffer to be restored defaults when scope restored"""
         self.bufferedLightCmdList = len(self.lightObjs) * [None]
         for inx, lightObj in enumerate(self.lightObjs):
-            self.bufferedLightCmdList[inx] = lightObj.getState()
+            self.bufferedLightCmdList[inx] = lightObj.getColor()
 
 
 hwMap = HardwareMap()
@@ -223,16 +225,16 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
         return response
 
 
-    def SetLightState(self, request, context):
+    def SetLightColor(self, request, context) -> None:
         """
-            Set light state, return nothing
+            Set light color, return nothing
         """
-        logger.info(f"Got request with scope \"{request.scope}\": Light{request.lightId} <-- {request.state}")
+        logger.info(f"Got request with scope \"{request.scope}\": Light{request.lightId} <-- {request.color_enum}")
 
         if (hwMap.scope == "" or hwMap.scope == request.scope):
             #We are OK to set this directly
             try:
-                hwMap.lightObjs[request.lightId - 1].changeState(request.state)
+                hwMap.lightObjs[request.lightId - 1].changeColor(request.color_enum)
             except IndexError:
                 context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
                 context.set_details(f"Invalid light channel ({request.lightId})")
@@ -241,7 +243,7 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
             #Requester does not have control. Buffer the requests (only no scoped commands get buffered)
             try:
                 logger.info("Buffering command until scope released")
-                hwMap.bufferLightCmd(request.lightId - 1, request.state)
+                hwMap.bufferLightCmd(request.lightId - 1, request.color_enum)
             except IndexError:
                 context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
                 context.set_details(f"Invalid light channel ({request.lightId})")
@@ -250,13 +252,13 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
 
         return hardwareControl_pb2.Empty()
 
-    def GetLightStates(self, request, context):
+    def GetLightColors(self, request, context):
         """
             Return all light states
         """
-        response = hardwareControl_pb2.LightStates()
+        response = hardwareControl_pb2.LightColors()
         for inx,obj in enumerate(hwMap.lightObjs):
-            response.states.append(hardwareControl_pb2.LightState(lightId=(inx+1), state=obj.getState()))
+            response.colors.append(hardwareControl_pb2.LightColor(lightId=(inx+1), color_enum=obj.getColor()))
         return response
 
     def GetTemperature(self, request, context):

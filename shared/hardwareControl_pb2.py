@@ -21,44 +21,44 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x15hardwareControl.proto\x12\x0fhardwarecontrol\x1a\x1fgoogle/protobuf/timestamp.proto\"\x07\n\x05\x45mpty\"\x1e\n\x0b\x45\x63hoRequest\x12\x0f\n\x07payload\x18\x01 \x01(\t\"\x1f\n\x0c\x45\x63hoResponse\x12\x0f\n\x07payback\x18\x01 \x01(\t\"0\n\nRelayState\x12\x0f\n\x07\x63hannel\x18\x01 \x01(\r\x12\x11\n\tisEngaged\x18\x02 \x01(\x08\":\n\x0bRelayStates\x12+\n\x06states\x18\x01 \x03(\x0b\x32\x1b.hardwarecontrol.RelayState\"\'\n\x0bTemperature\x12\x18\n\x10temperature_degC\x18\x01 \x01(\x02\"\\\n\nLightState\x12\x0f\n\x07lightId\x18\x01 \x01(\r\x12.\n\x05state\x18\x02 \x01(\x0e\x32\x1f.hardwarecontrol.LightStateEnum\x12\r\n\x05scope\x18\x03 \x01(\t\":\n\x0bLightStates\x12+\n\x06states\x18\x01 \x03(\x0b\x32\x1b.hardwarecontrol.LightState\"\x10\n\x02pH\x12\n\n\x02pH\x18\x01 \x01(\x02\"5\n\x0eStepperCommand\x12\x10\n\x08numSteps\x18\x01 \x01(\r\x12\x11\n\tisReverse\x18\x02 \x01(\x08\" \n\x0cStepperState\x12\x10\n\x08isActive\x18\x01 \x01(\x08\"\x16\n\x05Scope\x12\r\n\x05scope\x18\x01 \x01(\t\"&\n\nSampleTime\x12\x18\n\x10sample_time_msec\x18\x01 \x01(\r\"\x18\n\tPHCommand\x12\x0b\n\x03\x63md\x18\x01 \x01(\t\"\x1e\n\nPHResponse\x12\x10\n\x08response\x18\x01 \x01(\t*N\n\x0eLightStateEnum\x12\x12\n\x0eLightState_Off\x10\x00\x12\x12\n\x0eLightState_Day\x10\x01\x12\x14\n\x10LightState_Night\x10\x02\x32\x99\t\n\x0fHardwareControl\x12\x45\n\x04\x45\x63ho\x12\x1c.hardwarecontrol.EchoRequest\x1a\x1d.hardwarecontrol.EchoResponse\"\x00\x12\x46\n\rSetRelayState\x12\x1b.hardwarecontrol.RelayState\x1a\x16.hardwarecontrol.Empty\"\x00\x12H\n\x0eGetRelayStates\x12\x16.hardwarecontrol.Empty\x1a\x1c.hardwarecontrol.RelayStates\"\x00\x12H\n\x0eGetTemperature\x12\x16.hardwarecontrol.Empty\x1a\x1c.hardwarecontrol.Temperature\"\x00\x12\x46\n\rSetLightState\x12\x1b.hardwarecontrol.LightState\x1a\x16.hardwarecontrol.Empty\"\x00\x12H\n\x0eGetLightStates\x12\x16.hardwarecontrol.Empty\x1a\x1c.hardwarecontrol.LightStates\"\x00\x12\x36\n\x05GetPH\x12\x16.hardwarecontrol.Empty\x1a\x13.hardwarecontrol.pH\"\x00\x12H\n\x0bMoveStepper\x12\x1f.hardwarecontrol.StepperCommand\x1a\x16.hardwarecontrol.Empty\"\x00\x12?\n\x0bStopStepper\x12\x16.hardwarecontrol.Empty\x1a\x16.hardwarecontrol.Empty\"\x00\x12J\n\x0fIsStepperActive\x12\x16.hardwarecontrol.Empty\x1a\x1d.hardwarecontrol.StepperState\"\x00\x12<\n\x08SetScope\x12\x16.hardwarecontrol.Scope\x1a\x16.hardwarecontrol.Empty\"\x00\x12H\n\x0fSetPHSampleTime\x12\x1b.hardwarecontrol.SampleTime\x1a\x16.hardwarecontrol.Empty\"\x00\x12H\n\x0fGetPHSampleTime\x12\x16.hardwarecontrol.Empty\x1a\x1b.hardwarecontrol.SampleTime\"\x00\x12Q\n\x18SetTemperatureSampleTime\x12\x1b.hardwarecontrol.SampleTime\x1a\x16.hardwarecontrol.Empty\"\x00\x12Q\n\x18GetTemperatureSampleTime\x12\x16.hardwarecontrol.Empty\x1a\x1b.hardwarecontrol.SampleTime\"\x00\x12J\n\rSendPHCommand\x12\x1a.hardwarecontrol.PHCommand\x1a\x1b.hardwarecontrol.PHResponse\"\x00\x62\x06proto3'
+  serialized_pb=b'\n\x15hardwareControl.proto\x12\x0fhardwarecontrol\x1a\x1fgoogle/protobuf/timestamp.proto\"\x07\n\x05\x45mpty\"\x1e\n\x0b\x45\x63hoRequest\x12\x0f\n\x07payload\x18\x01 \x01(\t\"\x1f\n\x0c\x45\x63hoResponse\x12\x0f\n\x07payback\x18\x01 \x01(\t\"0\n\nRelayState\x12\x0f\n\x07\x63hannel\x18\x01 \x01(\r\x12\x11\n\tisEngaged\x18\x02 \x01(\x08\":\n\x0bRelayStates\x12+\n\x06states\x18\x01 \x03(\x0b\x32\x1b.hardwarecontrol.RelayState\"\'\n\x0bTemperature\x12\x18\n\x10temperature_degC\x18\x01 \x01(\x02\"a\n\nLightColor\x12\x0f\n\x07lightId\x18\x01 \x01(\r\x12\x33\n\ncolor_enum\x18\x02 \x01(\x0e\x32\x1f.hardwarecontrol.LightColorEnum\x12\r\n\x05scope\x18\x03 \x01(\t\":\n\x0bLightColors\x12+\n\x06\x63olors\x18\x01 \x03(\x0b\x32\x1b.hardwarecontrol.LightColor\"\x10\n\x02pH\x12\n\n\x02pH\x18\x01 \x01(\x02\"5\n\x0eStepperCommand\x12\x10\n\x08numSteps\x18\x01 \x01(\r\x12\x11\n\tisReverse\x18\x02 \x01(\x08\" \n\x0cStepperState\x12\x10\n\x08isActive\x18\x01 \x01(\x08\"\x16\n\x05Scope\x12\r\n\x05scope\x18\x01 \x01(\t\"&\n\nSampleTime\x12\x18\n\x10sample_time_msec\x18\x01 \x01(\r\"\x18\n\tPHCommand\x12\x0b\n\x03\x63md\x18\x01 \x01(\t\"\x1e\n\nPHResponse\x12\x10\n\x08response\x18\x01 \x01(\t*O\n\x0eLightColorEnum\x12\x12\n\x0eLightColor_Off\x10\x00\x12\x14\n\x10LightColor_White\x10\x01\x12\x13\n\x0fLightColor_Blue\x10\x02\x32\x99\t\n\x0fHardwareControl\x12\x45\n\x04\x45\x63ho\x12\x1c.hardwarecontrol.EchoRequest\x1a\x1d.hardwarecontrol.EchoResponse\"\x00\x12\x46\n\rSetRelayState\x12\x1b.hardwarecontrol.RelayState\x1a\x16.hardwarecontrol.Empty\"\x00\x12H\n\x0eGetRelayStates\x12\x16.hardwarecontrol.Empty\x1a\x1c.hardwarecontrol.RelayStates\"\x00\x12H\n\x0eGetTemperature\x12\x16.hardwarecontrol.Empty\x1a\x1c.hardwarecontrol.Temperature\"\x00\x12\x46\n\rSetLightColor\x12\x1b.hardwarecontrol.LightColor\x1a\x16.hardwarecontrol.Empty\"\x00\x12H\n\x0eGetLightColors\x12\x16.hardwarecontrol.Empty\x1a\x1c.hardwarecontrol.LightColors\"\x00\x12\x36\n\x05GetPH\x12\x16.hardwarecontrol.Empty\x1a\x13.hardwarecontrol.pH\"\x00\x12H\n\x0bMoveStepper\x12\x1f.hardwarecontrol.StepperCommand\x1a\x16.hardwarecontrol.Empty\"\x00\x12?\n\x0bStopStepper\x12\x16.hardwarecontrol.Empty\x1a\x16.hardwarecontrol.Empty\"\x00\x12J\n\x0fIsStepperActive\x12\x16.hardwarecontrol.Empty\x1a\x1d.hardwarecontrol.StepperState\"\x00\x12<\n\x08SetScope\x12\x16.hardwarecontrol.Scope\x1a\x16.hardwarecontrol.Empty\"\x00\x12H\n\x0fSetPHSampleTime\x12\x1b.hardwarecontrol.SampleTime\x1a\x16.hardwarecontrol.Empty\"\x00\x12H\n\x0fGetPHSampleTime\x12\x16.hardwarecontrol.Empty\x1a\x1b.hardwarecontrol.SampleTime\"\x00\x12Q\n\x18SetTemperatureSampleTime\x12\x1b.hardwarecontrol.SampleTime\x1a\x16.hardwarecontrol.Empty\"\x00\x12Q\n\x18GetTemperatureSampleTime\x12\x16.hardwarecontrol.Empty\x1a\x1b.hardwarecontrol.SampleTime\"\x00\x12J\n\rSendPHCommand\x12\x1a.hardwarecontrol.PHCommand\x1a\x1b.hardwarecontrol.PHResponse\"\x00\x62\x06proto3'
   ,
   dependencies=[google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
 
-_LIGHTSTATEENUM = _descriptor.EnumDescriptor(
-  name='LightStateEnum',
-  full_name='hardwarecontrol.LightStateEnum',
+_LIGHTCOLORENUM = _descriptor.EnumDescriptor(
+  name='LightColorEnum',
+  full_name='hardwarecontrol.LightColorEnum',
   filename=None,
   file=DESCRIPTOR,
   create_key=_descriptor._internal_create_key,
   values=[
     _descriptor.EnumValueDescriptor(
-      name='LightState_Off', index=0, number=0,
+      name='LightColor_Off', index=0, number=0,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='LightState_Day', index=1, number=1,
+      name='LightColor_White', index=1, number=1,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='LightState_Night', index=2, number=2,
+      name='LightColor_Blue', index=2, number=2,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=683,
-  serialized_end=761,
+  serialized_start=688,
+  serialized_end=767,
 )
-_sym_db.RegisterEnumDescriptor(_LIGHTSTATEENUM)
+_sym_db.RegisterEnumDescriptor(_LIGHTCOLORENUM)
 
-LightStateEnum = enum_type_wrapper.EnumTypeWrapper(_LIGHTSTATEENUM)
-LightState_Off = 0
-LightState_Day = 1
-LightState_Night = 2
+LightColorEnum = enum_type_wrapper.EnumTypeWrapper(_LIGHTCOLORENUM)
+LightColor_Off = 0
+LightColor_White = 1
+LightColor_Blue = 2
 
 
 
@@ -254,30 +254,30 @@ _TEMPERATURE = _descriptor.Descriptor(
 )
 
 
-_LIGHTSTATE = _descriptor.Descriptor(
-  name='LightState',
-  full_name='hardwarecontrol.LightState',
+_LIGHTCOLOR = _descriptor.Descriptor(
+  name='LightColor',
+  full_name='hardwarecontrol.LightColor',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='lightId', full_name='hardwarecontrol.LightState.lightId', index=0,
+      name='lightId', full_name='hardwarecontrol.LightColor.lightId', index=0,
       number=1, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='state', full_name='hardwarecontrol.LightState.state', index=1,
+      name='color_enum', full_name='hardwarecontrol.LightColor.color_enum', index=1,
       number=2, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='scope', full_name='hardwarecontrol.LightState.scope', index=2,
+      name='scope', full_name='hardwarecontrol.LightColor.scope', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -296,20 +296,20 @@ _LIGHTSTATE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=300,
-  serialized_end=392,
+  serialized_end=397,
 )
 
 
-_LIGHTSTATES = _descriptor.Descriptor(
-  name='LightStates',
-  full_name='hardwarecontrol.LightStates',
+_LIGHTCOLORS = _descriptor.Descriptor(
+  name='LightColors',
+  full_name='hardwarecontrol.LightColors',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='states', full_name='hardwarecontrol.LightStates.states', index=0,
+      name='colors', full_name='hardwarecontrol.LightColors.colors', index=0,
       number=1, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -327,8 +327,8 @@ _LIGHTSTATES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=394,
-  serialized_end=452,
+  serialized_start=399,
+  serialized_end=457,
 )
 
 
@@ -359,8 +359,8 @@ _PH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=454,
-  serialized_end=470,
+  serialized_start=459,
+  serialized_end=475,
 )
 
 
@@ -398,8 +398,8 @@ _STEPPERCOMMAND = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=472,
-  serialized_end=525,
+  serialized_start=477,
+  serialized_end=530,
 )
 
 
@@ -430,8 +430,8 @@ _STEPPERSTATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=527,
-  serialized_end=559,
+  serialized_start=532,
+  serialized_end=564,
 )
 
 
@@ -462,8 +462,8 @@ _SCOPE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=561,
-  serialized_end=583,
+  serialized_start=566,
+  serialized_end=588,
 )
 
 
@@ -494,8 +494,8 @@ _SAMPLETIME = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=585,
-  serialized_end=623,
+  serialized_start=590,
+  serialized_end=628,
 )
 
 
@@ -526,8 +526,8 @@ _PHCOMMAND = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=625,
-  serialized_end=649,
+  serialized_start=630,
+  serialized_end=654,
 )
 
 
@@ -558,21 +558,21 @@ _PHRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=651,
-  serialized_end=681,
+  serialized_start=656,
+  serialized_end=686,
 )
 
 _RELAYSTATES.fields_by_name['states'].message_type = _RELAYSTATE
-_LIGHTSTATE.fields_by_name['state'].enum_type = _LIGHTSTATEENUM
-_LIGHTSTATES.fields_by_name['states'].message_type = _LIGHTSTATE
+_LIGHTCOLOR.fields_by_name['color_enum'].enum_type = _LIGHTCOLORENUM
+_LIGHTCOLORS.fields_by_name['colors'].message_type = _LIGHTCOLOR
 DESCRIPTOR.message_types_by_name['Empty'] = _EMPTY
 DESCRIPTOR.message_types_by_name['EchoRequest'] = _ECHOREQUEST
 DESCRIPTOR.message_types_by_name['EchoResponse'] = _ECHORESPONSE
 DESCRIPTOR.message_types_by_name['RelayState'] = _RELAYSTATE
 DESCRIPTOR.message_types_by_name['RelayStates'] = _RELAYSTATES
 DESCRIPTOR.message_types_by_name['Temperature'] = _TEMPERATURE
-DESCRIPTOR.message_types_by_name['LightState'] = _LIGHTSTATE
-DESCRIPTOR.message_types_by_name['LightStates'] = _LIGHTSTATES
+DESCRIPTOR.message_types_by_name['LightColor'] = _LIGHTCOLOR
+DESCRIPTOR.message_types_by_name['LightColors'] = _LIGHTCOLORS
 DESCRIPTOR.message_types_by_name['pH'] = _PH
 DESCRIPTOR.message_types_by_name['StepperCommand'] = _STEPPERCOMMAND
 DESCRIPTOR.message_types_by_name['StepperState'] = _STEPPERSTATE
@@ -580,7 +580,7 @@ DESCRIPTOR.message_types_by_name['Scope'] = _SCOPE
 DESCRIPTOR.message_types_by_name['SampleTime'] = _SAMPLETIME
 DESCRIPTOR.message_types_by_name['PHCommand'] = _PHCOMMAND
 DESCRIPTOR.message_types_by_name['PHResponse'] = _PHRESPONSE
-DESCRIPTOR.enum_types_by_name['LightStateEnum'] = _LIGHTSTATEENUM
+DESCRIPTOR.enum_types_by_name['LightColorEnum'] = _LIGHTCOLORENUM
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 Empty = _reflection.GeneratedProtocolMessageType('Empty', (_message.Message,), {
@@ -625,19 +625,19 @@ Temperature = _reflection.GeneratedProtocolMessageType('Temperature', (_message.
   })
 _sym_db.RegisterMessage(Temperature)
 
-LightState = _reflection.GeneratedProtocolMessageType('LightState', (_message.Message,), {
-  'DESCRIPTOR' : _LIGHTSTATE,
+LightColor = _reflection.GeneratedProtocolMessageType('LightColor', (_message.Message,), {
+  'DESCRIPTOR' : _LIGHTCOLOR,
   '__module__' : 'hardwareControl_pb2'
-  # @@protoc_insertion_point(class_scope:hardwarecontrol.LightState)
+  # @@protoc_insertion_point(class_scope:hardwarecontrol.LightColor)
   })
-_sym_db.RegisterMessage(LightState)
+_sym_db.RegisterMessage(LightColor)
 
-LightStates = _reflection.GeneratedProtocolMessageType('LightStates', (_message.Message,), {
-  'DESCRIPTOR' : _LIGHTSTATES,
+LightColors = _reflection.GeneratedProtocolMessageType('LightColors', (_message.Message,), {
+  'DESCRIPTOR' : _LIGHTCOLORS,
   '__module__' : 'hardwareControl_pb2'
-  # @@protoc_insertion_point(class_scope:hardwarecontrol.LightStates)
+  # @@protoc_insertion_point(class_scope:hardwarecontrol.LightColors)
   })
-_sym_db.RegisterMessage(LightStates)
+_sym_db.RegisterMessage(LightColors)
 
 pH = _reflection.GeneratedProtocolMessageType('pH', (_message.Message,), {
   'DESCRIPTOR' : _PH,
@@ -697,8 +697,8 @@ _HARDWARECONTROL = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=764,
-  serialized_end=1941,
+  serialized_start=770,
+  serialized_end=1947,
   methods=[
   _descriptor.MethodDescriptor(
     name='Echo',
@@ -741,22 +741,22 @@ _HARDWARECONTROL = _descriptor.ServiceDescriptor(
     create_key=_descriptor._internal_create_key,
   ),
   _descriptor.MethodDescriptor(
-    name='SetLightState',
-    full_name='hardwarecontrol.HardwareControl.SetLightState',
+    name='SetLightColor',
+    full_name='hardwarecontrol.HardwareControl.SetLightColor',
     index=4,
     containing_service=None,
-    input_type=_LIGHTSTATE,
+    input_type=_LIGHTCOLOR,
     output_type=_EMPTY,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
   ),
   _descriptor.MethodDescriptor(
-    name='GetLightStates',
-    full_name='hardwarecontrol.HardwareControl.GetLightStates',
+    name='GetLightColors',
+    full_name='hardwarecontrol.HardwareControl.GetLightColors',
     index=5,
     containing_service=None,
     input_type=_EMPTY,
-    output_type=_LIGHTSTATES,
+    output_type=_LIGHTCOLORS,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
   ),

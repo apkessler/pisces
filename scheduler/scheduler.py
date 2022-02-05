@@ -8,18 +8,16 @@ import grpc
 import time
 import json
 import os
+import argparse
 from enum import Enum
 import datetime as dt
-
 from loguru import logger
 
 # Custom imports
-import hardwareControl_pb2
-import hardwareControl_pb2_grpc
 from hwcontrol_client import HardwareControlClient
 
 
-class State(Enum):
+class TimerState(Enum):
     PINIT = 0
     DISABLED = 1
     DAY = 2
@@ -30,58 +28,83 @@ class State(Enum):
 lightKeys = {"TankLight1":1, "TankLight2":2, "GrowLight1":3, "GrowLight2":4}
 
 
-def hhmmToTime(hhmm):
+def hhmmToTime(hhmm:int)->dt.time:
+    '''Convert a simple time integer in form hhmm to a datetime._time object
+
+    Parameters
+    ----------
+    hhmm : int
+        The time to convert, as hhmm
+
+    Returns
+    -------
+    dt._time
+        The equivalent datetime._time object
+    '''
 
     hh = int(hhmm/100)
     mm = hhmm - hh*100
     return dt.time(hour=hh, minute=mm)
 
-def timeToHhmm(time):
+def timeToHhmm(time:dt.time) -> int:
+    ''' Convert a datetime._time object to a simple time integer in form hhmm
+
+    Parameters
+    ----------
+    time : dt._time
+        Time to convert
+
+    Returns
+    -------
+    int
+        Equivalent hhmm int
+    '''
     return (time.hour * 100) + time.minute
 
 
 class ScheduleSM():
 
-    def __init__(self, jData, hwCntrl):
-        self.presentState = State.PINIT
+    def __init__(self, jData, hwCntrl:HardwareControlClient):
+        self.presentState = TimerState.PINIT
         self.jData = jData
         self.hwCntrl = hwCntrl
         self.name=jData['name']
 
         self.sunrise_time = hhmmToTime(jData['sunrise_hhmm'])
         self.sunset_time = hhmmToTime(jData['sunset_hhmm'])
+        self.light_mode_at_night = 'blue' if jData['blue_lights_at_night'] else 'off'
 
         for light in self.jData["lights"]:
             logger.info(f"Found light {light} ({lightKeys[light]})")
 
 
-    def update(self, dt_now):
+    def update(self, dt_now:dt.datetime) -> None:
         """
             Function called to step state machine forward in time
         """
         time_now = dt_now.time()
         self.lastTime = time_now
-        if (self.presentState == State.PINIT):
+        if (self.presentState == TimerState.PINIT):
             self.changeStateTo(self.timeOfDayToState(time_now, self.sunrise_time, self.sunset_time))
 
-        elif (self.presentState == State.DISABLED):
+        elif (self.presentState == TimerState.DISABLED):
             pass
 
-        elif (self.presentState == State.DAY):
+        elif (self.presentState == TimerState.DAY):
             if (time_now >= self.sunset_time):
-                self.changeStateTo(State.NIGHT)
+                self.changeStateTo(TimerState.NIGHT)
             elif (self.jData['eclipse_enabled'] and time_now.minute % self.jData['eclipse_frequency_min'] == 0):
                 if (timeToHhmm(time_now) == timeToHhmm(self.sunrise_time)):
                     print("Skipping eclipse because DAY just started...")
                 else:
                     self.eclipseEndTime = dt_now + dt.timedelta(minutes=self.jData["eclipse_duration_min"])
-                    self.changeStateTo(State.ECLIPSE)
+                    self.changeStateTo(TimerState.ECLIPSE)
 
-        elif (self.presentState == State.NIGHT):
+        elif (self.presentState == TimerState.NIGHT):
             if (time_now > self.sunrise_time and time_now < self.sunset_time):
-                self.changeStateTo(State.DAY)
+                self.changeStateTo(TimerState.DAY)
 
-        elif (self.presentState == State.ECLIPSE):
+        elif (self.presentState == TimerState.ECLIPSE):
             if (dt_now >= self.eclipseEndTime):
                 #Make sure we go to the correct state coming out of eclipse
                 self.changeStateTo(self.timeOfDayToState(time_now, self.sunrise_time, self.sunset_time))
@@ -92,85 +115,84 @@ class ScheduleSM():
 
 
 
-    def changeStateTo(self, newState):
-        """
-            Function called to change state
-        """
+    def changeStateTo(self, new_state: TimerState) -> None:
+        '''Change the timer state to new value
 
-        if (newState == State.PINIT):
+        Parameters
+        ----------
+        newState : TimerState
+            Timer state to change to
+        '''
+
+        if (new_state == TimerState.PINIT):
             pass
-        elif (newState == State.DISABLED):
+        elif (new_state == TimerState.DISABLED):
             # just leave the lights where they are?
             for light in self.jData["lights"]:
-                self.hwCntrl.setLightState(lightKeys[light], hardwareControl_pb2.LightState_Off)
+                self.hwCntrl.setLightColor(lightKeys[light], 'off')
 
 
-        elif (newState == State.DAY):
+        elif (new_state == TimerState.DAY):
             for light in self.jData["lights"]:
-                self.hwCntrl.setLightState(lightKeys[light], hardwareControl_pb2.LightState_Day)
+                self.hwCntrl.setLightColor(lightKeys[light], 'white')
 
-        elif (newState == State.NIGHT):
+        elif (new_state == TimerState.NIGHT):
             for light in self.jData["lights"]:
-                self.hwCntrl.setLightState(lightKeys[light], hardwareControl_pb2.LightState_Night)
+                self.hwCntrl.setLightColor(lightKeys[light], self.light_mode_at_night)
 
-        elif (newState == State.ECLIPSE):
+        elif (new_state == TimerState.ECLIPSE):
             logger.info(f"Starting eclipse! Ends at {self.eclipseEndTime}")
             for light in self.jData["lights"]:
-                self.hwCntrl.setLightState(lightKeys[light], hardwareControl_pb2.LightState_Night)
+                self.hwCntrl.setLightColor(lightKeys[light], 'blue')
 
 
         else:
-            logger.warning(f"{self.name}: Unhandled state in changeStateTo():{newState}")
+            logger.warning(f"{self.name}: Unhandled state in changeStateTo():{new_state}")
             #Raise exception?
 
 
-        logger.info(f"{self.name} Scheduler: {self.presentState} --> {newState}")
-        self.presentState = newState
+        logger.info(f"{self.name} Scheduler: {self.presentState} --> {new_state}")
+        self.presentState = new_state
 
     @staticmethod
-    def timeOfDayToState(t, sunrise_time, sunset_time):
-        """
-            Map the time of day (given as time obj) to correct state per schedule
-        """
+    def timeOfDayToState(t:dt.time, sunrise_time:dt.time, sunset_time:dt.time) -> TimerState:
+        '''Map the time of day (given as time obj) to correct state per schedule
+
+        Parameters
+        ----------
+        t : dt._time
+            Time now
+        sunrise_time : dt._time
+            Sunrise time
+        sunset_time : dt._time
+            Sunset time
+
+        Returns
+        -------
+        TimerState
+            What state should time be in
+        '''
         if (t < sunrise_time):
-            return State.NIGHT
+            return TimerState.NIGHT
         elif (t < sunset_time):
-            return State.DAY
+            return TimerState.DAY
         else:
-            return State.NIGHT
-
-
-def test():
-    with grpc.insecure_channel('localhost:50051') as channel:
-        hwCntrl = HardwareControlClient(channel)
-        with open(confFile,'r') as f:
-            jData = json.load(f)
-
-        #print(timeToHhmm(dt.datetime.now()))
-
-        schds = [ScheduleSM(jD, hwCntrl) for jD in jData["schedules"]]
-
-        logger.info("Running schedulers!")
-        t = dt.datetime.now()
-        while (1):
-            for schSM in schds:
-                schSM.update(t)
-            time.sleep(0.1)
-            t += dt.timedelta(seconds=60)
-            print(t)
-            if (t > dt.datetime.now() + dt.timedelta(days=2)):
-                break
-
-
-
-        logger.info("---- Scheduler ending ----")
+            return TimerState.NIGHT
 
 
 
 if __name__ == '__main__':
 
+
+
     logger.add('scheduler.log', format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}", rotation="10MB", level="INFO")
     logger.info("--------- SCHEDULER RESTART-------------")
+
+    parser = argparse.ArgumentParser(description='Run the Scheduler task')
+    parser.add_argument('--simulate', action='store_true', default=False, help='Run in simulated mode')
+    parser.add_argument('--days', type=int, default=2, help='How many days to run in simulated mode')
+
+    args = parser.parse_args()
 
     with open(os.path.join(os.path.dirname(__file__), 'scheduler.json'), 'r') as jsonfile:
         jData = json.load(jsonfile)
@@ -182,10 +204,24 @@ if __name__ == '__main__':
             schds = [ScheduleSM(jD, hwCntrl) for jD in jData["schedules"]]
             logger.info("Schedulers initialized")
 
-            while (1):
-                for schSM in schds:
-                    schSM.update(dt.datetime.now())
-                time.sleep(30)
+
+            #Simulation mode!
+            if (args.simulate):
+                t = dt.datetime.now()
+                while (1):
+                    for schSM in schds:
+                        schSM.update(t)
+                    time.sleep(0.1)
+                    t += dt.timedelta(seconds=60)
+                    print(t, flush=True)
+                    if (t > dt.datetime.now() + dt.timedelta(days=args.days)):
+                        logger.info("Simulation complete!")
+                        break
+            else: #Real mode
+                while (1):
+                    for schSM in schds:
+                        schSM.update(dt.datetime.now())
+                    time.sleep(30)
 
     except Exception as e:
         logger.error(f"{e}")

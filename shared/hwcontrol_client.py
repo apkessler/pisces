@@ -6,12 +6,29 @@
 #
 
 import logging
-from xmlrpc.client import boolean
 import grpc
 import time
 from typing import List
 import hardwareControl_pb2
 import hardwareControl_pb2_grpc
+
+ColorMap = {'off': hardwareControl_pb2.LightColor_Off,
+            'white': hardwareControl_pb2.LightColor_White,
+            'blue': hardwareControl_pb2.LightColor_Blue}
+
+def color_enum_to_name(e:hardwareControl_pb2.LightColorEnum) -> str:
+
+    for color_name, color_enum in ColorMap.items():
+        if e == color_enum:
+            return color_name
+
+    return '???'
+
+def color_name_to_enum(color:str) -> hardwareControl_pb2.LightColorEnum:
+
+    return ColorMap[color] #This will throw KeyError if color str is invalid
+
+
 
 class HardwareControlClient():
 
@@ -61,19 +78,35 @@ class HardwareControlClient():
         response = self.stub.GetRelayStates(hardwareControl_pb2.Empty())
         return [r.isEngaged for r in response.states]
 
-    def setLightState(self, lightId, state, scope="") -> None:
-        """
-            Set state on given light to given state
-        """
-        response = self.stub.SetLightState(hardwareControl_pb2.LightState(lightId=lightId, state=state, scope=scope))
+    def setLightColor(self, lightId:int, color_name:str, scope:str="") -> None:
+        '''Set given light to given color.
 
-    def getLightStates(self) -> List:
-        """
-            Get all light states as list.
+        Parameters
+        ----------
+        lightId : int
+            Light to change
+        color_name : str
+            One of ['off', 'white', 'blue']
+        scope : str, optional
+            Command scope, by default ""
+        '''
+
+        response = self.stub.SetLightColor(hardwareControl_pb2.LightColor(
+            lightId=lightId,
+            color_enum=color_name_to_enum(color_name),
+            scope=scope))
+
+    def getLightColors(self) -> List[str]:
+        ''' Get all light colors and return as list of strings.
             Unpack from GRPC object and return as native Python list.
-        """
-        response = self.stub.GetLightStates(hardwareControl_pb2.Empty())
-        return [r.state for r in response.states]
+
+        Returns
+        -------
+        List[str]
+            List of current light colors
+        '''
+        response = self.stub.GetLightColors(hardwareControl_pb2.Empty())
+        return [color_enum_to_name(r.color_enum) for r in response.colors]
 
     def moveStepper(self, numSteps:int, isReverse:bool =False) -> None:
         """
