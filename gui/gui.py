@@ -464,10 +464,21 @@ class CalibratePhStartPage(Subwindow):
         btn = tk.Button(self.master, text="Start!", font=fontTuple, width=15, height=4, bg='#00ff00', command=self.run_sequence)
         btn.place(x=250, y=330)
 
+        #Start this now to give the default sleep period time to end (up to 1min)
+        hwCntrl.setPhSensorSampleTime(1000) #Speed up ph sensor sample time
+
+    def exit(self):
+        '''
+            Override in case of abort to set sample time back
+        '''
+        #return sample rate to default
+        hwCntrl.setPhSensorSampleTime(0)
+        super().exit()
+
     def run_sequence(self):
 
         CalibratePhProcessPage()
-        self.exit()
+        super().exit() #Don't call the local version to avoid resetting sample time
 
 
 class CalibratePhDonePage(Subwindow):
@@ -496,13 +507,16 @@ class CalibratePhProcessPage(Subwindow):
         self.titleText.set(f"Calibrate @ pH={self.sequence[self.index]}")
         tk.Label(self.master, textvar=self.titleText, font=('Arial',22), justify=tk.LEFT).place(x=20, y=20)
 
-        msg = f"1. Get the indicated calibration solution.\n"
-        msg += "2. Briefly rinse off the probe.\n"
-        msg += "3. Cut off the top of the calibration solution pouch.\n"
-        msg += "4. Place the pH probe inside the pouch.\n"
-        msg += "5. Wait for the pH reading to stabilize (1-2min).\nWhen it does, hit \"Next\".\n"
+        self.line1Test = tk.StringVar()
+        self.line1Test.set(f"1. Get the {self.sequence[self.index]} calibration solution.\n")
+        tk.Label(self.master, textvar=self.line1Test, font=('Arial',18), justify=tk.LEFT).place(x=50, y=100)
 
-        tk.Label(self.master, text=msg, font=('Arial',18), justify=tk.LEFT).place(x=50, y=100)
+        msg2 = "2. Briefly rinse off the probe.\n"
+        msg2 += "3. Cut off the top of the calibration solution pouch.\n"
+        msg2 += "4. Place the pH probe inside the pouch.\n"
+        msg2 += "5. Wait for the pH reading to stabilize (1-2min).\nWhen it does, hit \"Next\".\n"
+
+        tk.Label(self.master, text=msg2, font=('Arial',18), justify=tk.LEFT).place(x=50, y=125)
 
         self.phText = tk.StringVar()
         self.phText.set(f"pH\n???")
@@ -519,7 +533,7 @@ class CalibratePhProcessPage(Subwindow):
         ph = hwCntrl.getPH()
         self.phText.set(f"pH\n{ph:0.2f}")
 
-        self.master.after(500, self.refresh_data)
+        self.master.after(1000, self.refresh_data)
 
     def save_calibration(self):
         '''
@@ -532,7 +546,16 @@ class CalibratePhProcessPage(Subwindow):
             self.exit()
         else:
             self.titleText.set(f"Calibrate @ pH={self.sequence[self.index]}")
+            self.line1Test.set(f"1. Get the {self.sequence[self.index]} calibration solution.\n")
 
+
+    def exit(self):
+        '''
+            Override in case of abort to set sample time back
+        '''
+        #return sample rate to default
+        hwCntrl.setPhSensorSampleTime(0) #Return to default
+        super().exit()
 
 
 if __name__ == "__main__":

@@ -330,6 +330,8 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
         return hardwareControl_pb2.Empty()
 
     def SetPHSampleTime(self, request, context):
+        if (request.sample_time_msec == 0):
+            request.sample_time_msec = hwMap.jData['ph_sensor']['poll_interval_sec']*1000
         logger.info(f'Setting pH sensor sample time to {request.sample_time_msec}ms')
         hwMap.phSensorPoller.set_sample_time(request.sample_time_msec)
         return hardwareControl_pb2.Empty()

@@ -98,9 +98,11 @@ class HardwareControlClient():
         response = self.stub.SetScope(hardwareControl_pb2.Scope(scope=scope))
 
     def setPhSensorSampleTime(self, time_msec:int) -> None:
+        ''' time of 0 = return to default
+        '''
         response = self.stub.SetPHSampleTime(hardwareControl_pb2.SampleTime(sample_time_msec=time_msec))
 
-    def getPhSensorSampleTime(self) -> int:
+    def getPhSensorSampleTime_ms(self) -> int:
         response = self.stub.GetPHSampleTime(hardwareControl_pb2.Empty())
         return response.sample_time_msec
 
