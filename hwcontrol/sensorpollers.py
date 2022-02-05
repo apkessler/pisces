@@ -9,7 +9,7 @@ import glob
 import time
 import threading
 from collections import deque
-import logging
+from loguru import logger
 import datetime as dt
 import math
 try:
@@ -37,12 +37,12 @@ class ThermometerPoller(object):
             base_dir = '/sys/bus/w1/devices/'
             device_folder = glob.glob(base_dir + '28*')[0]
             self.device_file = device_folder + '/w1_slave'
-            logging.info(f"Found temperature sensor: {device_folder}")
+            logger.info(f"Found temperature sensor: {device_folder}")
 
             self.thread = threading.Thread(target=self._poll, args=(), daemon=True)
             self.thread.start()
         except IndexError:
-            logging.warn("Temperature sensor not found!!!")
+            logger.warn("Temperature sensor not found!!!")
             v = (dt.datetime.now(),  -273) #Push a fake reading so code will run
             self.deque.append(v)
 
@@ -55,7 +55,7 @@ class ThermometerPoller(object):
             This method should run as in its own thread.
         """
 
-        logging.info(f"Starting thermometer polling thread")
+        logger.info(f"Starting thermometer polling thread")
 
         def read_temp_raw():
             f = open(self.device_file, 'r')
@@ -79,7 +79,7 @@ class ThermometerPoller(object):
 
             temp_c = read_temp()
             v = (dt.datetime.now(),  temp_c)
-            logging.debug(f"THERM: Pushing ({v[0].strftime('%Y-%m-%d-%H:%M:%S')}, {v[1]:.3f}°C) onto deque")
+            logger.debug(f"THERM: Pushing ({v[0].strftime('%Y-%m-%d-%H:%M:%S')}, {v[1]:.3f}°C) onto deque")
             self.deque.append(v)
             time.sleep(self.interval_s)
 
@@ -95,17 +95,18 @@ class PhSensorPoller(object):
     """
     def __init__(self, interval_s = 5):
         self.interval_s = interval_s
-        self.readDelay_s = 3
+        self.readDelay_s = 0.3
         self.deque = deque(maxlen=1)
+        self.lock = threading.Lock()
         try:
             self.phSensor = Atlas.AtlasI2C(address = 99, moduletype = "pH")
 
-            logging.info(f"Found ph sensor!")
+            logger.info(f"Found ph sensor!")
 
             self.thread = threading.Thread(target=self._poll, args=(), daemon=True)
             self.thread.start()
         except IndexError:
-            logging.warn("Ph sensor not found!!!")
+            logger.warn("Ph sensor not found!!!")
             v = (dt.datetime.now(),  0) #Push a fake reading so code will run
             self.deque.append(v)
 
@@ -123,28 +124,33 @@ class PhSensorPoller(object):
             This method should run as in its own thread.
         """
 
-        logging.info(f"Starting PH polling thread")
+        logger.info(f"Starting PH polling thread")
 
         while (True):
-            self.phSensor.write('R')
-            time.sleep(self.readDelay_s)
+            self.lock.acquire(blocking=True)
             try:
-                theData = float(self.phSensor.read())  #TODO add error handling for failed reads
+                theData = float(self.phSensor.query('R'))  #TODO add error handling for failed reads
             except ValueError as e:
-                logging.warning(f"Problem with ph reading! {e}")
+                logger.warning(f"Problem with ph reading! {e}")
                 theData = 0.0
 
             v = (dt.datetime.now(), theData)
-            logging.debug(f"PH: Pushing ({v[0].strftime('%Y-%m-%d-%H:%M:%S')}, {v[1]:.3f}) onto deque")
+            logger.debug(f"PH: Pushing ({v[0].strftime('%Y-%m-%d-%H:%M:%S')}, {v[1]:.3f}) onto deque")
             self.deque.append(v)
+            self.lock.release()
 
-            time.sleep(max(self.interval_s - self.readDelay_s, 0.1))
+            #Need to account for time that query('R') waits...
+            time.sleep(max(self.interval_s - self.phSensor.LONG_TIMEOUT, 0.1))
 
     def send_command(self, cmd:str) -> str:
-        #TODO wait for poller to be (check semaphore)
-        #Send command, get response
-        #release lock
-        return cmd
+        logger.debug("Waiting for polling to be paused")
+        self.lock.acquire(blocking=True)
+        logger.debug("Got it!")
+        result = self.phSensor.query(cmd) #See implementation for wait times...
+        self.lock.release()
+
+        return result
+
 
 class SimulatedPoller(object):
     """
@@ -155,7 +161,7 @@ class SimulatedPoller(object):
         self.minV = minV
         self.maxV = maxV
         self.stepV = stepV
-
+        self.lock = threading.Lock()
         self.deque = deque(maxlen=1)
         self.thread = threading.Thread(target=self._poll, args=(), daemon=True)
         self.thread.start()
@@ -174,20 +180,24 @@ class SimulatedPoller(object):
             This method should run as in its own thread.
         """
 
-        logging.info(f"Starting fake polling thread")
+        logger.info(f"Starting fake polling thread")
 
         while True:
-
+            self.lock.acquire(blocking=True) #block until lock available
             value = random.random()*(self.maxV - self.minV) + self.minV
             v = (dt.datetime.now(),  value)
-            logging.debug(f"THERM: Pushing ({v[0].strftime('%Y-%m-%d-%H:%M:%S')}, {v[1]:.3f}°C) onto deque")
+            logger.debug(f"SIM: Pushing ({v[0].strftime('%Y-%m-%d-%H:%M:%S')}, {v[1]:.3f}) onto deque")
             self.deque.append(v)
+            self.lock.release()
             time.sleep(self.interval_s)
 
 
     def send_command(self, cmd:str) -> str:
-        #TODO wait for poller to be (check semaphore)
-        #Send command, get response
+        logger.debug("Waiting for polling to be paused")
+        self.lock.acquire(blocking=True)
+        logger.debug("Got it!")
+        time.sleep(1.5)
+        self.lock.release()
         #release lock
         return cmd
 
@@ -198,14 +208,12 @@ def main():
 
     while (1):
         time.sleep(5) #give things a chance to start
-        logging.info(f"Temp: {T.getLatestDatum()}")
-        logging.info(f"pH: {P.getLatestDatum()}")
+        logger.info(f"Temp: {T.getLatestDatum()}")
+        logger.info(f"pH: {P.getLatestDatum()}")
         time.sleep(1)
 
 
 if __name__ == '__main__':
-    logging.basicConfig()
-    logging.getLogger().setLevel(logging.DEBUG)
     try:
         main()
     except KeyboardInterrupt:
