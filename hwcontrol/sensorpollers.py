@@ -11,7 +11,7 @@ import threading
 from collections import deque
 from loguru import logger
 import datetime as dt
-import math
+
 try:
     import AtlasI2C as Atlas
 except ModuleNotFoundError:
@@ -95,7 +95,6 @@ class PhSensorPoller(object):
     """
     def __init__(self, interval_s = 5):
         self.interval_s = interval_s
-        self.readDelay_s = 0.3
         self.deque = deque(maxlen=1)
         self.lock = threading.Lock()
         try:
@@ -199,22 +198,20 @@ class SimulatedPoller(object):
         time.sleep(1.5)
         self.lock.release()
         #release lock
-        return cmd
+        return random.choice(['1','0'])
 
-def main():
-
-    T = ThermometerPoller()
-    P = PhSensorPoller()
-
-    while (1):
-        time.sleep(5) #give things a chance to start
-        logger.info(f"Temp: {T.getLatestDatum()}")
-        logger.info(f"pH: {P.getLatestDatum()}")
-        time.sleep(1)
 
 
 if __name__ == '__main__':
     try:
-        main()
+        T = ThermometerPoller()
+        P = PhSensorPoller()
+
+        while (1):
+            time.sleep(5) #give things a chance to start
+            logger.info(f"Temp: {T.getLatestDatum()}")
+            logger.info(f"pH: {P.getLatestDatum()}")
+            time.sleep(1)
+
     except KeyboardInterrupt:
         print("Ending program")

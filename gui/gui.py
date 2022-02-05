@@ -501,15 +501,19 @@ class CalibratePhProcessPage(Subwindow):
         super().__init__(f"pH Sensor Calibration", exit_button_text="Abort")
 
         self.index = 0
-        self.sequence = ['7.0', '4.0', '10.0']
+        self.sequence = [
+            ('7.0', 'Cal,mid,7.00'),
+            ('4.0', 'Cal,low,4.00'),
+            ('10.0', 'Cal,high,10.00')
+        ]
 
         self.titleText = tk.StringVar()
-        self.titleText.set(f"Calibrate @ pH={self.sequence[self.index]}")
+        self.titleText.set(f"Calibrate @ pH={self.sequence[self.index][0]}")
         tk.Label(self.master, textvar=self.titleText, font=('Arial',22), justify=tk.LEFT).place(x=20, y=20)
 
-        self.line1Test = tk.StringVar()
-        self.line1Test.set(f"1. Get the {self.sequence[self.index]} calibration solution.\n")
-        tk.Label(self.master, textvar=self.line1Test, font=('Arial',18), justify=tk.LEFT).place(x=50, y=100)
+        self.line1Text = tk.StringVar()
+        self.line1Text.set(f"1. Get the {self.sequence[self.index][0]} calibration solution.\n")
+        tk.Label(self.master, textvar=self.line1Text, font=('Arial',18), justify=tk.LEFT).place(x=50, y=100)
 
         msg2 = "2. Briefly rinse off the probe.\n"
         msg2 += "3. Cut off the top of the calibration solution pouch.\n"
@@ -521,6 +525,9 @@ class CalibratePhProcessPage(Subwindow):
         self.phText = tk.StringVar()
         self.phText.set(f"pH\n???")
         tk.Label(self.master, textvariable=self.phText, font=('Arial',22)).place(x=100, y=300)
+
+        self.errorText = tk.StringVar()
+        tk.Label(self.master, textvar=self.errorText, font=('Arial',18), fg='#f00', justify=tk.LEFT).place(x=320, y=420)
 
         btn = tk.Button(self.master, text="Next", font=fontTuple, width=12, height=4, bg='#00ff00', command=self.save_calibration)
         btn.place(x=350, y=300)
@@ -539,15 +546,25 @@ class CalibratePhProcessPage(Subwindow):
         '''
             TODO: Send the save calibration command to sensor...
         '''
-        logger.info("Sending save cal command")
+        cmd = self.sequence[self.index][1]
+        logger.info(f"Sending save cal command: {cmd}")
+
+        result = hwCntrl.sendPhSensorCommand(cmd)
+        if (result == '1'):
+            logger.info(f"calibration command success!")
+        else:
+            logger.error(f"calibration command failed ({result})")
+            self.errorText.set("Error! Please retry.")
+            return # Bail now, and retry
+
         self.index += 1
         if (self.index >= len(self.sequence)):
             CalibratePhDonePage()
             self.exit()
         else:
-            self.titleText.set(f"Calibrate @ pH={self.sequence[self.index]}")
-            self.line1Test.set(f"1. Get the {self.sequence[self.index]} calibration solution.\n")
-
+            self.titleText.set(f"Calibrate @ pH={self.sequence[self.index][0]}")
+            self.line1Text.set(f"1. Get the {self.sequence[self.index][0]} calibration solution.\n")
+            self.errorText.set("")
 
     def exit(self):
         '''
