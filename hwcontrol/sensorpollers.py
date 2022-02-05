@@ -109,6 +109,11 @@ class PhSensorPoller(object):
             v = (dt.datetime.now(),  0) #Push a fake reading so code will run
             self.deque.append(v)
 
+    def set_sample_time(self, sample_time_msec:int):
+        self.interval_s = sample_time_msec/1000
+
+    def get_sample_time_msec(self) -> int:
+        return int(1000*self.interval_s)
 
     def getLatestDatum(self):
         return self.deque[0] #Peek from Deck to never consume
@@ -155,7 +160,11 @@ class SimulatedPoller(object):
         self.thread = threading.Thread(target=self._poll, args=(), daemon=True)
         self.thread.start()
 
+    def set_sample_time(self, sample_time_msec:int):
+        self.interval_s = sample_time_msec/1000
 
+    def get_sample_time_msec(self) -> int:
+        return int(1000*self.interval_s)
 
     def getLatestDatum(self):
         return self.deque[0] #Peek from Deck to never consume
@@ -174,6 +183,13 @@ class SimulatedPoller(object):
             logging.debug(f"THERM: Pushing ({v[0].strftime('%Y-%m-%d-%H:%M:%S')}, {v[1]:.3f}°C) onto deque")
             self.deque.append(v)
             time.sleep(self.interval_s)
+
+
+    def send_command(self, cmd:str) -> str:
+        #TODO wait for poller to be (check semaphore)
+        #Send command, get response
+        #release lock
+        return cmd
 
 def main():
 
