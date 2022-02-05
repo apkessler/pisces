@@ -124,10 +124,17 @@ class Window(object):
         frame.place(in_=self.master, anchor='c', relx=0.5, rely=0.55)
         for inx, bInfo in enumerate(buttonMap):
             f = tk.Frame(frame, width=200, height=200, padx=10, pady=10) #make a frame where button goes
-            if (type(bInfo[0]) is str):
-                b = tk.Button(f, text=bInfo[0], font=fontTuple, command=bInfo[1])
+
+
+
+            if (type(bInfo['text']) is str):
+                b = tk.Button(f, text=bInfo['text'], font=fontTuple, command=bInfo['callback'])
             else:
-                b = tk.Button(f, textvariable=bInfo[0], font=fontTuple, command=bInfo[1])
+                b = tk.Button(f, textvariable=bInfo['text'], font=fontTuple, command=bInfo['callback'])
+
+            if 'color' in bInfo:
+                b.configure(bg=bInfo['color'])
+
 
             f.rowconfigure(0, weight=1)
             f.columnconfigure(0, weight = 1)
@@ -170,11 +177,11 @@ class MainWindow(Window):
 
 
         buttons = [
-            [self.lightModeText, self.toggle_lights],
-            [self.tempText, lambda: GraphPage('Temperature (F)')],
-            [self.phText, lambda: GraphPage('pH')],
-            ["Manual\nFertilizer", lambda: ManualFertilizerPage()],
-            ["Settings", lambda: SettingsPage()]
+            {'text':self.lightModeText,     'callback': self.toggle_lights},
+            {'text':self.tempText,          'callback': lambda: GraphPage('Temperature (F)')},
+            {'text':self.phText,            'callback': lambda: GraphPage('pH')},
+            {'text':"Manual\nFertilizer",   'callback': lambda: ManualFertilizerPage()},
+            {'text':"Settings",             'callback': lambda: SettingsPage()}
         ]
 
         self.drawButtonGrid(buttons)
@@ -372,12 +379,12 @@ class SettingsPage(Subwindow):
         super().__init__("Settings")
 
         buttons = [
-            ["Reboot\nBox", reboot_pi],
-            ["Aquarium\nLights", lambda: AquariumLightsSettingsPage()],
-            ["Grow Lights", lambda: GrowLightsSettingsPage()],
-            ["Fertilizer", self.dummy],
-            ["Calibrate pH", lambda: CalibratePhStartPage()],
-            ["System Settings", lambda: SystemSettingsPage()]
+            {'text':"Reboot\nBox",      'callback': reboot_pi},
+            {'text':"Aquarium\nLights", 'callback': lambda: AquariumLightsSettingsPage()},
+            {'text':"Grow Lights",      'callback': lambda: GrowLightsSettingsPage()},
+            {'text':"Fertilizer",       'callback': self.dummy},
+            {'text':"Calibrate pH",     'callback': lambda: CalibratePhStartPage()},
+            {'text':"System Settings",  'callback': lambda: SystemSettingsPage()}
         ]
 
         self.drawButtonGrid(buttons)
@@ -442,8 +449,8 @@ class RebootPromptPage(Subwindow):
         super().__init__("Reboot Prompt", draw_exit_button=False)
 
         buttons = [
-            ["Reboot\nNow", reboot_pi],
-            ["Reboot\nLater", lambda: self.exit()]
+            {'text': "Reboot\nNow",     'callback': reboot_pi, 'color':'#ff5733'},
+            {'text': "Reboot\nLater",    'callback': self.exit}
         ]
 
         self.drawButtonGrid(buttons)
@@ -647,12 +654,12 @@ class SystemSettingsPage(Subwindow):
 
 
         buttons = [
-            ["About", self.dummy],
-            ["Shutdown\nBox", shutdown_pi],
-            ["Exit GUI", self.quitGui],
-            ["Network Info", self.dummy],
-            ["Set Time", self.dummy],
-            ["Restore\nDefaults", self.dummy]
+            {'text':"About",            'callback': self.dummy},
+            {'text':"Shutdown\nBox",    'callback': shutdown_pi},
+            {'text':"Exit GUI",         'callback': self.quitGui},
+            {'text':"Network Info",     'callback': self.dummy},
+            {'text':"Set Time",         'callback': self.dummy},
+            {'text':"Restore\nDefaults", 'callback': self.dummy}
         ]
 
         self.drawButtonGrid(buttons)
@@ -664,17 +671,16 @@ class SystemSettingsPage(Subwindow):
         self.master.quit()
 
 
-
 class ManualFertilizerPage(Subwindow):
 
     def __init__(self):
         super().__init__("Fertilizer Info")
 
         buttons = [
-            ["Dispense\n3mL",lambda: self.dispenseInThread(3)],
-            ["Dispense\n10mL", lambda: self.dispenseInThread(10)],
-            ["Hold to\ndispense\ncontinuously", None],
-            ["Timer\nSettings", lambda:SettingsPage()]
+            {'text': "Dispense\n3mL",   'callback': lambda: self.dispenseInThread(3)},
+            {'text': "Dispense\n10mL",  'callback': lambda: self.dispenseInThread(10)},
+            {'text': "Hold to\ndispense\ncontinuously", 'callback': None}, #This button has special binding
+            {'text': "Timer\nSettings", 'callback': lambda:SettingsPage()}
         ]
         self.drawButtonGrid(buttons)
 
