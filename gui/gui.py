@@ -18,6 +18,7 @@ import threading
 import tkinter as tk
 import grpc
 import json
+from matplotlib.pyplot import draw
 
 import pandas as pd
 from matplotlib.figure import Figure
@@ -373,7 +374,7 @@ class SettingsPage(Subwindow):
         buttons = [
             ["Reboot\nBox", reboot_pi],
             ["Aquarium\nLights", lambda: AquariumLightsSettingsPage()],
-            ["Grow Lights", self.dummy],
+            ["Grow Lights", lambda: GrowLightsSettingsPage()],
             ["Fertilizer", self.dummy],
             ["Calibrate pH", lambda: CalibratePhStartPage()],
             ["System Settings", lambda: SystemSettingsPage()]
@@ -382,6 +383,7 @@ class SettingsPage(Subwindow):
         self.drawButtonGrid(buttons)
 
 class TimeSelector():
+    ''' Helper Class for drawing time selector GUI elements'''
     def __init__(self, master, default_hhmm:int):
 
         # self.style = ttk.Style()
@@ -434,7 +436,25 @@ class TimeSelector():
         return hh,mm
 
 
+class RebootPromptPage(Subwindow):
+    ''' A Page to prompt the user to reboot'''
+    def __init__(self):
+        super().__init__("Reboot Prompt", draw_exit_button=False)
+
+        buttons = [
+            ["Reboot\nNow", reboot_pi],
+            ["Reboot\nLater", lambda: self.exit()]
+        ]
+
+        self.drawButtonGrid(buttons)
+
+        tk.Label(self.master,
+        text="A reboot is necessary for changes to take effect!",
+        font=('Arial', 20)).pack(side=tk.TOP, pady=75)
+
+
 class AquariumLightsSettingsPage(Subwindow):
+    ''' Page for adjusting Aquarium (Tank) light settings.'''
     def __init__(self):
         super().__init__("Aquarium Light Settings", draw_exit_button=False)
 
@@ -551,8 +571,70 @@ class AquariumLightsSettingsPage(Subwindow):
             json.dump(self.config_data, jsonfile, indent=4)
 
         print(self.tank_light_schedule, flush=True)
+        self.exit()
+        RebootPromptPage()
+
+class GrowLightsSettingsPage(Subwindow):
+    ''' Page for adjusting Grow Light Settings '''
+    def __init__(self):
+        super().__init__("Grow Light Settings", draw_exit_button=False)
+
+        #Load the scheduler json file
+        this_dir = os.path.dirname(__file__)
+        self.path_to_configfile = os.path.join(this_dir, '../scheduler/scheduler.json')
+        with open(self.path_to_configfile, 'r') as jsonfile:
+            self.config_data = json.load(jsonfile)
+        print(self.config_data, flush=True)
+
+        schedules = self.config_data['schedules']
+
+        self.grow_light_schedule = None
+        for schedule in schedules:
+            if (schedule['name'] == 'GrowLights'):
+                self.grow_light_schedule = schedule
+
+        if (self.grow_light_schedule == None):
+            logger.error("Unable to find GrowLight object in scheduler.json")
+
+        big_font = ('Arial', 20)
+
+        time_setting_frame = tk.LabelFrame(self.master, text="Day/Night Schedule", font=fontTuple)
+
+        tk.Label(self.master, text="Changes will take effect on next system reboot.", font=('Arial', 16)).grid(row=4, column=0)
+
+        time_setting_frame.grid(row=1, column =0, sticky='ew', padx=10, pady=10)
+
+        tk.Label(time_setting_frame, text="On Time:", font=big_font).grid(row=1, column=0)
+        tk.Label(time_setting_frame, text="Off Time:", font=big_font).grid(row=2, column=0)
+
+
+        f1 = tk.Frame(time_setting_frame)
+        f1.grid(row=1, column=1)
+        self.sunrise_selector = TimeSelector(f1, self.grow_light_schedule['sunrise_hhmm'])
+
+        f2 = tk.Frame(time_setting_frame)
+        f2.grid(row=2, column=1)
+        self.sunset_selector = TimeSelector(f2, self.grow_light_schedule['sunset_hhmm'])
+
+        btn = tk.Button(self.master, text="Cancel", font=fontTuple, width=12, height=4, bg='#ff5733', command=self.exit)
+        btn.grid(row=1, column=2, padx=10, pady=10)
+        btn = tk.Button(self.master, text="Save", font=fontTuple, width=12, height=4, bg='#00ff00', command=self.save_settings)
+        btn.grid(row=2, column=2, padx=10, pady=10)
+
+    def save_settings(self):
+
+        #Pull out the requisite info, and write it back to config
+        self.grow_light_schedule["sunrise_hhmm"] = self.sunrise_selector.get_hhmm()
+        self.grow_light_schedule["sunset_hhmm"]  = self.sunset_selector.get_hhmm()
+
+        logger.info("Writing new settings to file...")
+        with open(self.path_to_configfile, 'w') as jsonfile:
+            json.dump(self.config_data, jsonfile, indent=4)
+
+        print(self.grow_light_schedule, flush=True)
 
         self.exit()
+        RebootPromptPage()
 
 class SystemSettingsPage(Subwindow):
 
