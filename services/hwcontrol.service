@@ -11,6 +11,7 @@ RestartSec=1
 WorkingDirectory=/home/pi/Repositories/pisces/
 ExecStart=/usr/bin/env python3 /home/pi/Repositories/pisces/hwcontrol/hwcontrol_server.py
 Environment="PYTHONPATH=/home/pi/Repositories/pisces/shared"
+ExecStartPost=/bin/sleep 3
 #StandardOutput=
 #StandardError=inherit
 
