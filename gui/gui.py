@@ -16,14 +16,13 @@ import threading
 
 # 3rd party imports
 import tkinter as tk
-from graphviz import Graph
 import grpc
 import json
 
 import pandas as pd
 from matplotlib.figure import Figure
 
-
+from typing import Tuple
 from loguru import logger
 
 import numpy as np #Don't need?
@@ -247,13 +246,14 @@ class Subwindow(Window):
         [description]
     """
 
-    def __init__(self, title, exit_button_text="Back"):
+    def __init__(self, title, exit_button_text="Back", draw_exit_button=True):
         super().__init__(title, tk.Toplevel())
 
         self.master.grab_set()
 
         btn = tk.Button(self.master, text=exit_button_text, font=fontTuple, width=9, height=2, bg='#ff5733', command=self.exit)
-        btn.place(x=450, y=10)
+        if (draw_exit_button):
+            btn.place(x=450, y=10)
 
     def exit(self):
         self.master.destroy()
@@ -372,7 +372,7 @@ class SettingsPage(Subwindow):
 
         buttons = [
             ["Reboot\nBox", reboot_pi],
-            ["Aquarium\nLights", self.dummy],
+            ["Aquarium\nLights", lambda: AquariumLightsSettingsPage()],
             ["Grow Lights", self.dummy],
             ["Fertilizer", self.dummy],
             ["Calibrate pH", lambda: CalibratePhStartPage()],
@@ -381,7 +381,178 @@ class SettingsPage(Subwindow):
 
         self.drawButtonGrid(buttons)
 
+class TimeSelector():
+    def __init__(self, master, default_hhmm:int):
 
+        # self.style = ttk.Style()
+        # self.style.theme_use("clam")
+        # self.style.configure("TSpinbox", arrowsize=30, arrowcolor="green")
+
+        self.master = master
+        self.hh_var = tk.StringVar()
+        hh,mm = self.split_hhmm(default_hhmm)
+        self.hh_var.set(str(hh))
+        hh_select = tk.Spinbox(
+                        self.master,
+                        from_=0,
+                        to=23,
+                        wrap=True,
+                        textvariable=self.hh_var,
+                        width=4,
+                        font=('Courier', 30),
+#                        style='TSpinbox',
+                        justify=tk.CENTER
+        )
+
+        self.mm_var = tk.StringVar()
+        self.mm_var.set(str(mm))
+        mm_select = tk.Spinbox(
+                        self.master,
+                        from_=0,
+                        to=59,
+                        wrap=True,
+                        textvariable=self.mm_var,
+                        width=4,
+                        font=('Courier', 30),
+                        justify=tk.CENTER
+        )
+
+
+        hh_select.pack(side=tk.LEFT)
+        tk.Label(self.master, text=":", font=fontTuple).pack(side=tk.LEFT)
+        mm_select.pack(side=tk.LEFT)
+
+    def get_hhmm(self) -> int:
+        hh_str = self.hh_var.get()
+        mm_str = self.mm_var.get()
+        return (int(hh_str)*100 + int(mm_str))
+
+    @staticmethod
+    def split_hhmm(hhmm:int) -> Tuple[int, int]:
+        hh = int(hhmm/100)
+        mm = hhmm - hh*100
+        return hh,mm
+
+
+class AquariumLightsSettingsPage(Subwindow):
+    def __init__(self):
+        super().__init__("Aquarium Light Settings", draw_exit_button=False)
+
+        #Load the scheduler json file
+        this_dir = os.path.dirname(__file__)
+        self.path_to_configfile = os.path.join(this_dir, '../scheduler/scheduler.json')
+        with open(self.path_to_configfile, 'r') as jsonfile:
+            self.config_data = json.load(jsonfile)
+        print(self.config_data, flush=True)
+
+        schedules = self.config_data['schedules']
+
+        self.tank_light_schedule = None
+        for schedule in schedules:
+            if (schedule['name'] == 'TankLights'):
+                self.tank_light_schedule = schedule
+
+        if (self.tank_light_schedule == None):
+            logger.error("Unable to find TankLight object in scheduler.json")
+
+        big_font = ('Arial', 20)
+
+        time_setting_frame = tk.LabelFrame(self.master, text="Day/Night Schedule", font=fontTuple)
+        eclipse_setting_frame = tk.LabelFrame(self.master, text="Periodic Blue Settings", font=fontTuple)
+        tk.Label(self.master, text="Changes will take effect on next system reboot.", font=('Arial', 16)).grid(row=4, column=0)
+
+        time_setting_frame.grid(row=1, column =0, sticky='ew', padx=10, pady=10)
+        eclipse_setting_frame.grid(row=2, column =0, sticky='ew', padx=10, pady=10)
+
+
+        tk.Label(time_setting_frame, text="On Time:", font=big_font).grid(row=1, column=0)
+        tk.Label(time_setting_frame, text="Off Time:", font=big_font).grid(row=2, column=0)
+        tk.Label(time_setting_frame, text="Blue at night:", font=big_font).grid(row=3, column=0)
+
+
+
+        f1 = tk.Frame(time_setting_frame)
+        f1.grid(row=1, column=1)
+        self.sunrise_selector = TimeSelector(f1, self.tank_light_schedule['sunrise_hhmm'])
+
+        f2 = tk.Frame(time_setting_frame)
+        f2.grid(row=2, column=1)
+        self.sunset_selector = TimeSelector(f2, self.tank_light_schedule['sunset_hhmm'])
+
+        self.blue_at_night_var = tk.StringVar()
+        self.blue_at_night_var.set("True" if self.tank_light_schedule['blue_lights_at_night'] else "False")
+        OPTIONS = ["True", "False"]
+        w = tk.OptionMenu(time_setting_frame, self.blue_at_night_var, *OPTIONS)
+        w.config(font=big_font) # set the button font
+        menu = eclipse_setting_frame.nametowidget(w.menuname)
+        menu.config(font=big_font)  # Set the dropdown menu's font
+        w.grid(row=3, column=1, sticky='w')
+
+        tk.Label(eclipse_setting_frame, text="Enabled:", font=big_font).grid(row=1, column=0)
+        tk.Label(eclipse_setting_frame, text="Interval (min)", font=big_font).grid(row=2, column=0)
+        tk.Label(eclipse_setting_frame, text="Duration (min)", font=big_font, justify=tk.CENTER).grid(row=3, column=0, sticky='w')
+
+
+        self.period_blue_lights_enabled = tk.StringVar()
+        self.period_blue_lights_enabled.set("True" if self.tank_light_schedule['eclipse_enabled'] else "False")
+        OPTIONS = ["True", "False"]
+        w = tk.OptionMenu(eclipse_setting_frame, self.period_blue_lights_enabled, *OPTIONS)
+        w.config(font=big_font) # set the button font
+        menu = eclipse_setting_frame.nametowidget(w.menuname)
+        menu.config(font=big_font)  # Set the dropdown menu's font
+        w.grid(row=1, column=1, sticky='w')
+
+        self.blue_interval_min_var = tk.IntVar()
+        self.blue_interval_min_var.set(self.tank_light_schedule['eclipse_frequency_min'])
+
+        self.blue_interval_select = tk.Spinbox(
+                        eclipse_setting_frame,
+                        from_=0,
+                        to=59,
+                        wrap=True,
+                        textvariable=self.blue_interval_min_var,
+                        width=4,
+                        font=('Courier', 30),
+                        justify=tk.CENTER)
+        self.blue_interval_select.grid(row=2, column=1)
+
+        self.blue_duration_min_var = tk.IntVar()
+        self.blue_duration_min_var.set(self.tank_light_schedule['eclipse_duration_min'])
+        self.blue_duration_select = tk.Spinbox(
+                        eclipse_setting_frame,
+                        from_=0,
+                        to=59,
+                        wrap=True,
+                        textvariable=self.blue_duration_min_var,
+                        width=4,
+                        font=('Courier', 30),
+                        justify=tk.CENTER)
+        self.blue_duration_select.grid(row=3, column=1)
+
+        btn = tk.Button(self.master, text="Cancel", font=fontTuple, width=12, height=4, bg='#ff5733', command=self.exit)
+        btn.grid(row=1, column=2, padx=10, pady=10)
+        btn = tk.Button(self.master, text="Save", font=fontTuple, width=12, height=4, bg='#00ff00', command=self.save_settings)
+        btn.grid(row=2, column=2, padx=10, pady=10)
+
+    def save_settings(self):
+
+        #Pull out the requisite info, and write it back to config
+        self.tank_light_schedule["sunrise_hhmm"] = self.sunrise_selector.get_hhmm()
+        self.tank_light_schedule["sunset_hhmm"]  = self.sunset_selector.get_hhmm()
+        self.tank_light_schedule['blue_lights_at_night'] = True if self.blue_at_night_var.get() == "True" else False
+
+        self.tank_light_schedule['eclipse_enabled'] = True if self.period_blue_lights_enabled.get() == "True" else False
+
+        self.tank_light_schedule['eclipse_frequency_min'] = int(self.blue_interval_min_var.get())
+        self.tank_light_schedule['eclipse_duration_min'] = int(self.blue_duration_min_var.get())
+
+        logger.info("Writing new settings to file...")
+        with open(self.path_to_configfile, 'w') as jsonfile:
+            json.dump(self.config_data, jsonfile, indent=4)
+
+        print(self.tank_light_schedule, flush=True)
+
+        self.exit()
 
 class SystemSettingsPage(Subwindow):
 
