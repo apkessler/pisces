@@ -84,6 +84,13 @@ def sys_call(cmd):
     finally:
         logger.info(output)
 
+def set_datetime(the_datetime:datetime.datetime):
+    #sudo date -s YYYY-MM-DD HH:MM:SS
+    #date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
+
+    time = the_datetime.strftime("%Y-%m-%d %H:%M:%S")
+    logger.info(f"Setting time to {time}")
+    sys_call(f'/usr/bin/sudo /usr/bin/date -s {time}')
 
 def reboot_pi():
     logger.info("restarting the Pi")
@@ -397,6 +404,70 @@ class SettingsPage(Subwindow):
 
         self.drawButtonGrid(buttons)
 
+class DateSelector():
+    ''' Helper Class for drawing date selector GUI elements'''
+    def __init__(self, master, default_date:datetime.date):
+
+        # self.style = ttk.Style()
+        # self.style.theme_use("clam")
+        # self.style.configure("TSpinbox", arrowsize=30, arrowcolor="green")
+
+        self.frame = tk.Frame(master)
+        self.year = tk.StringVar()
+        self.month = tk.StringVar()
+        self.day = tk.StringVar()
+
+        self.year.set(default_date.year)
+        self.month.set(default_date.month)
+        self.day.set(default_date.day)
+
+
+        s = tk.Spinbox(
+                        self.frame,
+                        from_=2022,
+                        to=2100,
+                        wrap=True,
+                        textvariable=self.year,
+                        width=4,
+                        font=('Courier', 30),
+                        justify=tk.CENTER
+        )
+        s.pack(side=tk.LEFT)
+
+        s = tk.Spinbox(
+                        self.frame,
+                        from_=1,
+                        to=12,
+                        wrap=True,
+                        textvariable=self.month,
+                        width=4,
+                        font=('Courier', 30),
+                        justify=tk.CENTER
+        )
+        s.pack(side=tk.LEFT)
+
+
+
+        s = tk.Spinbox(
+                        self.frame,
+                        from_=1,
+                        to=31,
+                        wrap=True,
+                        textvariable=self.day,
+                        width=4,
+                        font=('Courier', 30),
+                        justify=tk.CENTER
+        )
+        s.pack(side=tk.LEFT)
+
+    def get_date(self) -> datetime.date:
+        return datetime.datetime(
+            year=int(self.year.get()),
+            month=int(self.month.get()),
+            day=int(self.day.get())
+            ).date()
+
+
 class TimeSelector():
     ''' Helper Class for drawing time selector GUI elements'''
     def __init__(self, master, default_hhmm:int):
@@ -443,6 +514,9 @@ class TimeSelector():
         hh_str = self.hh_var.get()
         mm_str = self.mm_var.get()
         return (int(hh_str)*100 + int(mm_str))
+
+    def get_time(self) -> datetime.time:
+        return datetime.time(hour=int(self.hh_var.get()), minute=int(self.mm_var.get()))
 
     @staticmethod
     def split_hhmm(hhmm:int) -> Tuple[int, int]:
@@ -798,13 +872,17 @@ class SetSystemTimePage(Subwindow):
     def __init__(self):
         super().__init__("System Time Settings")
 
-        tk.Label(self.master, text="Time:", font=('Arial', 20)).grid(row=3, column=0)
+        tk.Label(self.master, text="Time:", font=('Arial', 20)).grid(row=1, column=0)
+        tk.Label(self.master, text="Date:", font=('Arial', 20)).grid(row=2, column=0)
+        tk.Label(self.master, text="YYYY-MM-DD", font=('Arial', 20)).grid(row=3, column=1)
 
 
         f1 = tk.Frame(self.master)
-        f1.grid(row=3, column=1)
+        f1.grid(row=1, column=1, pady=10)
         self.time_select = TimeSelector(f1, timeToHhmm(datetime.datetime.now().time()))
 
+        self.date_select = DateSelector(self.master, datetime.datetime.now().date())
+        self.date_select.frame.grid(row=2, column=1, pady=10)
         #btn = tk.Button(self.master, text="Cancel", font=fontTuple, width=12, height=4, bg='#ff5733', command=self.exit)
         #btn.grid(row=1, column=2, padx=10, pady=10)
         btn = tk.Button(self.master, text="Save", font=fontTuple, width=12, height=4, bg='#00ff00', command=self.save)
@@ -812,8 +890,11 @@ class SetSystemTimePage(Subwindow):
 
 
     def save(self):
-        pass
-
+        try:
+            new_dt = datetime.datetime.combine(self.date_select.get_date(), self.time_select.get_time())
+            set_datetime(new_dt)
+        except ValueError:
+            ErrorPromptPage("Invalid date/time!")
 
 class ManualFertilizerPage(Subwindow):
 
