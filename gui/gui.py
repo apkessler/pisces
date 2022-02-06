@@ -9,9 +9,7 @@
 ### Imports
 
 # Standard imports
-from ast import Sub
 import os
-import socket
 import datetime
 import threading
 
@@ -33,133 +31,13 @@ from matplotlib.backends.backend_tkagg import (
 # Custom imports
 from hwcontrol_client import HardwareControlClient
 from dispense_client import dispense
-
+from helpers import *
+from windows import (Window, Subwindow, ErrorPromptPage, fontTuple)
 
 ##### Globals ####
-fontTuple = ('Arial', 15)
 
 hwCntrl = None #Global stub, because its easiest
 jData = None #config data
-
-
-### Helper functions
-def timeToHhmm(time:datetime.time) -> int:
-    ''' Convert a datetime._time object to a simple time integer in form hhmm
-
-    Parameters
-    ----------
-    time : dt._time
-        Time to convert
-
-    Returns
-    -------
-    int
-        Equivalent hhmm int
-    '''
-    return (time.hour * 100) + time.minute
-
-def get_ip():
-    """
-        Get IP address of this device, return as string.
-    """
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        # doesn't even have to be reachable
-        s.connect(('10.255.255.255', 1))
-        IP = s.getsockname()[0]
-    except Exception:
-        IP = '127.0.0.1'
-    finally:
-        s.close()
-    return IP
-
-def sys_call(cmd):
-    import subprocess
-    output = ""
-    try:
-        process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
-        output = process.communicate()[0]
-    except FileNotFoundError:
-        output = f"Could not execute sys call: '{cmd}'"
-    finally:
-        logger.info(output)
-
-def set_datetime(the_datetime:datetime.datetime):
-    #sudo date -s YYYY-MM-DD HH:MM:SS
-    #date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
-
-    time = the_datetime.strftime("%Y-%m-%d %H:%M:%S")
-    logger.info(f"Setting time to {time}")
-    sys_call(f'/usr/bin/sudo /usr/bin/date -s {time}')
-
-def reboot_pi():
-    logger.info("restarting the Pi")
-    sys_call("/usr/bin/sudo /sbin/shutdown -r now")
-
-# modular function to shutdown Pi
-def shutdown_pi():
-    logger.info("shutting down the Pi")
-    sys_call("/usr/bin/sudo /sbin/shutdown -h now")
-
-# modular function to shutdown Pi
-def get_git_version():
-    sys_call("cd /home/pi/Repositories/pisces/; git describe")
-
-
-### TKinter Stuff
-
-class Window(object):
-    """Generic window object. Do not instantiate directly.
-
-    Parameters
-    ----------
-    object : [type]
-        [description]
-    """
-
-    def __init__(self, title, handle):
-        self.master = handle
-        self.master.wm_geometry("640x480")
-        self.master.title(title)
-        if (jData['fullscreen']):
-            self.master.attributes('-fullscreen', True)
-
-
-    def dummy(self):
-        pass
-
-    def drawButtonGrid(self, buttonMap):
-        """Build the standard grid of buttons
-
-        Parameters
-        ----------
-        buttonMap : [type]
-            [description]
-        """
-        self.buttons = []
-        frame = tk.Frame(self.master)
-        frame.place(in_=self.master, anchor='c', relx=0.5, rely=0.55)
-        for inx, bInfo in enumerate(buttonMap):
-            f = tk.Frame(frame, width=200, height=200, padx=10, pady=10) #make a frame where button goes
-
-
-
-            if (type(bInfo['text']) is str):
-                b = tk.Button(f, text=bInfo['text'], font=fontTuple, command=bInfo['callback'])
-            else:
-                b = tk.Button(f, textvariable=bInfo['text'], font=fontTuple, command=bInfo['callback'])
-
-            if 'color' in bInfo:
-                b.configure(bg=bInfo['color'])
-
-
-            f.rowconfigure(0, weight=1)
-            f.columnconfigure(0, weight = 1)
-            f.grid_propagate(0)
-
-            f.grid(row = int(inx/3), column=inx%3)
-            b.grid(sticky="NWSE")
-            self.buttons.append(b)
 
 
 
@@ -173,7 +51,7 @@ class MainWindow(Window):
     """
 
     def __init__(self, root):
-        super().__init__("Main Window", root)
+        super().__init__("Main Window", root, jData['fullscreen'])
         hwCntrl.setScope() #Reset scope to make sure schedule is running
         self.lightToggleModes = ['Schedule', 'All On', 'All Blue', 'All Off']
         self.currentLightToggleModeInx = 0
@@ -259,30 +137,6 @@ class MainWindow(Window):
 
     def quit(self):
         self.root.quit()
-
-
-
-class Subwindow(Window):
-    """Generic Subwindow class. Make an inherited class from this for a custom subwindow.
-
-    Parameters
-    ----------
-    Window : [type]
-        [description]
-    """
-
-    def __init__(self, title, exit_button_text="Back", draw_exit_button=True):
-        super().__init__(title, tk.Toplevel())
-
-        self.master.grab_set()
-
-        btn = tk.Button(self.master, text=exit_button_text, font=fontTuple, width=9, height=2, bg='#ff5733', command=self.exit)
-        if (draw_exit_button):
-            btn.place(x=450, y=10)
-
-    def exit(self):
-        self.master.destroy()
-        self.master.update()
 
 
 class GraphPage(Subwindow):
@@ -408,125 +262,6 @@ class SettingsPage(Subwindow):
 
         self.drawButtonGrid(buttons)
 
-class DateSelector():
-    ''' Helper Class for drawing date selector GUI elements'''
-    def __init__(self, master, default_date:datetime.date):
-
-        # self.style = ttk.Style()
-        # self.style.theme_use("clam")
-        # self.style.configure("TSpinbox", arrowsize=30, arrowcolor="green")
-
-        self.frame = tk.Frame(master)
-        self.year = tk.StringVar()
-        self.month = tk.StringVar()
-        self.day = tk.StringVar()
-
-        self.year.set(default_date.year)
-        self.month.set(default_date.month)
-        self.day.set(default_date.day)
-
-
-        s = tk.Spinbox(
-                        self.frame,
-                        from_=2022,
-                        to=2100,
-                        wrap=True,
-                        textvariable=self.year,
-                        width=4,
-                        font=('Courier', 30),
-                        justify=tk.CENTER
-        )
-        s.pack(side=tk.LEFT)
-
-        s = tk.Spinbox(
-                        self.frame,
-                        from_=1,
-                        to=12,
-                        wrap=True,
-                        textvariable=self.month,
-                        width=4,
-                        font=('Courier', 30),
-                        justify=tk.CENTER
-        )
-        s.pack(side=tk.LEFT)
-
-
-
-        s = tk.Spinbox(
-                        self.frame,
-                        from_=1,
-                        to=31,
-                        wrap=True,
-                        textvariable=self.day,
-                        width=4,
-                        font=('Courier', 30),
-                        justify=tk.CENTER
-        )
-        s.pack(side=tk.LEFT)
-
-    def get_date(self) -> datetime.date:
-        return datetime.datetime(
-            year=int(self.year.get()),
-            month=int(self.month.get()),
-            day=int(self.day.get())
-            ).date()
-
-
-class TimeSelector():
-    ''' Helper Class for drawing time selector GUI elements'''
-    def __init__(self, master, default_hhmm:int):
-
-        # self.style = ttk.Style()
-        # self.style.theme_use("clam")
-        # self.style.configure("TSpinbox", arrowsize=30, arrowcolor="green")
-
-        self.master = master
-        self.hh_var = tk.StringVar()
-        hh,mm = self.split_hhmm(default_hhmm)
-        self.hh_var.set(str(hh))
-        hh_select = tk.Spinbox(
-                        self.master,
-                        from_=0,
-                        to=23,
-                        wrap=True,
-                        textvariable=self.hh_var,
-                        width=4,
-                        font=('Courier', 30),
-#                        style='TSpinbox',
-                        justify=tk.CENTER
-        )
-
-        self.mm_var = tk.StringVar()
-        self.mm_var.set(str(mm))
-        mm_select = tk.Spinbox(
-                        self.master,
-                        from_=0,
-                        to=59,
-                        wrap=True,
-                        textvariable=self.mm_var,
-                        width=4,
-                        font=('Courier', 30),
-                        justify=tk.CENTER
-        )
-
-
-        hh_select.pack(side=tk.LEFT)
-        tk.Label(self.master, text=":", font=fontTuple).pack(side=tk.LEFT)
-        mm_select.pack(side=tk.LEFT)
-
-    def get_hhmm(self) -> int:
-        hh_str = self.hh_var.get()
-        mm_str = self.mm_var.get()
-        return (int(hh_str)*100 + int(mm_str))
-
-    def get_time(self) -> datetime.time:
-        return datetime.time(hour=int(self.hh_var.get()), minute=int(self.mm_var.get()))
-
-    @staticmethod
-    def split_hhmm(hhmm:int) -> Tuple[int, int]:
-        hh = int(hhmm/100)
-        mm = hhmm - hh*100
-        return hh,mm
 
 
 class RebootPromptPage(Subwindow):
@@ -545,25 +280,6 @@ class RebootPromptPage(Subwindow):
         text="A reboot is necessary for changes to take effect!",
         font=('Arial', 20)).pack(side=tk.TOP, pady=75)
 
-
-class ErrorPromptPage(Subwindow):
-    ''' A Page to prompt the user to reboot'''
-    def __init__(self, msg):
-        super().__init__("Error", draw_exit_button=False)
-
-        buttons = [
-            {'text': "OK",     'callback': self.exit}
-        ]
-
-        self.drawButtonGrid(buttons)
-
-        tk.Label(self.master,
-        text="Error",
-        font=('Arial', 20, 'bold')).pack(side=tk.TOP, pady=40)
-
-        tk.Label(self.master,
-        text=msg,
-        font=('Arial', 20)).pack(side=tk.TOP, pady=10)
 
 class AboutPage(Subwindow):
     def __init__(self):
@@ -610,14 +326,12 @@ class AquariumLightsSettingsPage(Subwindow):
         tk.Label(time_setting_frame, text="Blue at night:", font=big_font).grid(row=3, column=0)
 
 
+        self.sunrise_selector = TimeSelector(time_setting_frame, self.tank_light_schedule['sunrise_hhmm'])
+        self.sunrise_selector.frame.grid(row=1, column=1)
 
-        f1 = tk.Frame(time_setting_frame)
-        f1.grid(row=1, column=1)
-        self.sunrise_selector = TimeSelector(f1, self.tank_light_schedule['sunrise_hhmm'])
+        self.sunset_selector = TimeSelector(time_setting_frame, self.tank_light_schedule['sunset_hhmm'])
+        self.sunset_selector.frame.grid(row=2, column=1)
 
-        f2 = tk.Frame(time_setting_frame)
-        f2.grid(row=2, column=1)
-        self.sunset_selector = TimeSelector(f2, self.tank_light_schedule['sunset_hhmm'])
 
         self.blue_at_night_var = tk.StringVar()
         self.blue_at_night_var.set("True" if self.tank_light_schedule['blue_lights_at_night'] else "False")
@@ -732,13 +446,11 @@ class GrowLightsSettingsPage(Subwindow):
         tk.Label(time_setting_frame, text="Off Time:", font=big_font).grid(row=2, column=0)
 
 
-        f1 = tk.Frame(time_setting_frame)
-        f1.grid(row=1, column=1)
-        self.sunrise_selector = TimeSelector(f1, self.grow_light_schedule['sunrise_hhmm'])
+        self.sunrise_selector = TimeSelector(time_setting_frame, self.grow_light_schedule['sunrise_hhmm'])
+        self.sunrise_selector.frame.grid(row=1, column=1)
 
-        f2 = tk.Frame(time_setting_frame)
-        f2.grid(row=2, column=1)
-        self.sunset_selector = TimeSelector(f2, self.grow_light_schedule['sunset_hhmm'])
+        self.sunset_selector = TimeSelector(time_setting_frame, self.grow_light_schedule['sunset_hhmm'])
+        self.sunset_selector.frame.grid(row=2, column=1)
 
         btn = tk.Button(self.master, text="Cancel", font=fontTuple, width=12, height=4, bg='#ff5733', command=self.exit)
         btn.grid(row=1, column=2, padx=10, pady=10)
@@ -798,9 +510,8 @@ class FertilizerSettingsPage(Subwindow):
         tk.Label(time_setting_frame, text="Volume (mL):", font=big_font).grid(row=2, column=0)
 
 
-        f1 = tk.Frame(time_setting_frame)
-        f1.grid(row=1, column=1)
-        self.time_selector = TimeSelector(f1, self.this_event['trigger_time_hhmm'])
+        self.time_selector = TimeSelector(time_setting_frame, self.this_event['trigger_time_hhmm'])
+        self.time_selector.frame.grid(row=1, column=1)
 
         self.volume_var = tk.IntVar()
         self.volume_var.set(self.this_event['cmd_args']['volume_mL'])
@@ -887,15 +598,12 @@ class SetSystemTimePage(Subwindow):
         tk.Label(self.master, text="Date:", font=('Arial', 20)).grid(row=2, column=0)
         tk.Label(self.master, text="YYYY-MM-DD", font=('Arial', 20)).grid(row=3, column=1)
 
-
-        f1 = tk.Frame(self.master)
-        f1.grid(row=1, column=1, pady=10)
-        self.time_select = TimeSelector(f1, timeToHhmm(datetime.datetime.now().time()))
+        self.time_select = TimeSelector(self.master, timeToHhmm(datetime.datetime.now().time()))
+        self.time_select.grid(row=1, column=1, pady=10)
 
         self.date_select = DateSelector(self.master, datetime.datetime.now().date())
         self.date_select.frame.grid(row=2, column=1, pady=10)
-        #btn = tk.Button(self.master, text="Cancel", font=fontTuple, width=12, height=4, bg='#ff5733', command=self.exit)
-        #btn.grid(row=1, column=2, padx=10, pady=10)
+
         btn = tk.Button(self.master, text="Save", font=fontTuple, width=12, height=4, bg='#00ff00', command=self.save)
         btn.grid(row=4, column=2, padx=10, pady=10)
 
