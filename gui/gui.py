@@ -798,10 +798,21 @@ class SetSystemTimePage(Subwindow):
     def __init__(self):
         super().__init__("System Time Settings")
 
+        tk.Label(self.master, text="Time:", font=('Arial', 20)).grid(row=3, column=0)
 
-        self.time_select = TimeSelector(self.master, timeToHhmm(datetime.datetime.now().time()))
-        self.time_select.pack(side=tk.TOP)
 
+        f1 = tk.Frame(self.master)
+        f1.grid(row=3, column=1)
+        self.time_select = TimeSelector(f1, timeToHhmm(datetime.datetime.now().time()))
+
+        #btn = tk.Button(self.master, text="Cancel", font=fontTuple, width=12, height=4, bg='#ff5733', command=self.exit)
+        #btn.grid(row=1, column=2, padx=10, pady=10)
+        btn = tk.Button(self.master, text="Save", font=fontTuple, width=12, height=4, bg='#00ff00', command=self.save)
+        btn.grid(row=4, column=2, padx=10, pady=10)
+
+
+    def save(self):
+        pass
 
 
 class ManualFertilizerPage(Subwindow):
