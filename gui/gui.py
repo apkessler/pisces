@@ -373,7 +373,7 @@ class SettingsPage(Subwindow):
             {'text':"Reboot\nBox",      'callback': reboot_pi},
             {'text':"Aquarium\nLights", 'callback': lambda: AquariumLightsSettingsPage()},
             {'text':"Grow Lights",      'callback': lambda: GrowLightsSettingsPage()},
-            {'text':"Fertilizer",       'callback': self.dummy},
+            {'text':"Fertilizer",       'callback': lambda: FertilizerSettingsPage()},
             {'text':"Calibrate pH",     'callback': lambda: CalibratePhStartPage()},
             {'text':"System Settings",  'callback': lambda: SystemSettingsPage()}
         ]
@@ -463,7 +463,7 @@ class AquariumLightsSettingsPage(Subwindow):
             self.config_data = json.load(jsonfile)
         print(self.config_data, flush=True)
 
-        schedules = self.config_data['schedules']
+        schedules = self.config_data['light_schedules']
 
         self.tank_light_schedule = None
         for schedule in schedules:
@@ -584,7 +584,7 @@ class GrowLightsSettingsPage(Subwindow):
             self.config_data = json.load(jsonfile)
         print(self.config_data, flush=True)
 
-        schedules = self.config_data['schedules']
+        schedules = self.config_data['light_schedules']
 
         self.grow_light_schedule = None
         for schedule in schedules:
@@ -630,6 +630,75 @@ class GrowLightsSettingsPage(Subwindow):
             json.dump(self.config_data, jsonfile, indent=4)
 
         print(self.grow_light_schedule, flush=True)
+
+        self.exit()
+        RebootPromptPage()
+
+class FertilizerSettingsPage(Subwindow):
+    ''' Page for adjusting Fertilizer Settings '''
+    def __init__(self):
+        super().__init__("Fertilizer Settings", draw_exit_button=False)
+
+        #Load the scheduler json file
+        this_dir = os.path.dirname(__file__)
+        self.path_to_configfile = os.path.join(this_dir, '../scheduler/scheduler.json')
+        with open(self.path_to_configfile, 'r') as jsonfile:
+            self.config_data = json.load(jsonfile)
+        print(self.config_data, flush=True)
+
+        schedules = self.config_data['events']
+
+        self.this_event = None
+        for schedule in schedules:
+            if (schedule['name'] == 'DailyFertilizer'):
+                self.this_event = schedule
+
+        if (self.this_event == None):
+            logger.error("Unable to find DailyFertilizer object in scheduler.json")
+
+        big_font = ('Arial', 20)
+
+        time_setting_frame = tk.LabelFrame(self.master, text="Daily Dispense Settings", font=fontTuple)
+
+        tk.Label(self.master, text="Changes will take effect on next system reboot.", font=('Arial', 16)).grid(row=4, column=0)
+
+        time_setting_frame.grid(row=1, column =0, sticky='ew', padx=10, pady=10)
+
+        tk.Label(time_setting_frame, text="Dispense Time:", font=big_font).grid(row=1, column=0)
+        tk.Label(time_setting_frame, text="Volume (mL):", font=big_font).grid(row=2, column=0)
+
+
+        f1 = tk.Frame(time_setting_frame)
+        f1.grid(row=1, column=1)
+        self.time_selector = TimeSelector(f1, self.this_event['trigger_time_hhmm'])
+
+        self.volume_var = tk.IntVar()
+        self.volume_var.set(self.this_event['cmd_args']['volume_mL'])
+        tk.Spinbox( time_setting_frame,
+                    from_=0,
+                    to=50,
+                    wrap=True,
+                    textvariable=self.volume_var,
+                    width=4,
+                    font=('Courier', 30),
+                    justify=tk.CENTER).grid(row=2, column=1)
+
+        btn = tk.Button(self.master, text="Cancel", font=fontTuple, width=12, height=4, bg='#ff5733', command=self.exit)
+        btn.grid(row=1, column=2, padx=10, pady=10)
+        btn = tk.Button(self.master, text="Save", font=fontTuple, width=12, height=4, bg='#00ff00', command=self.save_settings)
+        btn.grid(row=2, column=2, padx=10, pady=10)
+
+    def save_settings(self):
+
+        #Pull out the requisite info, and write it back to config
+        self.this_event["trigger_time_hhmm"] = self.time_selector.get_hhmm()
+        self.this_event['cmd_args']['volume_mL'] = int(self.volume_var.get())
+
+        logger.info("Writing new settings to file...")
+        with open(self.path_to_configfile, 'w') as jsonfile:
+            json.dump(self.config_data, jsonfile, indent=4)
+
+        print(self.this_event, flush=True)
 
         self.exit()
         RebootPromptPage()
