@@ -9,6 +9,7 @@
 ### Imports
 
 # Standard imports
+from ast import Sub
 import os
 import socket
 import datetime
@@ -42,6 +43,20 @@ jData = None #config data
 
 
 ### Helper functions
+def timeToHhmm(time:datetime.time) -> int:
+    ''' Convert a datetime._time object to a simple time integer in form hhmm
+
+    Parameters
+    ----------
+    time : dt._time
+        Time to convert
+
+    Returns
+    -------
+    int
+        Equivalent hhmm int
+    '''
+    return (time.hour * 100) + time.minute
 
 def get_ip():
     """
@@ -765,7 +780,7 @@ class SystemSettingsPage(Subwindow):
             {'text':"Shutdown\nBox",    'callback': shutdown_pi},
             {'text':"Exit GUI",         'callback': self.quitGui},
             {'text':"Network Info",     'callback': self.dummy},
-            {'text':"Set Time",         'callback': self.dummy},
+            {'text':"Set Time",         'callback': lambda: SetSystemTimePage()},
             {'text':"Restore\nDefaults", 'callback': self.dummy}
         ]
 
@@ -776,6 +791,15 @@ class SystemSettingsPage(Subwindow):
         """Close this entire GUI program
         """
         self.master.quit()
+
+class SetSystemTimePage(Subwindow):
+    def __init__(self):
+        super().__init__("System Time Settings")
+
+
+        self.time_select = TimeSelector(self.master, timeToHhmm(datetime.datetime.now().time()))
+        self.time_select.pack(side=tk.TOP)
+
 
 
 class ManualFertilizerPage(Subwindow):
@@ -870,13 +894,13 @@ class CalibratePhProcessPage(Subwindow):
 
         self.index = 0
         self.sequence = [
-            ('7.0', 'Cal,mid,7.00'),
-            ('4.0', 'Cal,low,4.00'),
-            ('10.0', 'Cal,high,10.00')
+            ('7.0', 'Cal,mid,7.00', 'Midpoint'),
+            ('4.0', 'Cal,low,4.00','Lowpoint'),
+            ('10.0', 'Cal,high,10.00', 'Highpoint')
         ]
 
         self.titleText = tk.StringVar()
-        self.titleText.set(f"Calibrate @ pH={self.sequence[self.index][0]}")
+        self.titleText.set(f"{self.sequence[self.index][2]} calibration @ pH={self.sequence[self.index][0]}")
         tk.Label(self.master, textvar=self.titleText, font=('Arial',22), justify=tk.LEFT).place(x=20, y=20)
 
         self.line1Text = tk.StringVar()
@@ -930,7 +954,7 @@ class CalibratePhProcessPage(Subwindow):
             CalibratePhDonePage()
             self.exit()
         else:
-            self.titleText.set(f"Calibrate @ pH={self.sequence[self.index][0]}")
+            self.titleText.set(f"{self.sequence[self.index][2]} calibration @ pH={self.sequence[self.index][0]}")
             self.line1Text.set(f"1. Get the {self.sequence[self.index][0]} calibration solution.\n")
             self.errorText.set("")
 
