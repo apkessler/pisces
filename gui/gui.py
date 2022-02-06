@@ -101,6 +101,10 @@ def shutdown_pi():
     logger.info("shutting down the Pi")
     sys_call("/usr/bin/sudo /sbin/shutdown -h now")
 
+# modular function to shutdown Pi
+def get_git_version():
+    sys_call("cd /home/pi/Repositories/pisces/; git describe")
+
 
 ### TKinter Stuff
 
@@ -561,6 +565,13 @@ class ErrorPromptPage(Subwindow):
         text=msg,
         font=('Arial', 20)).pack(side=tk.TOP, pady=10)
 
+class AboutPage(Subwindow):
+    def __init__(self):
+        super().__init__("About")
+
+        tk.Label(self.master,
+        text=f'Version: {get_git_version()}',
+        font=('Arial', 20)).pack(side=tk.TOP, pady=100)
 
 class AquariumLightsSettingsPage(Subwindow):
     ''' Page for adjusting Aquarium (Tank) light settings.'''
@@ -852,7 +863,7 @@ class SystemSettingsPage(Subwindow):
 
 
         buttons = [
-            {'text':"About",            'callback': self.dummy},
+            {'text':"About",            'callback': lambda: AboutPage()},
             {'text':"Shutdown\nBox",    'callback': shutdown_pi},
             {'text':"Exit GUI",         'callback': self.quitGui},
             {'text':"Network Info",     'callback': self.dummy},
