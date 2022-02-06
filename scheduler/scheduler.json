@@ -26,5 +26,14 @@
             "blue_lights_at_night": false,
             "eclipse_enabled" : false
         }
+    ],
+    "events":
+    [
+        {
+            "name": "DailyFertilizer",
+            "type": "dispense",
+            "trigger_time_hhmm": 730,
+            "cmd_args":  { "volume_mL" : 3  }
+        }
     ]
 }
