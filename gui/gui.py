@@ -238,11 +238,11 @@ class MainWindow(Window):
         #Update the temperature reading
         temp_degC = hwCntrl.getTemperature_degC()
         temp_degF = (temp_degC * 9.0) / 5.0 + 32.0
-        self.tempText.set(f"Temperature\n{temp_degF:0.2f}°F")
+        self.tempText.set(f"Temperature\n{temp_degF:0.1f}°F")
 
         #Update the pH Reading
         ph = hwCntrl.getPH()
-        self.phText.set(f"pH\n{ph:0.2f}")
+        self.phText.set(f"pH\n{ph:0.1f}")
 
         self.master.after(1000, self.refresh_data)
 
