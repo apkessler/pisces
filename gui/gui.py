@@ -373,7 +373,7 @@ class SettingsPage(Subwindow):
             {'text':"Reboot\nBox",      'callback': reboot_pi},
             {'text':"Aquarium\nLights", 'callback': lambda: AquariumLightsSettingsPage()},
             {'text':"Grow Lights",      'callback': lambda: GrowLightsSettingsPage()},
-            {'text':"Fertilizer",       'callback': lambda: FertilizerSettingsPage()},
+            {'text':"Fertilizer\nSettings", 'callback': lambda: FertilizerSettingsPage()},
             {'text':"Calibrate pH",     'callback': lambda: CalibratePhStartPage()},
             {'text':"System Settings",  'callback': lambda: SystemSettingsPage()}
         ]
@@ -451,6 +451,26 @@ class RebootPromptPage(Subwindow):
         font=('Arial', 20)).pack(side=tk.TOP, pady=75)
 
 
+class ErrorPromptPage(Subwindow):
+    ''' A Page to prompt the user to reboot'''
+    def __init__(self, msg):
+        super().__init__("Error", draw_exit_button=False)
+
+        buttons = [
+            {'text': "OK",     'callback': self.exit}
+        ]
+
+        self.drawButtonGrid(buttons)
+
+        tk.Label(self.master,
+        text="Error",
+        font=('Arial', 20, 'bold')).pack(side=tk.TOP, pady=40)
+
+        tk.Label(self.master,
+        text=msg,
+        font=('Arial', 20)).pack(side=tk.TOP, pady=10)
+
+
 class AquariumLightsSettingsPage(Subwindow):
     ''' Page for adjusting Aquarium (Tank) light settings.'''
     def __init__(self):
@@ -461,7 +481,7 @@ class AquariumLightsSettingsPage(Subwindow):
         self.path_to_configfile = os.path.join(this_dir, '../scheduler/scheduler.json')
         with open(self.path_to_configfile, 'r') as jsonfile:
             self.config_data = json.load(jsonfile)
-        print(self.config_data, flush=True)
+
 
         schedules = self.config_data['light_schedules']
 
@@ -564,13 +584,17 @@ class AquariumLightsSettingsPage(Subwindow):
         self.tank_light_schedule['eclipse_frequency_min'] = int(self.blue_interval_min_var.get())
         self.tank_light_schedule['eclipse_duration_min'] = int(self.blue_duration_min_var.get())
 
-        logger.info("Writing new settings to file...")
-        with open(self.path_to_configfile, 'w') as jsonfile:
-            json.dump(self.config_data, jsonfile, indent=4)
+        if (self.sunrise_selector.get_hhmm() >= self.sunset_selector.get_hhmm()):
+            logger.warning("Bad timing config!")
+            ErrorPromptPage("On time must be before Off time!")
+        else:
+            logger.info("Writing new settings to file...")
+            with open(self.path_to_configfile, 'w') as jsonfile:
+                json.dump(self.config_data, jsonfile, indent=4)
 
-        print(self.tank_light_schedule, flush=True)
-        self.exit()
-        RebootPromptPage()
+
+            self.exit()
+            RebootPromptPage()
 
 class GrowLightsSettingsPage(Subwindow):
     ''' Page for adjusting Grow Light Settings '''
@@ -582,7 +606,7 @@ class GrowLightsSettingsPage(Subwindow):
         self.path_to_configfile = os.path.join(this_dir, '../scheduler/scheduler.json')
         with open(self.path_to_configfile, 'r') as jsonfile:
             self.config_data = json.load(jsonfile)
-        print(self.config_data, flush=True)
+
 
         schedules = self.config_data['light_schedules']
 
@@ -625,14 +649,18 @@ class GrowLightsSettingsPage(Subwindow):
         self.grow_light_schedule["sunrise_hhmm"] = self.sunrise_selector.get_hhmm()
         self.grow_light_schedule["sunset_hhmm"]  = self.sunset_selector.get_hhmm()
 
-        logger.info("Writing new settings to file...")
-        with open(self.path_to_configfile, 'w') as jsonfile:
-            json.dump(self.config_data, jsonfile, indent=4)
+        if (self.sunrise_selector.get_hhmm() >= self.sunset_selector.get_hhmm()):
+            logger.warning("Bad timing config!")
+            ErrorPromptPage("On time must be before Off time!")
+        else:
+            logger.info("Writing new settings to file...")
+            with open(self.path_to_configfile, 'w') as jsonfile:
+                json.dump(self.config_data, jsonfile, indent=4)
 
-        print(self.grow_light_schedule, flush=True)
 
-        self.exit()
-        RebootPromptPage()
+
+            self.exit()
+            RebootPromptPage()
 
 class FertilizerSettingsPage(Subwindow):
     ''' Page for adjusting Fertilizer Settings '''
@@ -644,7 +672,7 @@ class FertilizerSettingsPage(Subwindow):
         self.path_to_configfile = os.path.join(this_dir, '../scheduler/scheduler.json')
         with open(self.path_to_configfile, 'r') as jsonfile:
             self.config_data = json.load(jsonfile)
-        print(self.config_data, flush=True)
+
 
         schedules = self.config_data['events']
 
@@ -694,14 +722,33 @@ class FertilizerSettingsPage(Subwindow):
         self.this_event["trigger_time_hhmm"] = self.time_selector.get_hhmm()
         self.this_event['cmd_args']['volume_mL'] = int(self.volume_var.get())
 
-        logger.info("Writing new settings to file...")
-        with open(self.path_to_configfile, 'w') as jsonfile:
-            json.dump(self.config_data, jsonfile, indent=4)
+        #Grab the tank light on time for reference
+        for schedule in self.config_data['light_schedules']:
+            if (schedule['name'] == 'TankLights'):
+                self.tank_light_schedule = schedule
 
-        print(self.this_event, flush=True)
+        def hhmmToDatetime(hhmm) -> datetime.datetime:
+            hh = int(hhmm/100)
+            mm = hhmm - hh*100
+            return datetime.datetime.combine(datetime.date.today(), datetime.time(hour=hh, minute=mm))
 
-        self.exit()
-        RebootPromptPage()
+        this_time =  hhmmToDatetime(self.this_event["trigger_time_hhmm"])
+        tank_on_time = hhmmToDatetime(self.tank_light_schedule['sunrise_hhmm'])
+
+        if (this_time + datetime.timedelta(minutes=10) > tank_on_time):
+            # We enforce this constraint to avoid weird edge cases where the dispense's tasks messing with light settings
+            # gets messed up by a night -> day or day -> night transition. We could try to fix this with a scope param,
+            # then there's more weird edges cases if the lights are in a manual mode...
+            ErrorPromptPage(f"Fertilizer dispense time must be at least\n10min before tank light on time ({tank_on_time.time()})")
+        else:
+            logger.info("Writing new settings to file...")
+            with open(self.path_to_configfile, 'w') as jsonfile:
+                json.dump(self.config_data, jsonfile, indent=4)
+
+
+
+            self.exit()
+            RebootPromptPage()
 
 class SystemSettingsPage(Subwindow):
 
@@ -740,7 +787,7 @@ class ManualFertilizerPage(Subwindow):
             {'text': "Dispense\n3mL",   'callback': lambda: self.dispenseInThread(3)},
             {'text': "Dispense\n10mL",  'callback': lambda: self.dispenseInThread(10)},
             {'text': "Hold to\ndispense\ncontinuously", 'callback': None}, #This button has special binding
-            {'text': "Timer\nSettings", 'callback': lambda:SettingsPage()}
+            {'text': "Fertilizer\nSettings", 'callback': lambda:FertilizerSettingsPage()}
         ]
         self.drawButtonGrid(buttons)
 
