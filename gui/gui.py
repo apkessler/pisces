@@ -18,29 +18,20 @@ import threading
 import tkinter as tk
 import grpc
 import json
-from matplotlib.pyplot import draw
 
 import pandas as pd
-from matplotlib.figure import Figure
 
 from typing import Tuple
 from loguru import logger
 
-import numpy as np #Don't need?
 import matplotlib as plt
 from matplotlib.figure import (Figure, )
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
-# Implement the default Matplotlib key bindings.
-from matplotlib.backend_bases import key_press_handler
-
-
 
 # Custom imports
-import hardwareControl_pb2
-import hardwareControl_pb2_grpc
 from hwcontrol_client import HardwareControlClient
-from dispense import dispense
+from dispense_client import dispense
 
 
 ##### Globals ####

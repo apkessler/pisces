@@ -12,10 +12,10 @@ import argparse
 from enum import Enum
 import datetime as dt
 from loguru import logger
-
+import threading
 # Custom imports
 from hwcontrol_client import HardwareControlClient
-
+from dispense_client import dispense
 
 class TimerState(Enum):
     PINIT = 0
@@ -60,6 +60,48 @@ def timeToHhmm(time:dt.time) -> int:
         Equivalent hhmm int
     '''
     return (time.hour * 100) + time.minute
+
+def fake_dispense(*args):
+    logger.info("Fake dispense called")
+    time.sleep(5)
+    logger.info("Fake dispense done")
+
+class DispenseEvent():
+    ''' An Simple state machine for running the dispense task and waiting for it to complete.
+        Would be nice to eventually generalize this. '''
+
+
+    def __init__(self, jData, hwCntrl:HardwareControlClient):
+        self.name=jData['name']
+        self.trigger_time = hhmmToTime(jData['trigger_time_hhmm'])
+        self.jData = jData
+        self.is_active = False
+        self.hwCntrl = hwCntrl
+        logger.debug(f"Made Event {self.name} of type {self.__class__} which runs at {self.trigger_time}.")
+        self.last_time = None
+    def update(self, dt_now:dt.datetime) -> None:
+
+        time_now = dt_now.time()
+        if (self.last_time == None):
+            self.last_time = time_now
+
+        if (self.is_active):
+            if (self.thread.is_alive()):
+                logger.info("Command is still running")
+            else:
+                logger.info("Command done!")
+                self.thread.join()
+                self.is_active = False
+
+        elif (self.last_time < self.trigger_time and time_now >= self.trigger_time):
+                logger.info(f"Running cmd {self.name}")
+                self.is_active= True
+                self.stop_event = threading.Event()
+                self.thread = threading.Thread(target=dispense, args=(hwCntrl, self.jData['cmd_args']['volume_mL'], self.stop_event), daemon=True)
+                self.thread.start()
+
+        self.last_time = time_now
+
 
 
 class ScheduleSM():
@@ -201,7 +243,12 @@ if __name__ == '__main__':
         with grpc.insecure_channel(jData['server']) as channel:
             hwCntrl = HardwareControlClient(channel)
 
-            schds = [ScheduleSM(jD, hwCntrl) for jD in jData["schedules"]]
+            schds = [ScheduleSM(jD, hwCntrl) for jD in jData["light_schedules"]]
+
+            for event in jData['events']:
+                if event['type'] == 'dispense':
+                    schds.append(DispenseEvent(event, hwCntrl))
+
             logger.info("Schedulers initialized")
 
 

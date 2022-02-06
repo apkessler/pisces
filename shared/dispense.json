@@ -1,9 +1,0 @@
-{
-  "server": "localhost:50051",
-  "log_name": "dispense.log",
-  "log_level": "INFO",
-
-  "default_volume_ml": 3,
-  "steps_per_ml": 1000,
-  "steps_per_command": 500
-}

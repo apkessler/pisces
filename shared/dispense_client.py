@@ -16,12 +16,7 @@ from loguru import logger
 
 from hwcontrol_client import HardwareControlClient
 
-_jData = None
-
-#Do this setup up here so we get config and logger even if function is imported on its own
-with open(os.path.join(os.path.dirname(__file__), 'dispense.json'), 'r') as jsonfile:
-    _jData = json.load(jsonfile)
-
+STEPS_PER_ML = 1000
 
 def ml_to_steps(ml:int) -> int:
     """Convert from mL to number of stepper motor steps needed to dispense that volume.
@@ -36,7 +31,7 @@ def ml_to_steps(ml:int) -> int:
     int
         Needed stepper motor steps
     """
-    return _jData['steps_per_ml']*ml
+    return int(STEPS_PER_ML*ml)
 
 
 def dispense(hwCntrl, volume_ml:int, stop_event:threading.Event):
@@ -90,12 +85,12 @@ if __name__ == '__main__':
     logger.add('dispense_main.log', format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}", rotation="100MB")
 
     parser = argparse.ArgumentParser(description='Run the pump for a given number of mL')
-    parser.add_argument('volume_ml', nargs='?', type=int, default=_jData['default_volume_ml'], help='The number of mL to dispense')
+    parser.add_argument('volume_ml', type=int, help='The number of mL to dispense')
 
     args = parser.parse_args()
 
     stop_event = threading.Event()
-    with grpc.insecure_channel(_jData['server']) as channel:
+    with grpc.insecure_channel('localhost:50051') as channel:
         hwCntrl = HardwareControlClient(channel)
         stopFlag = False
         t = threading.Thread(target=dispense, args=(hwCntrl, args.volume_ml, stop_event), daemon=True)
