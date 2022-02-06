@@ -5,6 +5,6 @@
   "telemetry_file":"~/Repositories/pisces/data/telemetry.csv",
   "temp_hi_degF": 80,
   "temp_lo_degF": 75,
-  "ph_hi": 7.2,
-  "ph_lo": 6.8
+  "ph_hi": null,
+  "ph_lo": null
 }

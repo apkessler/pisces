@@ -371,7 +371,9 @@ class GraphPage(Subwindow):
 
         self.ax.cla()
         self.df[start_time: end_time].plot(y=[self.field], ax=self.ax)
-        self.ax.hlines(y=[self.safe_ylim_lo, self.safe_ylim_hi], xmin=[start_time], xmax=[end_time], colors='red', linestyles='--', lw=1)
+
+        if (self.safe_ylim_lo != None and self.safe_ylim_hi != None):
+            self.ax.hlines(y=[self.safe_ylim_lo, self.safe_ylim_hi], xmin=[start_time], xmax=[end_time], colors='red', linestyles='--', lw=1)
 
         self.ax.set_ylabel(self.field)
         self.ax.set_xlabel('')
