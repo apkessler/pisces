@@ -66,39 +66,49 @@ def fake_dispense(*args):
     time.sleep(5)
     logger.info("Fake dispense done")
 
-class DispenseEvent():
+class GenericEvent():
     ''' An Simple state machine for running the dispense task and waiting for it to complete.
         Would be nice to eventually generalize this. '''
 
 
-    def __init__(self, jData, hwCntrl:HardwareControlClient):
-        self.name=jData['name']
-        self.trigger_time = hhmmToTime(jData['trigger_time_hhmm'])
-        self.jData = jData
+    def __init__(self, name, time_hhmm, callback, hwCntrl:HardwareControlClient):
+        self.name= name
+        self.trigger_time = hhmmToTime(time_hhmm)
+        #self.jData = jData
         self.is_active = False
         self.hwCntrl = hwCntrl
         logger.debug(f"Made Event {self.name} of type {self.__class__} which runs at {self.trigger_time}.")
         self.last_time = None
+        self.callback = callback
+        #self.stop_callback = None
+
     def update(self, dt_now:dt.datetime) -> None:
 
         time_now = dt_now.time()
         if (self.last_time == None):
             self.last_time = time_now
 
-        if (self.is_active):
-            if (self.thread.is_alive()):
-                logger.info("Command is still running")
-            else:
-                logger.info("Command done!")
-                self.thread.join()
-                self.is_active = False
+        # if (self.is_active):
+        #     if (self.thread.is_alive()):
+        #         logger.info("Command is still running")
+        #     else:
+        #         logger.info("Command done!")
+        #         self.thread.join()
+        #         self.is_active = False
 
-        elif (self.last_time < self.trigger_time and time_now >= self.trigger_time):
+        #         if (self.stop_callback != None):
+        #             self.stop_callback()
+
+        if (self.last_time < self.trigger_time and time_now >= self.trigger_time):
                 logger.info(f"Running cmd {self.name}")
-                self.is_active= True
-                self.stop_event = threading.Event()
-                self.thread = threading.Thread(target=dispense, args=(hwCntrl, self.jData['cmd_args']['volume_mL'], self.stop_event), daemon=True)
-                self.thread.start()
+                if (self.callback != None):
+                    self.callback()
+                #self.is_active= True
+                #self.stop_event = threading.Event()
+                #self.thread = threading.Thread(target=dispense, args=(hwCntrl, self.jData['cmd_args']['volume_mL'], self.stop_event), daemon=True)
+                #self.thread.start()
+
+
 
         self.last_time = time_now
 
@@ -192,7 +202,7 @@ class LightTimer():
             #Raise exception?
 
 
-        logger.info(f"{self.name} Scheduler: {self.presentState} --> {new_state}")
+        logger.debug(f"{self.name} Scheduler: {self.presentState} --> {new_state}")
         self.presentState = new_state
 
     @staticmethod
@@ -220,32 +230,40 @@ class LightTimer():
         else:
             return TimerState.NIGHT
 
-    def resume_schedule(self, time:dt.time):
-        logger.debug(f"Got request to resume schedule on {self.name}")
-        self.changeStateTo(self.timeOfDayToState(time, self.sunrise_time, self.sunset_time))
+    def resume_schedule(self, dt_now:dt.datetime) -> None:
+        '''[summary]
+
+        Parameters
+        ----------
+        dt_now : dt.datetime
+            [description]
+        '''
+        logger.info(f"Resuming schedule on {self.name}")
+        self.changeStateTo(self.timeOfDayToState(dt_now.time(), self.sunrise_time, self.sunset_time))
 
 
-    def disable_schedule(self, time:dt.time):
-        logger.debug(f"Got request to disable schedule on {self.name}")
+    def disable_schedule(self) -> None:
+        '''[summary]
+        '''
+        logger.info(f"Disabling schedule on {self.name}")
         self.changeStateTo(TimerState.DISABLED)
 
-class Scheduler():
+class Scheduler(object):
 
-    def __init__(self, config_file:str, hwCntrl):
-        with open(config_file, 'r') as jsonfile:
-            jData = json.load(jsonfile)
+    def __init__(self, hwCntrl):
+        self.hwCntrl = hwCntrl
+        self.schds = []
 
-        self.schds = [LightTimer(jD, hwCntrl) for jD in jData["light_schedules"]]
+    def build_light_timers(self, jData):
+        self.schds += [LightTimer(jD, self.hwCntrl) for jD in jData]
 
-        for event in jData['events']:
-            if event['type'] == 'dispense':
-                self.schds.append(DispenseEvent(event, hwCntrl))
+    def add_event(self, name, time_hhmm, callback):
+        self.schds.append(GenericEvent(name, time_hhmm, callback, self.hwCntrl))
 
-        logger.info("Schedulers initialized")
 
-    def update(self, time:dt.time):
+    def update(self, now:dt.datetime):
         for schSM in self.schds:
-                schSM.update(time)
+                schSM.update(now)
 
     def disable_timers(self, timer_list:list):
         '''[summary]
@@ -255,9 +273,15 @@ class Scheduler():
         timer_list : list
             [description]
         '''
-        for schSM in self.schds:
-            if schSM.name in timer_list:
-                schSM.disable_schedule()
+        for name in timer_list:
+            found = False
+            for schSM in self.schds:
+                if schSM.name == name:
+                    schSM.disable_schedule()
+                    found = True
+            if (not found):
+                logger.error(f"No Timer named {name} found!")
+
 
     def resume_timers(self, timer_list:list):
         '''[summary]
@@ -267,9 +291,18 @@ class Scheduler():
         timer_list : list
             [description]
         '''
+        now = dt.datetime.now()
         for schSM in self.schds:
             if schSM.name in timer_list:
-                schSM.resume_schedule()
+                schSM.resume_schedule(now)
+
+    def set_event_callbacks(self, start_callback, stop_callback):
+
+        for schSM in self.schds:
+            if type(schSM) == DispenseEvent:
+                schSM.start_callback = start_callback
+                schSM.stop_callback = stop_callback
+                logger.debug("Set pre/post event callbacks")
 
 
 

@@ -32,8 +32,8 @@
         {
             "name": "DailyFertilizer",
             "type": "dispense",
-            "trigger_time_hhmm": 730,
-            "cmd_args":  { "volume_mL" : 3  }
+            "trigger_time_hhmm": 2236,
+            "volume_mL" : 3
         }
     ]
 }

@@ -9,6 +9,7 @@
 ### Imports
 
 # Standard imports
+from logging import config
 import os
 import datetime
 import threading
@@ -33,13 +34,12 @@ from hwcontrol_client import HardwareControlClient
 from dispense_client import dispense
 from helpers import *
 from windows import (Window, Subwindow, ErrorPromptPage, fontTuple)
-from scheduler import Scheduler
+import scheduler
 
 ##### Globals ####
 
 hwCntrl = None #Global stub, because its easiest
 jData = None #config data
-
 
 
 
@@ -55,8 +55,8 @@ class MainWindow(Window):
         [description]
     """
 
-    def __init__(self, root):
-        super().__init__("Main Window", root, jData['fullscreen'])
+    def __init__(self, root, fullscreen):
+        super().__init__("Main Window", root, fullscreen)
         hwCntrl.setScope() #Reset scope to make sure schedule is running
         self.lightToggleModes = ['Schedule', 'All On', 'All Blue', 'All Off']
         self.currentLightToggleModeInx = 0
@@ -75,7 +75,13 @@ class MainWindow(Window):
         self.phText = tk.StringVar()
         self.phText.set(f"pH\n???")
 
-        self.scheduler = Scheduler(SCHEDULE_CONFIG_FILE, hwCntrl)
+        self.the_scheduler = scheduler.Scheduler(hwCntrl)
+        with open(SCHEDULE_CONFIG_FILE, 'r') as configfile:
+            sch_jData= json.load(configfile)
+        self.the_scheduler.build_light_timers(sch_jData["light_schedules"])
+
+        for event in sch_jData["events"]:
+            self.the_scheduler.add_event(event["name"], event['trigger_time_hhmm'], lambda:DispensingCapturePage(volume_mL=event['volume_mL']))
 
         buttons = [
             {'text':self.lightModeText,     'callback': self.toggle_lights},
@@ -89,6 +95,7 @@ class MainWindow(Window):
 
 
         #After we're done setting everything up...
+        self.update_scheduler()
         self.refresh_data()
 
     def updateTimestamp(self):
@@ -98,31 +105,34 @@ class MainWindow(Window):
     def toggle_lights(self):
         self.currentLightToggleModeInx = (self.currentLightToggleModeInx + 1) % len(self.lightToggleModes)
 
-
-        myScope = 'gui'
         newMode = self.lightToggleModes[self.currentLightToggleModeInx]
         self.lightModeText.set("Lights:\n"+newMode)
         logger.info(f"Toggled to mode {newMode}")
 
         if (newMode == 'Schedule'):
-            self.scheduler.resume_timers(['tank_lights']
+            self.the_scheduler.resume_timers(['TankLights', 'GrowLights'])
 
         elif (newMode == 'All On'):
-            hwCntrl.setScope(scope=myScope)
+            self.the_scheduler.disable_timers(['TankLights', 'GrowLights'])
             for lightId in [1,2,3]:
-                hwCntrl.setLightColor(lightId, 'white', scope=myScope)
+                hwCntrl.setLightColor(lightId, 'white')
 
         elif (newMode == 'All Blue'):
-            hwCntrl.setScope(scope=myScope)
+            self.the_scheduler.disable_timers(['TankLights', 'GrowLights'])
             for lightId in [1,2]:
-                hwCntrl.setLightColor(lightId, 'blue', scope=myScope)
-            hwCntrl.setLightColor(3, 'white', scope=myScope) #Keep gro lights on
-
+                hwCntrl.setLightColor(lightId, 'blue')
+            hwCntrl.setLightColor(3, 'white') #Keep gro lights on
 
         elif (newMode == 'All Off'):
-            hwCntrl.setScope(scope=myScope)
+            self.the_scheduler.disable_timers(['TankLights', 'GrowLights'])
             for lightId in [1,2,3]:
-                hwCntrl.setLightColor(lightId, 'off', scope=myScope)
+                hwCntrl.setLightColor(lightId, 'off')
+
+    def update_scheduler(self):
+
+        logger.debug("Scheduler update")
+        self.the_scheduler.update(datetime.datetime.now())
+        self.master.after(30*1000, self.update_scheduler)
 
 
     def refresh_data(self):
@@ -287,22 +297,6 @@ class RebootPromptPage(Subwindow):
         font=('Arial', 20)).pack(side=tk.TOP, pady=75)
 
 
-class DispensingCapturePage(Subwindow):
-    ''' A Page to capture the UI when a scheduled dispense is in progress'''
-    def __init__(self):
-        super().__init__("Dispense in Progress", draw_exit_button=False)
-
-        buttons = [
-            {'text': "Abort",     'callback': self.exit, 'color':'#ff5733'}
-        ]
-
-        self.drawButtonGrid(buttons)
-
-        tk.Label(self.master,
-        text="Scheduled fertilizer dispense in progress.",
-        font=('Arial', 20)).pack(side=tk.TOP, pady=75)
-
-
 
 class AboutPage(Subwindow):
     def __init__(self):
@@ -318,9 +312,7 @@ class AquariumLightsSettingsPage(Subwindow):
         super().__init__("Aquarium Light Settings", draw_exit_button=False)
 
         #Load the scheduler json file
-        this_dir = os.path.dirname(__file__)
-        self.path_to_configfile = os.path.join(this_dir, '../scheduler/scheduler.json')
-        with open(self.path_to_configfile, 'r') as jsonfile:
+        with open(SCHEDULE_CONFIG_FILE, 'r') as jsonfile:
             self.config_data = json.load(jsonfile)
 
 
@@ -442,8 +434,7 @@ class GrowLightsSettingsPage(Subwindow):
 
         #Load the scheduler json file
         this_dir = os.path.dirname(__file__)
-        self.path_to_configfile = os.path.join(this_dir, '../scheduler/scheduler.json')
-        with open(self.path_to_configfile, 'r') as jsonfile:
+        with open(SCHEDULE_CONFIG_FILE, 'r') as jsonfile:
             self.config_data = json.load(jsonfile)
 
 
@@ -506,8 +497,7 @@ class FertilizerSettingsPage(Subwindow):
 
         #Load the scheduler json file
         this_dir = os.path.dirname(__file__)
-        self.path_to_configfile = os.path.join(this_dir, '../scheduler/scheduler.json')
-        with open(self.path_to_configfile, 'r') as jsonfile:
+        with open(SCHEDULE_CONFIG_FILE, 'r') as jsonfile:
             self.config_data = json.load(jsonfile)
 
 
@@ -537,7 +527,7 @@ class FertilizerSettingsPage(Subwindow):
         self.time_selector.frame.grid(row=1, column=1)
 
         self.volume_var = tk.IntVar()
-        self.volume_var.set(self.this_event['cmd_args']['volume_mL'])
+        self.volume_var.set(self.this_event['volume_mL'])
         tk.Spinbox( time_setting_frame,
                     from_=0,
                     to=50,
@@ -556,7 +546,7 @@ class FertilizerSettingsPage(Subwindow):
 
         #Pull out the requisite info, and write it back to config
         self.this_event["trigger_time_hhmm"] = self.time_selector.get_hhmm()
-        self.this_event['cmd_args']['volume_mL'] = int(self.volume_var.get())
+        self.this_event['volume_mL'] = int(self.volume_var.get())
 
         #Grab the tank light on time for reference
         for schedule in self.config_data['light_schedules']:
@@ -638,6 +628,7 @@ class SetSystemTimePage(Subwindow):
         except ValueError:
             ErrorPromptPage("Invalid date/time!")
 
+
 class ManualFertilizerPage(Subwindow):
 
     def __init__(self):
@@ -676,6 +667,38 @@ class ManualFertilizerPage(Subwindow):
         self.thread = threading.Thread(target=dispense, args=(hwCntrl, volume_ml, stop_event), daemon=True)
         self.thread.start()
         self.thread.join()
+
+
+class DispensingCapturePage(Subwindow):
+    ''' A Page to capture the UI when a scheduled dispense is in progress'''
+    def __init__(self, volume_mL):
+        super().__init__("Dispense in Progress", draw_exit_button=False)
+
+        buttons = [
+            {'text': "Abort",     'callback': self.abort, 'color':'#ff5733'}
+        ]
+
+        self.drawButtonGrid(buttons)
+
+        tk.Label(self.master,
+        text=f"Scheduled fertilizer dispense ({volume_mL}mL) in progress.",
+        font=('Arial', 20)).pack(side=tk.TOP, pady=75)
+
+        self.dispense_stop_event = threading.Event()
+        self.dispenseThread = threading.Thread(target=dispense, args=(hwCntrl, volume_mL, self.dispense_stop_event), daemon=True)
+        self.dispenseThread.start()
+
+    def abort(self):
+        if (self.dispenseThread.is_alive()):
+            self.dispense_stop_event.set()
+            self.dispenseThread.join()
+            logger.info("Dispense thread killed")
+        else:
+            self.dispenseThread.join()
+            logger.info("Dispense thread already dead")
+        self.exit()
+
+
 
 
 class CalibratePhStartPage(Subwindow):
@@ -818,7 +841,7 @@ if __name__ == "__main__":
         try:
             hwCntrl.echo()
             root = tk.Tk()
-            main = MainWindow(root)
+            main = MainWindow(root, jData['fullscreen'])
             root.mainloop()
         except grpc.RpcError as rpc_error:
             logger.error(f"Unable to connect to server! {rpc_error.code()}")
