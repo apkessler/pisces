@@ -104,7 +104,7 @@ class DispenseEvent():
 
 
 
-class ScheduleSM():
+class LightTimer():
 
     def __init__(self, jData, hwCntrl:HardwareControlClient):
         self.presentState = TimerState.PINIT
@@ -169,9 +169,8 @@ class ScheduleSM():
         if (new_state == TimerState.PINIT):
             pass
         elif (new_state == TimerState.DISABLED):
+            pass
             # just leave the lights where they are?
-            for light in self.jData["lights"]:
-                self.hwCntrl.setLightColor(lightKeys[light], 'off')
 
 
         elif (new_state == TimerState.DAY):
@@ -189,7 +188,7 @@ class ScheduleSM():
 
 
         else:
-            logger.warning(f"{self.name}: Unhandled state in changeStateTo():{new_state}")
+            logger.error(f"{self.name}: Unhandled state in changeStateTo():{new_state}")
             #Raise exception?
 
 
@@ -221,6 +220,59 @@ class ScheduleSM():
         else:
             return TimerState.NIGHT
 
+    def resume_schedule(self, time:dt.time):
+        logger.debug(f"Got request to resume schedule on {self.name}")
+        self.changeStateTo(self.timeOfDayToState(time, self.sunrise_time, self.sunset_time))
+
+
+    def disable_schedule(self, time:dt.time):
+        logger.debug(f"Got request to disable schedule on {self.name}")
+        self.changeStateTo(TimerState.DISABLED)
+
+class Scheduler():
+
+    def __init__(self, config_file:str, hwCntrl):
+        with open(config_file, 'r') as jsonfile:
+            jData = json.load(jsonfile)
+
+        self.schds = [LightTimer(jD, hwCntrl) for jD in jData["light_schedules"]]
+
+        for event in jData['events']:
+            if event['type'] == 'dispense':
+                self.schds.append(DispenseEvent(event, hwCntrl))
+
+        logger.info("Schedulers initialized")
+
+    def update(self, time:dt.time):
+        for schSM in self.schds:
+                schSM.update(time)
+
+    def disable_timers(self, timer_list:list):
+        '''[summary]
+
+        Parameters
+        ----------
+        timer_list : list
+            [description]
+        '''
+        for schSM in self.schds:
+            if schSM.name in timer_list:
+                schSM.disable_schedule()
+
+    def resume_timers(self, timer_list:list):
+        '''[summary]
+
+        Parameters
+        ----------
+        timer_list : list
+            [description]
+        '''
+        for schSM in self.schds:
+            if schSM.name in timer_list:
+                schSM.resume_schedule()
+
+
+
 
 
 if __name__ == '__main__':
@@ -236,39 +288,18 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    with open(os.path.join(os.path.dirname(__file__), 'scheduler.json'), 'r') as jsonfile:
-        jData = json.load(jsonfile)
+
+
 
     try:
-        with grpc.insecure_channel(jData['server']) as channel:
+        with grpc.insecure_channel('localhost:50051') as channel:
             hwCntrl = HardwareControlClient(channel)
 
-            schds = [ScheduleSM(jD, hwCntrl) for jD in jData["light_schedules"]]
+            schdlr = Scheduler(os.path.join(os.path.dirname(__file__), 'scheduler.json'), hwCntrl)
 
-            for event in jData['events']:
-                if event['type'] == 'dispense':
-                    schds.append(DispenseEvent(event, hwCntrl))
-
-            logger.info("Schedulers initialized")
-
-
-            #Simulation mode!
-            if (args.simulate):
-                t = dt.datetime.now()
-                while (1):
-                    for schSM in schds:
-                        schSM.update(t)
-                    time.sleep(0.1)
-                    t += dt.timedelta(seconds=60)
-                    print(t, flush=True)
-                    if (t > dt.datetime.now() + dt.timedelta(days=args.days)):
-                        logger.info("Simulation complete!")
-                        break
-            else: #Real mode
-                while (1):
-                    for schSM in schds:
-                        schSM.update(dt.datetime.now())
-                    time.sleep(30)
+            while (1):
+                schdlr.update(dt.datetime.now())
+                time.sleep(30)
 
     except Exception as e:
         logger.error(f"{e}")

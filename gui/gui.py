@@ -33,12 +33,17 @@ from hwcontrol_client import HardwareControlClient
 from dispense_client import dispense
 from helpers import *
 from windows import (Window, Subwindow, ErrorPromptPage, fontTuple)
+from scheduler import Scheduler
 
 ##### Globals ####
 
 hwCntrl = None #Global stub, because its easiest
 jData = None #config data
 
+
+
+
+SCHEDULE_CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'scheduler.json')
 
 
 class MainWindow(Window):
@@ -70,6 +75,7 @@ class MainWindow(Window):
         self.phText = tk.StringVar()
         self.phText.set(f"pH\n???")
 
+        self.scheduler = Scheduler(SCHEDULE_CONFIG_FILE, hwCntrl)
 
         buttons = [
             {'text':self.lightModeText,     'callback': self.toggle_lights},
@@ -99,7 +105,7 @@ class MainWindow(Window):
         logger.info(f"Toggled to mode {newMode}")
 
         if (newMode == 'Schedule'):
-            hwCntrl.setScope() #Release scope, return to normal schedule
+            self.scheduler.resume_timers(['tank_lights']
 
         elif (newMode == 'All On'):
             hwCntrl.setScope(scope=myScope)
@@ -279,6 +285,23 @@ class RebootPromptPage(Subwindow):
         tk.Label(self.master,
         text="A reboot is necessary for changes to take effect!",
         font=('Arial', 20)).pack(side=tk.TOP, pady=75)
+
+
+class DispensingCapturePage(Subwindow):
+    ''' A Page to capture the UI when a scheduled dispense is in progress'''
+    def __init__(self):
+        super().__init__("Dispense in Progress", draw_exit_button=False)
+
+        buttons = [
+            {'text': "Abort",     'callback': self.exit, 'color':'#ff5733'}
+        ]
+
+        self.drawButtonGrid(buttons)
+
+        tk.Label(self.master,
+        text="Scheduled fertilizer dispense in progress.",
+        font=('Arial', 20)).pack(side=tk.TOP, pady=75)
+
 
 
 class AboutPage(Subwindow):
