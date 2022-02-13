@@ -5,7 +5,7 @@ import subprocess
 import tkinter as tk
 import json
 from typing import Tuple
-from windows import fontTuple
+#from windows import fontTuple
 from loguru import logger
 
 def timeToHhmm(time:datetime.time) -> int:
@@ -43,10 +43,12 @@ def sys_call(cmd:str) -> str:
     try:
         process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
         output = process.communicate()[0]
-    except FileNotFoundError:
-        output = f"Could not execute sys call: '{cmd}'"
-    finally:
         logger.info(output)
+    except FileNotFoundError:
+        logger.error(f"Could not execute sys call: '{cmd}'")
+        output = None
+    finally:
+        return output
 
 def set_datetime(the_datetime:datetime.datetime):
     #sudo date -s YYYY-MM-DD HH:MM:SS
@@ -70,7 +72,13 @@ def get_git_version():
     sys_call("cd /home/pi/Repositories/pisces/; git describe")
 
 def is_wifi_on() -> bool:
-    ''' Get the Wifi state via rfkill'''
+    '''Get WiFi radio status via `rfkill`.
+
+    Returns
+    -------
+    bool
+        True if WiFi is on, False if Wifi is off or unable to determine
+    '''
     resp = sys_call('rfkill -J')
     print(resp)
     try:
@@ -82,9 +90,22 @@ def is_wifi_on() -> bool:
         logger.error('Could not get wlan radio status')
     return False
 
-def set_wifi_state(state:bool):
+def set_wifi_state(state:bool) -> bool:
+    '''Set WiFi radio is given state (on/off)
+
+    Parameters
+    ----------
+    state : bool
+        State to set radio. True = On, False = Off
+
+    Returns
+    -------
+    bool
+        True if successful
+    '''
     cmd = 'unblock' if state else 'block'
-    sys_call(f'sudo rfkill {cmd} wlan')
+    return (sys_call(f'sudo rfkill {cmd} wlan') != None)
+
 
 def set_local_ap_mode(mode:bool) -> bool:
     logger.info(f"Setting local AP mode to {mode}")

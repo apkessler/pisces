@@ -639,13 +639,13 @@ class NetworkInfoPage(Subwindow):
         ap_mode_var = tk.StringVar()
         ap_mode_var.set("Enable local\nAP mode")
 
-        wifi_button_var = tk.StringVar()
-        wifi_button_var.set("Turn on WiFi")
+        self.wifi_button_var = tk.StringVar()
+        self.update_wifi_button()
 
 
         buttons = [
             {'text': ap_mode_var,   'callback': self.toggle_ap_mode},
-            {'text': wifi_button_var,  'callback': self.toggle_wifi},
+            {'text': self.wifi_button_var,  'callback': self.toggle_wifi},
             {'text': "Hold to\ndispense\ncontinuously", 'callback': None}, #This button has special binding
             {'text': "Fertilizer\nSettings", 'callback': lambda:FertilizerSettingsPage()}
         ]
@@ -655,11 +655,14 @@ class NetworkInfoPage(Subwindow):
         logger.debug("Toggling AP mode")
 
     def toggle_wifi(self):
-        if (is_wifi_on()):
-            logger.debug("Turning off wifi")
-        else:
-            logger.debug("Turning on wifi")
+        set_wifi_state(not is_wifi_on())
+        self.update_wifi_button()
 
+    def update_wifi_button(self):
+        if (is_wifi_on()):
+            self.wifi_button_var.set("Turn WiFi\nOff")
+        else:
+            self.wifi_button_var.set("Turn WiFi\nOn")
 
 
 class ManualFertilizerPage(Subwindow):
