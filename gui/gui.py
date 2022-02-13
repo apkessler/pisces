@@ -34,6 +34,7 @@ from hwcontrol_client import HardwareControlClient
 from dispense_client import dispense
 from helpers import *
 from windows import (Window, Subwindow, ErrorPromptPage, fontTuple)
+from system_settings import SystemSettingsPage
 import scheduler
 
 ##### Globals ####
@@ -298,13 +299,6 @@ class RebootPromptPage(Subwindow):
 
 
 
-class AboutPage(Subwindow):
-    def __init__(self):
-        super().__init__("About")
-
-        tk.Label(self.master,
-        text=f'Version: {get_git_version()}',
-        font=('Arial', 20)).pack(side=tk.TOP, pady=100)
 
 class AquariumLightsSettingsPage(Subwindow):
     ''' Page for adjusting Aquarium (Tank) light settings.'''
@@ -576,94 +570,6 @@ class FertilizerSettingsPage(Subwindow):
             self.exit()
             RebootPromptPage()
 
-class SystemSettingsPage(Subwindow):
-
-    def __init__(self):
-        super().__init__("System Settings")
-
-
-
-
-        buttons = [
-            {'text':"About",            'callback': lambda: AboutPage()},
-            {'text':"Shutdown\nBox",    'callback': shutdown_pi},
-            {'text':"Exit GUI",         'callback': self.quitGui},
-            {'text':"Network Info",     'callback': lambda: NetworkInfoPage()},
-            {'text':"Set Time",         'callback': lambda: SetSystemTimePage()},
-            {'text':"Restore\nDefaults", 'callback': self.dummy}
-        ]
-
-        self.drawButtonGrid(buttons)
-
-
-    def quitGui(self):
-        """Close this entire GUI program
-        """
-        self.master.quit()
-
-class SetSystemTimePage(Subwindow):
-    def __init__(self):
-        super().__init__("System Time Settings")
-
-        tk.Label(self.master, text="Time:", font=('Arial', 20)).grid(row=1, column=0)
-        tk.Label(self.master, text="Date:", font=('Arial', 20)).grid(row=2, column=0)
-        tk.Label(self.master, text="YYYY-MM-DD", font=('Arial', 20)).grid(row=3, column=1)
-
-        self.time_select = TimeSelector(self.master, timeToHhmm(datetime.datetime.now().time()))
-        self.time_select.grid(row=1, column=1, pady=10)
-
-        self.date_select = DateSelector(self.master, datetime.datetime.now().date())
-        self.date_select.frame.grid(row=2, column=1, pady=10)
-
-        btn = tk.Button(self.master, text="Save", font=fontTuple, width=12, height=4, bg='#00ff00', command=self.save)
-        btn.grid(row=4, column=2, padx=10, pady=10)
-
-
-    def save(self):
-        try:
-            new_dt = datetime.datetime.combine(self.date_select.get_date(), self.time_select.get_time())
-            set_datetime(new_dt)
-        except ValueError:
-            ErrorPromptPage("Invalid date/time!")
-
-
-class NetworkInfoPage(Subwindow):
-    def __init__(self):
-        super().__init__("Network Info")
-
-        tk.Label(self.master, text=f"IP Address: {get_ip()}", font=("Arial", 12)).grid(row=1, column=0, padx=5, pady= 5)
-        tk.Label(self.master, text=f"", font=("Arial", 12)).grid(row=2, column=0)
-        tk.Label(self.master, text=f"", font=("Arial", 12)).grid(row=3, column=0)
-
-        tk.Label(self.master, text=f"Wifi status: ")
-        ap_mode_var = tk.StringVar()
-        ap_mode_var.set("Enable local\nAP mode")
-
-        self.wifi_button_var = tk.StringVar()
-        self.update_wifi_button()
-
-
-        buttons = [
-            {'text': ap_mode_var,   'callback': self.toggle_ap_mode},
-            {'text': self.wifi_button_var,  'callback': self.toggle_wifi},
-            {'text': "Hold to\ndispense\ncontinuously", 'callback': None}, #This button has special binding
-            {'text': "Fertilizer\nSettings", 'callback': lambda:FertilizerSettingsPage()}
-        ]
-        self.drawButtonGrid(buttons)
-
-    def toggle_ap_mode(self):
-        logger.debug("Toggling AP mode")
-
-    def toggle_wifi(self):
-        set_wifi_state(not is_wifi_on())
-        self.update_wifi_button()
-
-    def update_wifi_button(self):
-        if (is_wifi_on()):
-            self.wifi_button_var.set("Turn WiFi\nOff")
-        else:
-            self.wifi_button_var.set("Turn WiFi\nOn")
-
 
 class ManualFertilizerPage(Subwindow):
 
@@ -733,8 +639,6 @@ class DispensingCapturePage(Subwindow):
             self.dispenseThread.join()
             logger.info("Dispense thread already dead")
         self.exit()
-
-
 
 
 class CalibratePhStartPage(Subwindow):

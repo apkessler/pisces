@@ -8,6 +8,8 @@ from typing import Tuple
 #from windows import fontTuple
 from loguru import logger
 
+from windows import fontTuple
+
 def timeToHhmm(time:datetime.time) -> int:
     ''' Convert a datetime._time object to a simple time integer in form hhmm
 
