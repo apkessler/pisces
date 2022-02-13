@@ -3,6 +3,7 @@ import datetime
 import socket
 import subprocess
 import tkinter as tk
+import json
 from typing import Tuple
 from windows import fontTuple
 from loguru import logger
@@ -68,6 +69,25 @@ def shutdown_pi():
 def get_git_version():
     sys_call("cd /home/pi/Repositories/pisces/; git describe")
 
+def is_wifi_on() -> bool:
+    ''' Get the Wifi state via rfkill'''
+    resp = sys_call('rfkill -J')
+    print(resp)
+    try:
+        jData = json.loads(resp)
+        for interface in jData[""]:
+            if (interface['type'] == 'wlan'):
+                return (interface['soft'] == 'unblocked' and interface['hard'] == 'unblocked')
+    except TypeError:
+        logger.error('Could not get wlan radio status')
+    return False
+
+def set_wifi_state(state:bool):
+    cmd = 'unblock' if state else 'block'
+    sys_call(f'sudo rfkill {cmd} wlan')
+
+def set_local_ap_mode(mode:bool) -> bool:
+    logger.info(f"Setting local AP mode to {mode}")
 
 class DateSelector():
     ''' Helper Class for drawing date selector GUI elements'''

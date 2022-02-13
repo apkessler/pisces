@@ -581,16 +581,14 @@ class SystemSettingsPage(Subwindow):
     def __init__(self):
         super().__init__("System Settings")
 
-        tk.Label(self.master, text=f"IP Address: {get_ip()}", font=("Arial", 12)).grid(row=1, column=0, padx=5, pady= 5)
-        tk.Label(self.master, text=f"", font=("Arial", 12)).grid(row=2, column=0)
-        tk.Label(self.master, text=f"", font=("Arial", 12)).grid(row=3, column=0)
+
 
 
         buttons = [
             {'text':"About",            'callback': lambda: AboutPage()},
             {'text':"Shutdown\nBox",    'callback': shutdown_pi},
             {'text':"Exit GUI",         'callback': self.quitGui},
-            {'text':"Network Info",     'callback': self.dummy},
+            {'text':"Network Info",     'callback': lambda: NetworkInfoPage()},
             {'text':"Set Time",         'callback': lambda: SetSystemTimePage()},
             {'text':"Restore\nDefaults", 'callback': self.dummy}
         ]
@@ -627,6 +625,41 @@ class SetSystemTimePage(Subwindow):
             set_datetime(new_dt)
         except ValueError:
             ErrorPromptPage("Invalid date/time!")
+
+
+class NetworkInfoPage(Subwindow):
+    def __init__(self):
+        super().__init__("Network Info")
+
+        tk.Label(self.master, text=f"IP Address: {get_ip()}", font=("Arial", 12)).grid(row=1, column=0, padx=5, pady= 5)
+        tk.Label(self.master, text=f"", font=("Arial", 12)).grid(row=2, column=0)
+        tk.Label(self.master, text=f"", font=("Arial", 12)).grid(row=3, column=0)
+
+        tk.Label(self.master, text=f"Wifi status: ")
+        ap_mode_var = tk.StringVar()
+        ap_mode_var.set("Enable local\nAP mode")
+
+        wifi_button_var = tk.StringVar()
+        wifi_button_var.set("Turn on WiFi")
+
+
+        buttons = [
+            {'text': ap_mode_var,   'callback': self.toggle_ap_mode},
+            {'text': wifi_button_var,  'callback': self.toggle_wifi},
+            {'text': "Hold to\ndispense\ncontinuously", 'callback': None}, #This button has special binding
+            {'text': "Fertilizer\nSettings", 'callback': lambda:FertilizerSettingsPage()}
+        ]
+        self.drawButtonGrid(buttons)
+
+    def toggle_ap_mode(self):
+        logger.debug("Toggling AP mode")
+
+    def toggle_wifi(self):
+        if (is_wifi_on()):
+            logger.debug("Turning off wifi")
+        else:
+            logger.debug("Turning on wifi")
+
 
 
 class ManualFertilizerPage(Subwindow):
