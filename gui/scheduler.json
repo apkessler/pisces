@@ -1,39 +1,72 @@
 {
     "server": "localhost:50051",
-
-    "light_schedules":
-    [
+    "light_schedules": [
         {
-            "name":"TankLights",
-            "lights": ["TankLight1", "TankLight2"],
+            "name": "TankLights",
+            "lights": [
+                "TankLight1",
+                "TankLight2"
+            ],
             "sunrise_hhmm": 830,
             "sunset_hhmm": 1730,
-
             "blue_lights_at_night": false,
-
-            "eclipse_enabled" : true,
+            "eclipse_enabled": true,
             "eclipse_frequency_min": 30,
             "eclipse_duration_min": 1,
-
             "manual_eclipse_enabled": false,
             "manual_eclipse_duration_sec": 5
         },
         {
-            "name":"GrowLights",
-            "lights": ["GrowLight1"],
+            "name": "GrowLights",
+            "lights": [
+                "Outlet1"
+            ],
+            "enabled": true,
             "sunrise_hhmm": 830,
             "sunset_hhmm": 1730,
             "blue_lights_at_night": false,
-            "eclipse_enabled" : false
+            "eclipse_enabled": false
+        },
+        {
+            "name": "Outlet2",
+            "lights": [
+                "Outlet2"
+            ],
+            "enabled": "Disable",
+            "sunrise_hhmm": 800,
+            "sunset_hhmm": 1700,
+            "blue_lights_at_night": false,
+            "eclipse_enabled": false
+        },
+        {
+            "name": "Outlet3",
+            "lights": [
+                "Outlet3"
+            ],
+            "enabled": "Enable",
+            "sunrise_hhmm": 800,
+            "sunset_hhmm": 1700,
+            "blue_lights_at_night": false,
+            "eclipse_enabled": false
+        },
+        {
+            "name": "Outlet4",
+            "lights": [
+                "Outlet4"
+            ],
+            "enabled": "Enable",
+            "sunrise_hhmm": 800,
+            "sunset_hhmm": 1700,
+            "blue_lights_at_night": false,
+            "eclipse_enabled": false
         }
     ],
-    "events":
-    [
+    "events": [
         {
             "name": "DailyFertilizer",
             "type": "dispense",
             "trigger_time_hhmm": 2236,
-            "volume_mL" : 3
+            "volume_mL": 3
         }
     ]
 }

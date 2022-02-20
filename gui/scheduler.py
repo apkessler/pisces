@@ -24,8 +24,14 @@ class TimerState(Enum):
     NIGHT = 3
     ECLIPSE = 4
 
-#TODO: link to hwconfig?
-lightKeys = {"TankLight1":1, "TankLight2":2, "GrowLight1":3, "GrowLight2":4}
+#TODO: link to hwconfig, since these are really the order of things defined in hwconfig
+lightKeys = {"TankLight1":1,
+             "TankLight2":2,
+             "Outlet1":3,
+             "Outlet2":4,
+             "Outlet3":5,
+             "Outlet4":6
+             }
 
 
 def hhmmToTime(hhmm:int)->dt.time:

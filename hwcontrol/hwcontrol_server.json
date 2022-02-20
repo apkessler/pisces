@@ -29,9 +29,24 @@
                 "mode_relay": "RelayCh8"
             },
             {
-                "name": "GrowLight1",
+                "name": "Outlet1",
                 "enable_relay": null,
                 "mode_relay": "RelayCh1"
+            },
+            {
+                "name": "Outlet2",
+                "enable_relay": null,
+                "mode_relay": "RelayCh2"
+            },
+            {
+                "name": "Outlet3",
+                "enable_relay": null,
+                "mode_relay": "RelayCh3"
+            },
+            {
+                "name": "Outlet4",
+                "enable_relay": null,
+                "mode_relay": "RelayCh4"
             }
         ],
 

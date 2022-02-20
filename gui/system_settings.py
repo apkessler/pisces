@@ -94,3 +94,19 @@ class AboutPage(Subwindow):
         tk.Label(self.master,
         text=f'Version: {get_git_version()}',
         font=('Arial', 20)).pack(side=tk.TOP, pady=100)
+
+class RebootPromptPage(Subwindow):
+    ''' A Page to prompt the user to reboot'''
+    def __init__(self):
+        super().__init__("Reboot Prompt", draw_exit_button=False)
+
+        buttons = [
+            {'text': "Reboot\nNow",     'callback': reboot_pi, 'color':'#ff5733'},
+            {'text': "Reboot\nLater",    'callback': self.exit}
+        ]
+
+        self.drawButtonGrid(buttons)
+
+        tk.Label(self.master,
+        text="A reboot is necessary for changes to take effect!",
+        font=('Arial', 20)).pack(side=tk.TOP, pady=75)

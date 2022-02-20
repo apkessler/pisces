@@ -1,6 +1,5 @@
 
 import tkinter as tk
-
 fontTuple = ('Arial', 15)
 
 
