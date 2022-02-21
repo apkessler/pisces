@@ -81,6 +81,7 @@ class MainWindow(Window):
         with open(SCHEDULE_CONFIG_FILE, 'r') as configfile:
             sch_jData= json.load(configfile)
         self.the_scheduler.build_light_timers(sch_jData["light_schedules"])
+        self.the_scheduler.build_outlet_timers(sch_jData["outlet_schedules"]) #TODO: Need to account for lights overriden by growlights
 
         for event in sch_jData["events"]:
             self.the_scheduler.add_event(event["name"], event['trigger_time_hhmm'], lambda:DispensingCapturePage(volume_mL=event['volume_mL']))

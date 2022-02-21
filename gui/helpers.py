@@ -188,7 +188,7 @@ class TimeSelector():
         self.hh_var = tk.StringVar()
         hh,mm = self.split_hhmm(default_hhmm)
         self.hh_var.set(str(hh))
-        hh_select = tk.Spinbox(
+        self.hh_select = tk.Spinbox(
                         self.frame,
                         from_=0,
                         to=23,
@@ -202,7 +202,7 @@ class TimeSelector():
 
         self.mm_var = tk.StringVar()
         self.mm_var.set(str(mm))
-        mm_select = tk.Spinbox(
+        self.mm_select = tk.Spinbox(
                         self.frame,
                         from_=0,
                         to=59,
@@ -214,9 +214,9 @@ class TimeSelector():
         )
 
 
-        hh_select.pack(side=tk.LEFT)
+        self.hh_select.pack(side=tk.LEFT)
         tk.Label(self.frame, text=":", font=fontTuple).pack(side=tk.LEFT)
-        mm_select.pack(side=tk.LEFT)
+        self.mm_select.pack(side=tk.LEFT)
 
     def get_hhmm(self) -> int:
         hh_str = self.hh_var.get()
@@ -225,6 +225,20 @@ class TimeSelector():
 
     def get_time(self) -> datetime.time:
         return datetime.time(hour=int(self.hh_var.get()), minute=int(self.mm_var.get()))
+
+    def set_time(self, hhmm:int):
+        hh,mm =self.split_hhmm(hhmm)
+        self.hh_var.set(hh)
+        self.mm_var.set(mm)
+
+    def enable(self):
+        self.hh_select.config(state=tk.NORMAL)
+        self.mm_select.config(state=tk.NORMAL)
+
+
+    def disable(self):
+        self.hh_select.config(state=tk.DISABLED)
+        self.mm_select.config(state=tk.DISABLED)
 
     @staticmethod
     def split_hhmm(hhmm:int) -> Tuple[int, int]:

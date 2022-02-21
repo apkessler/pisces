@@ -27,10 +27,10 @@ class TimerState(Enum):
 #TODO: link to hwconfig, since these are really the order of things defined in hwconfig
 lightKeys = {"TankLight1":1,
              "TankLight2":2,
-             "Outlet1":3,
-             "Outlet2":4,
-             "Outlet3":5,
-             "Outlet4":6
+             "outlet1":3,
+             "outlet2":4,
+             "outlet3":5,
+             "outlet4":6
              }
 
 
@@ -122,11 +122,11 @@ class GenericEvent():
 
 class LightTimer():
 
-    def __init__(self, jData, hwCntrl:HardwareControlClient):
+    def __init__(self, name:str, jData:dict, hwCntrl:HardwareControlClient):
         self.presentState = TimerState.PINIT
         self.jData = jData
         self.hwCntrl = hwCntrl
-        self.name=jData['name']
+        self.name= name
 
         self.sunrise_time = hhmmToTime(jData['sunrise_hhmm'])
         self.sunset_time = hhmmToTime(jData['sunset_hhmm'])
@@ -254,6 +254,14 @@ class LightTimer():
         logger.info(f"Disabling schedule on {self.name}")
         self.changeStateTo(TimerState.DISABLED)
 
+
+class OutletTimer(LightTimer):
+    def __init__(self, name:str, jData:dict, hwCntrl:HardwareControlClient):
+        jData['blue_lights_at_night'] = 'off'
+        jData["lights"] = [name]
+        jData["eclipse_enabled"] = False
+        super().__init__(name, jData, hwCntrl)
+
 class Scheduler(object):
 
     def __init__(self, hwCntrl):
@@ -261,7 +269,10 @@ class Scheduler(object):
         self.schds = []
 
     def build_light_timers(self, jData):
-        self.schds += [LightTimer(jD, self.hwCntrl) for jD in jData]
+        self.schds += [LightTimer(key, jD, self.hwCntrl) for key,jD in jData.items()]
+
+    def build_outlet_timers(self, jData):
+        self.schds += [OutletTimer(key, jD, self.hwCntrl) for key,jD in jData.items()]
 
     def add_event(self, name, time_hhmm, callback):
         self.schds.append(GenericEvent(name, time_hhmm, callback, self.hwCntrl))

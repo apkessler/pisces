@@ -1,8 +1,8 @@
 {
     "server": "localhost:50051",
-    "light_schedules": [
+    "light_schedules": {
+        "tank_lights":
         {
-            "name": "TankLights",
             "lights": [
                 "TankLight1",
                 "TankLight2"
@@ -16,51 +16,42 @@
             "manual_eclipse_enabled": false,
             "manual_eclipse_duration_sec": 5
         },
+        "grow_lights":
         {
-            "name": "GrowLights",
             "lights": [
-                "Outlet1"
+                "outlet1"
             ],
-            "enabled": true,
             "sunrise_hhmm": 830,
             "sunset_hhmm": 1730,
             "blue_lights_at_night": false,
             "eclipse_enabled": false
-        },
-        {
-            "name": "Outlet2",
-            "lights": [
-                "Outlet2"
-            ],
-            "enabled": "Disable",
-            "sunrise_hhmm": 800,
-            "sunset_hhmm": 1700,
-            "blue_lights_at_night": false,
-            "eclipse_enabled": false
-        },
-        {
-            "name": "Outlet3",
-            "lights": [
-                "Outlet3"
-            ],
-            "enabled": "Enable",
-            "sunrise_hhmm": 800,
-            "sunset_hhmm": 1700,
-            "blue_lights_at_night": false,
-            "eclipse_enabled": false
-        },
-        {
-            "name": "Outlet4",
-            "lights": [
-                "Outlet4"
-            ],
-            "enabled": "Enable",
-            "sunrise_hhmm": 800,
-            "sunset_hhmm": 1700,
-            "blue_lights_at_night": false,
-            "eclipse_enabled": false
         }
-    ],
+    },
+    "outlet_schedules": {
+        "outlet1":
+        {
+            "mode": "off",
+            "sunrise_hhmm": 1200,
+            "sunset_hhmm": 1400
+        },
+        "outlet2":
+        {
+            "mode": "off",
+            "sunrise_hhmm": 1201,
+            "sunset_hhmm": 1401
+        },"outlet3":
+        {
+            "mode": "off",
+            "sunrise_hhmm": 1202,
+            "sunset_hhmm": 1402
+        },"outlet4":
+        {
+            "mode": "off",
+            "sunrise_hhmm": 1203,
+            "sunset_hhmm": 1403
+        }
+
+    },
     "events": [
         {
             "name": "DailyFertilizer",
