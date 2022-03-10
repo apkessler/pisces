@@ -91,8 +91,7 @@ class MainWindow(Window):
             {'text':self.tempText,          'callback': lambda: GraphPage('Temperature (F)')},
             {'text':self.phText,            'callback': lambda: GraphPage('pH')},
             {'text':"Manual\nFertilizer",   'callback': lambda: ManualFertilizerPage()},
-            {'text':"Settings",             'callback': lambda: SettingsPage()},
-            {'text':"Outlet\nSettings",      'callback': lambda: OutletSettingsPage()}
+            {'text':"Settings",             'callback': lambda: SettingsPage()}
         ]
 
         self.drawButtonGrid(buttons)
@@ -274,7 +273,7 @@ class SettingsPage(Subwindow):
         buttons = [
             {'text':"Reboot\nBox",      'callback': reboot_pi},
             {'text':"Aquarium\nLights", 'callback': lambda: AquariumLightsSettingsPage()},
-            {'text':"Outlet Timers",      'callback': lambda: GrowLightsSettingsPage()},
+            {'text':"Outlet\nTimers",      'callback': lambda: OutletSettingsPage()},
             {'text':"Fertilizer\nSettings", 'callback': lambda: FertilizerSettingsPage()},
             {'text':"Calibrate pH",     'callback': lambda: CalibratePhStartPage()},
             {'text':"System Settings",  'callback': lambda: SystemSettingsPage()}

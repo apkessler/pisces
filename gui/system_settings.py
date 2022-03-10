@@ -28,20 +28,21 @@ class SystemSettingsPage(Subwindow):
 
 class SetSystemTimePage(Subwindow):
     def __init__(self):
-        super().__init__("System Time Settings")
+        super().__init__("System Time Settings", draw_exit_button=False)
 
-        tk.Label(self.master, text="Time:", font=('Arial', 20)).grid(row=1, column=0)
-        tk.Label(self.master, text="Date:", font=('Arial', 20)).grid(row=2, column=0)
-        tk.Label(self.master, text="YYYY-MM-DD", font=('Arial', 20)).grid(row=3, column=1)
+        tk.Label(self.master, text="Time (hh:mm)", font=('Arial', 20)).grid(row=1, column=0)
+        tk.Label(self.master, text="Date (YYYY-MM-DD)", font=('Arial', 20)).grid(row=3, column=0)
 
         self.time_select = TimeSelector(self.master, timeToHhmm(datetime.datetime.now().time()))
-        self.time_select.grid(row=1, column=1, pady=10)
+        self.time_select.grid(row=2, column=0, pady=10, padx=10)
 
         self.date_select = DateSelector(self.master, datetime.datetime.now().date())
-        self.date_select.frame.grid(row=2, column=1, pady=10)
+        self.date_select.grid(row=4, column=0, pady=10, padx=10)
 
         btn = tk.Button(self.master, text="Save", font=fontTuple, width=12, height=4, bg='#00ff00', command=self.save)
-        btn.grid(row=4, column=2, padx=10, pady=10)
+        btn.grid(row=5, column=2, padx=10, pady=10)
+
+        self.exit_btn.grid(row=1, column=2, padx=10, pady=10)
 
 
     def save(self):

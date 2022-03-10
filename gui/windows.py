@@ -76,9 +76,9 @@ class Subwindow(Window):
 
         self.master.grab_set()
 
-        btn = tk.Button(self.master, text=exit_button_text, font=('Arial', 15), width=9, height=2, bg='#ff5733', command=self.exit)
+        self.exit_btn = tk.Button(self.master, text=exit_button_text, font=('Arial', 15), width=9, height=2, bg='#ff5733', command=self.exit)
         if (draw_exit_button):
-            btn.place(x=450, y=10)
+            self.exit_btn.place(x=450, y=10)
 
     def exit(self):
         self.master.destroy()

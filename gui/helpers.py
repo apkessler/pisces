@@ -175,6 +175,8 @@ class DateSelector():
             day=int(self.day.get())
             ).date()
 
+    def grid(self, *args, **kwargs):
+        self.frame.grid(*args, **kwargs)
 
 class TimeSelector():
     ''' Helper Class for drawing time selector GUI elements'''
@@ -235,10 +237,12 @@ class TimeSelector():
         self.hh_select.config(state=tk.NORMAL)
         self.mm_select.config(state=tk.NORMAL)
 
-
     def disable(self):
         self.hh_select.config(state=tk.DISABLED)
         self.mm_select.config(state=tk.DISABLED)
+
+    def grid(self, *args, **kwargs):
+        self.frame.grid(*args, **kwargs)
 
     @staticmethod
     def split_hhmm(hhmm:int) -> Tuple[int, int]:
