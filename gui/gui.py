@@ -114,21 +114,21 @@ class MainWindow(Window):
         logger.info(f"Toggled to mode {newMode}")
 
         if (newMode == 'Schedule'):
-            self.the_scheduler.resume_timers(['TankLights', 'GrowLights'])
+            self.the_scheduler.resume_timers(['tank_lights', 'outlet1'])
 
         elif (newMode == 'All On'):
-            self.the_scheduler.disable_timers(['TankLights', 'GrowLights'])
+            self.the_scheduler.disable_timers(['tank_lights', 'outlet1'])
             for lightId in [1,2,3]:
                 hwCntrl.setLightColor(lightId, 'white')
 
         elif (newMode == 'All Blue'):
-            self.the_scheduler.disable_timers(['TankLights', 'GrowLights'])
+            self.the_scheduler.disable_timers(['tank_lights', 'outlet1'])
             for lightId in [1,2]:
                 hwCntrl.setLightColor(lightId, 'blue')
             hwCntrl.setLightColor(3, 'white') #Keep gro lights on
 
         elif (newMode == 'All Off'):
-            self.the_scheduler.disable_timers(['TankLights', 'GrowLights'])
+            self.the_scheduler.disable_timers(['tank_lights', 'outlet1'])
             for lightId in [1,2,3]:
                 hwCntrl.setLightColor(lightId, 'off')
 

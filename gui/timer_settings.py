@@ -302,23 +302,27 @@ class OutletSettingsPage(Subwindow):
             Name of outlet to reconfigure window for
         '''
         logger.debug(f'Redrawing for {outlet_name}')
-        self.title_var.set(outlet_name)
-
         this_sched = self.get_outlet_sched(outlet_name)
+
+        if (this_sched['description']) != '':
+            self.title_var.set(f"{outlet_name.capitalize()} ({this_sched['description']})")
+        else:
+            self.title_var.set(f"{outlet_name.capitalize()}")
+
         self.sunrise_selector.set_time(this_sched['sunrise_hhmm'])
         self.sunset_selector.set_time(this_sched['sunset_hhmm'])
         self.mode_selector.set(this_sched['mode']) #This will disable the time fields if on/off selected, or otherwise enable them
 
-        #Totally disable the entry fields if this outlet is owned by GrowLight
-        if (outlet_name in self.config_data["light_schedules"]["grow_lights"]["lights"]):
-            self.info_text.set("This outlet is configured as a Grow Light!")
-            self.sunrise_selector.disable()
-            self.sunset_selector.disable()
-            self.optionmenu.config(state=tk.DISABLED)
+        # #Totally disable the entry fields if this outlet is owned by GrowLight
+        # if (outlet_name in self.config_data["light_schedules"]["grow_lights"]["lights"]):
+        #     self.info_text.set("This outlet is configured as a Grow Light!")
+        #     self.sunrise_selector.disable()
+        #     self.sunset_selector.disable()
+        #     self.optionmenu.config(state=tk.DISABLED)
 
-        else:
-            self.info_text.set("")
-            self.optionmenu.config(state=tk.NORMAL)
+        # else:
+        #     self.info_text.set("")
+        #     self.optionmenu.config(state=tk.NORMAL)
 
     def get_outlet_sched(self, name:str) ->dict:
         ''' Get the schedule for this outlet as a dict'''

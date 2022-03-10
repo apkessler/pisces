@@ -1,8 +1,7 @@
 {
     "server": "localhost:50051",
     "light_schedules": {
-        "tank_lights":
-        {
+        "tank_lights": {
             "lights": [
                 "TankLight1",
                 "TankLight2"
@@ -15,42 +14,33 @@
             "eclipse_duration_min": 1,
             "manual_eclipse_enabled": false,
             "manual_eclipse_duration_sec": 5
-        },
-        "grow_lights":
-        {
-            "lights": [
-                "outlet1"
-            ],
-            "sunrise_hhmm": 830,
-            "sunset_hhmm": 1730,
-            "blue_lights_at_night": false,
-            "eclipse_enabled": false
         }
     },
     "outlet_schedules": {
-        "outlet1":
-        {
-            "mode": "off",
-            "sunrise_hhmm": 1200,
-            "sunset_hhmm": 1400
+        "outlet1": {
+            "mode": "timer",
+            "sunrise_hhmm": 830,
+            "sunset_hhmm": 1730,
+            "description": "Grow Lights"
         },
-        "outlet2":
-        {
-            "mode": "off",
+        "outlet2": {
+            "mode": "on",
             "sunrise_hhmm": 1201,
-            "sunset_hhmm": 1401
-        },"outlet3":
-        {
-            "mode": "off",
+            "sunset_hhmm": 1401,
+            "description": ""
+        },
+        "outlet3": {
+            "mode": "on",
             "sunrise_hhmm": 1202,
-            "sunset_hhmm": 1402
-        },"outlet4":
-        {
-            "mode": "off",
+            "sunset_hhmm": 1402,
+            "description": ""
+        },
+        "outlet4": {
+            "mode": "timer",
             "sunrise_hhmm": 1203,
-            "sunset_hhmm": 1403
+            "sunset_hhmm": 1403,
+            "description": ""
         }
-
     },
     "events": [
         {

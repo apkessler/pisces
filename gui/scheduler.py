@@ -257,7 +257,7 @@ class LightTimer():
 
 class OutletTimer(LightTimer):
     def __init__(self, name:str, jData:dict, hwCntrl:HardwareControlClient):
-        jData['blue_lights_at_night'] = 'off'
+        jData['blue_lights_at_night'] = False
         jData["lights"] = [name]
         jData["eclipse_enabled"] = False
         super().__init__(name, jData, hwCntrl)
