@@ -221,6 +221,7 @@ class OutletSettingsPage(Subwindow):
         menu.config(font=('Arial', 20))  # Set the dropdown menu's font
         self.optionmenu.grid(row=3, column=1, sticky='w')
         tk.Label(time_setting_frame, text="Mode", font=big_font).grid(row=3, column=0)
+        self.mode_selector.trace("w", self.mode_selector_callback)
 
         self.sunrise_selector = TimeSelector(time_setting_frame, 1200)
         self.sunrise_selector.frame.grid(row=1, column=1)
@@ -243,16 +244,31 @@ class OutletSettingsPage(Subwindow):
         btn = tk.Button(button_frame, text="Next", font=fontTuple, width=12, height=5, command=self.next)
         btn.grid(row=2, column=1, padx=10, pady=10)
 
+        self.info_text = tk.StringVar()
+        tk.Label(self.master, textvariable=self.info_text, font=('Arial', 16)).grid(row=4, column=0)
+
+
         tk.Label(self.master, text="Changes will take effect on next system reboot.", font=('Arial', 16)).grid(row=5, column=0)
 
         self.redraw_for_outlet(self.outlet_list[self.outlet_inx])
+
+    def mode_selector_callback(self, *args):
+        '''Callback function for when the Mode dropdown changes. If 'Timer' is selected, enable time fields.
+        Otherwise, disable. '''
+        if (self.mode_selector.get() == 'timer'):
+            self.sunrise_selector.enable()
+            self.sunset_selector.enable()
+        else:
+            self.sunset_selector.disable()
+            self.sunrise_selector.disable()
+
 
     def cache_settings(self):
         ''' Save the settings on the screen currently as you cycle through outlets'''
         outlet_name = self.outlet_list[self.outlet_inx]
         this_sched = self.get_outlet_sched(outlet_name)
 
-        this_sched["enabled"] = self.mode_selector.get()
+        this_sched["mode"] = self.mode_selector.get()
         this_sched["sunrise_hhmm"] = self.sunrise_selector.get_hhmm()
         this_sched["sunset_hhmm"]  = self.sunset_selector.get_hhmm()
 
@@ -277,31 +293,40 @@ class OutletSettingsPage(Subwindow):
         self.redraw_for_outlet(self.outlet_list[self.outlet_inx])
 
 
-    def redraw_for_outlet(self, outlet_name):
+    def redraw_for_outlet(self, outlet_name:str):
+        '''Reconfigure the window for the given outlet
+
+        Parameters
+        ----------
+        outlet_name : str
+            Name of outlet to reconfigure window for
+        '''
         logger.debug(f'Redrawing for {outlet_name}')
         self.title_var.set(outlet_name)
 
         this_sched = self.get_outlet_sched(outlet_name)
         self.sunrise_selector.set_time(this_sched['sunrise_hhmm'])
         self.sunset_selector.set_time(this_sched['sunset_hhmm'])
-        self.mode_selector.set(this_sched['mode'])
+        self.mode_selector.set(this_sched['mode']) #This will disable the time fields if on/off selected, or otherwise enable them
+
+        #Totally disable the entry fields if this outlet is owned by GrowLight
         if (outlet_name in self.config_data["light_schedules"]["grow_lights"]["lights"]):
-            logger.debug("This light is controlled by grow light!")
+            self.info_text.set("This outlet is configured as a Grow Light!")
             self.sunrise_selector.disable()
             self.sunset_selector.disable()
             self.optionmenu.config(state=tk.DISABLED)
 
         else:
-            self.sunrise_selector.enable()
-            self.sunset_selector.enable()
+            self.info_text.set("")
             self.optionmenu.config(state=tk.NORMAL)
 
-
-
     def get_outlet_sched(self, name:str) ->dict:
+        ''' Get the schedule for this outlet as a dict'''
         return self.config_data["outlet_schedules"][name]
 
     def save_settings(self):
+        '''Save the cached settings to file
+        '''
         self.cache_settings()
         #Pull out the requisite info, and write it back to config
         for outlet_name in self.outlet_list:
