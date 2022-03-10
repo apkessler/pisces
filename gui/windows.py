@@ -50,6 +50,9 @@ class Window(object):
 
             if 'color' in bInfo:
                 b.configure(bg=bInfo['color'])
+            else:
+                #b.configure(bg='#f5f5f5')
+                pass
 
 
             f.rowconfigure(0, weight=1)

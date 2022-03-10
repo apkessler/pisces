@@ -166,20 +166,21 @@ class OutletSettingsPage(Subwindow):
         self.sunset_selector = TimeSelector(time_setting_frame, 1200)
         self.sunset_selector.frame.grid(row=2, column=1)
 
-        btn = tk.Button(self.master, text="Cancel", font=fontTuple, width=8, height=4, bg='#ff5733', command=self.exit)
-        btn.grid(row=1, column=2, padx=10, pady=10)
-        btn = tk.Button(self.master, text="Save", font=fontTuple, width=8, height=4, bg='#00ff00', command=self.save_settings)
-        btn.grid(row=2, column=2, padx=10, pady=10)
-
 
         button_frame = tk.Frame(self.master)
         button_frame.grid(row=2, column =0, sticky='ew', padx=10, pady=10)
 
-        btn = tk.Button(button_frame, text="Back", font=fontTuple, width=12, height=5, command=self.back)
+        btn = tk.Button(button_frame, text="Previous\nOutlet", font=fontTuple, width=10, height=4, command=self.back)
         btn.grid(row=2, column=0, padx=10, pady=10)
 
-        btn = tk.Button(button_frame, text="Next", font=fontTuple, width=12, height=5, command=self.next)
+        btn = tk.Button(button_frame, text="Next\nOutlet", font=fontTuple, width=10, height=4, command=self.next)
         btn.grid(row=2, column=1, padx=10, pady=10)
+
+        btn = tk.Button(self.master, text="Cancel", font=fontTuple, width=10, height=4, bg='#ff5733', command=self.exit)
+        btn.grid(row=1, column=1, padx=10, pady=10)
+        btn = tk.Button(button_frame, text="Save", font=fontTuple, width=10, height=4, bg='#00ff00', command=self.save_settings)
+        btn.grid(row=2, column=2, padx=10, pady=10)
+
 
         self.info_text = tk.StringVar()
         tk.Label(self.master, textvariable=self.info_text, font=('Arial', 16)).grid(row=4, column=0)
