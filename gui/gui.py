@@ -46,10 +46,6 @@ jData = None #config data
 
 
 
-SCHEDULE_CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'schedule.json')
-SCHEDULE_CONFIG_DEFAULT_FILE = os.path.join(os.path.dirname(__file__), 'schedule.default.json')
-
-
 class MainWindow(Window):
     """The main window (shown on launch). Should only be one of these.
 
@@ -289,13 +285,6 @@ class SettingsPage(Subwindow):
         ]
 
         self.drawButtonGrid(buttons)
-
-
-
-
-
-
-
 
 class FertilizerSettingsPage(Subwindow):
     ''' Page for adjusting Fertilizer Settings '''
@@ -592,7 +581,6 @@ if __name__ == "__main__":
     with grpc.insecure_channel(jData['server']) as channel:
         hwCntrl = HardwareControlClient(channel)
         try:
-            hwCntrl.echo()
             root = tk.Tk()
             main = MainWindow(root, jData['fullscreen'])
             root.mainloop()

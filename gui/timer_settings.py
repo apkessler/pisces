@@ -7,7 +7,6 @@ from windows import (Subwindow, fontTuple, ErrorPromptPage)
 from system_settings import (RebootPromptPage)
 import os
 
-SCHEDULE_CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'scheduler.json')
 
 class AquariumLightsSettingsPage(Subwindow):
     ''' Page for adjusting Aquarium (Tank) light settings.'''
@@ -18,22 +17,13 @@ class AquariumLightsSettingsPage(Subwindow):
         with open(SCHEDULE_CONFIG_FILE, 'r') as jsonfile:
             self.config_data = json.load(jsonfile)
 
-
-        schedules = self.config_data['light_schedules']
-
-        self.tank_light_schedule = None
-        for schedule in schedules:
-            if (schedule['name'] == 'TankLights'):
-                self.tank_light_schedule = schedule
-
-        if (self.tank_light_schedule == None):
-            logger.error("Unable to find TankLight object in scheduler.json")
+        self.tank_light_schedule = self.config_data['light_schedules']['tank_lights']
 
         big_font = ('Arial', 20)
 
         time_setting_frame = tk.LabelFrame(self.master, text="Day/Night Schedule", font=fontTuple)
         eclipse_setting_frame = tk.LabelFrame(self.master, text="Periodic Blue Settings", font=fontTuple)
-        tk.Label(self.master, text="Changes will take effect on next system reboot.", font=('Arial', 16)).grid(row=4, column=0)
+        tk.Label(self.master, text="Changes will take effect on next GUI relaunch.", font=('Arial', 16)).grid(row=4, column=0)
 
         time_setting_frame.grid(row=1, column =0, sticky='ew', padx=10, pady=10)
         eclipse_setting_frame.grid(row=2, column =0, sticky='ew', padx=10, pady=10)
@@ -123,9 +113,8 @@ class AquariumLightsSettingsPage(Subwindow):
             ErrorPromptPage("On time must be before Off time!")
         else:
             logger.info("Writing new settings to file...")
-            with open(self.path_to_configfile, 'w') as jsonfile:
+            with open(SCHEDULE_CONFIG_FILE, 'w') as jsonfile:
                 json.dump(self.config_data, jsonfile, indent=4)
-
 
             self.exit()
             RebootPromptPage()
@@ -186,7 +175,7 @@ class OutletSettingsPage(Subwindow):
         tk.Label(self.master, textvariable=self.info_text, font=('Arial', 16)).grid(row=4, column=0)
 
 
-        tk.Label(self.master, text="Changes will take effect on next system reboot.", font=('Arial', 16)).grid(row=5, column=0)
+        tk.Label(self.master, text="Changes will take effect on next GUI relaunch.", font=('Arial', 16)).grid(row=5, column=0)
 
         self.redraw_for_outlet(self.outlet_list[self.outlet_inx])
 

@@ -4,11 +4,15 @@ import socket
 import subprocess
 import tkinter as tk
 import json
+import os
 from typing import Tuple
 #from windows import fontTuple
 from loguru import logger
 
 from windows import fontTuple
+
+SCHEDULE_CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'schedule.json')
+SCHEDULE_CONFIG_DEFAULT_FILE = os.path.join(os.path.dirname(__file__), 'schedule.default.json')
 
 def timeToHhmm(time:datetime.time) -> int:
     ''' Convert a datetime._time object to a simple time integer in form hhmm

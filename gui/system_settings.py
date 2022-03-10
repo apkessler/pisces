@@ -1,5 +1,6 @@
 '''System Settings GUI Elements    '''
 
+import shutil
 from helpers import *
 from windows import (Subwindow, fontTuple, ErrorPromptPage)
 
@@ -15,7 +16,7 @@ class SystemSettingsPage(Subwindow):
             {'text':"Exit GUI",         'callback': self.quitGui},
             {'text':"Network\nSettings", 'callback': lambda: NetworkSettingsPage()},
             {'text':"Set Time",         'callback': lambda: SetSystemTimePage()},
-            {'text':"Restore\nDefaults", 'callback': self.dummy}
+            {'text':"Restore\nDefaults", 'callback': self.restore_defaults}
         ]
 
         self.drawButtonGrid(buttons)
@@ -25,6 +26,14 @@ class SystemSettingsPage(Subwindow):
         """Close this entire GUI program
         """
         self.master.quit()
+
+    def restore_defaults(self):
+        ''' Copy the default config file on top of existing'''
+        logger.info("Restoring default schedule")
+        shutil.copyfile(SCHEDULE_CONFIG_DEFAULT_FILE, SCHEDULE_CONFIG_FILE)
+
+        self.exit()
+        RebootPromptPage()
 
 class SetSystemTimePage(Subwindow):
     def __init__(self):
@@ -97,17 +106,17 @@ class AboutPage(Subwindow):
         font=('Arial', 20)).pack(side=tk.TOP, pady=100)
 
 class RebootPromptPage(Subwindow):
-    ''' A Page to prompt the user to reboot'''
+    ''' A Page to prompt the user to restart the GUI'''
     def __init__(self):
-        super().__init__("Reboot Prompt", draw_exit_button=False)
+        super().__init__("Relaunch Prompt", draw_exit_button=False)
 
         buttons = [
-            {'text': "Reboot\nNow",     'callback': reboot_pi, 'color':'#ff5733'},
-            {'text': "Reboot\nLater",    'callback': self.exit}
+            {'text': "Relaunch\nNow",   'callback': self.master.quit, 'color':'#ff5733'},
+            {'text': "Relaunch\nLater", 'callback': self.exit}
         ]
 
         self.drawButtonGrid(buttons)
 
         tk.Label(self.master,
-        text="A reboot is necessary for changes to take effect!",
+        text="The GUI must restart for changes to take effect!",
         font=('Arial', 20)).pack(side=tk.TOP, pady=75)

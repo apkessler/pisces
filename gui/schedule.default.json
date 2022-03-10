@@ -9,8 +9,8 @@
             "sunset_hhmm": 1730,
             "blue_lights_at_night": false,
             "eclipse_enabled": true,
-            "eclipse_frequency_min": 30,
-            "eclipse_duration_min": 1,
+            "eclipse_frequency_min": 10,
+            "eclipse_duration_min": 2,
             "manual_eclipse_enabled": false,
             "manual_eclipse_duration_sec": 5
         }
@@ -23,21 +23,21 @@
             "description": "Grow Lights"
         },
         "outlet2": {
-            "mode": "on",
-            "sunrise_hhmm": 1201,
-            "sunset_hhmm": 1401,
+            "mode": "off",
+            "sunrise_hhmm": 800,
+            "sunset_hhmm": 1700,
             "description": ""
         },
         "outlet3": {
-            "mode": "on",
-            "sunrise_hhmm": 1202,
-            "sunset_hhmm": 1402,
+            "mode": "off",
+            "sunrise_hhmm": 800,
+            "sunset_hhmm": 1700,
             "description": ""
         },
         "outlet4": {
-            "mode": "timer",
-            "sunrise_hhmm": 1203,
-            "sunset_hhmm": 1403,
+            "mode": "off",
+            "sunrise_hhmm": 800,
+            "sunset_hhmm": 1700,
             "description": ""
         }
     },
@@ -45,7 +45,7 @@
         {
             "name": "DailyFertilizer",
             "type": "dispense",
-            "trigger_time_hhmm": 2236,
+            "trigger_time_hhmm": 815,
             "volume_mL": 3
         }
     ]
