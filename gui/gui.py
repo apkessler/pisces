@@ -13,6 +13,7 @@ from logging import config
 import os
 import datetime
 import threading
+import shutil
 
 # 3rd party imports
 import tkinter as tk
@@ -45,7 +46,8 @@ jData = None #config data
 
 
 
-SCHEDULE_CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'scheduler.json')
+SCHEDULE_CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'schedule.json')
+SCHEDULE_CONFIG_DEFAULT_FILE = os.path.join(os.path.dirname(__file__), 'schedule.default.json')
 
 
 class MainWindow(Window):
@@ -78,6 +80,13 @@ class MainWindow(Window):
         self.phText.set(f"pH\n???")
 
         self.the_scheduler = scheduler.Scheduler(hwCntrl)
+
+        if (not os.path.exists(SCHEDULE_CONFIG_FILE)):
+            #Copy the default config file!
+            logger.info('No schedule json file found - copying default file.')
+            shutil.copyfile(SCHEDULE_CONFIG_DEFAULT_FILE, SCHEDULE_CONFIG_FILE)
+
+
         with open(SCHEDULE_CONFIG_FILE, 'r') as configfile:
             sch_jData= json.load(configfile)
         self.the_scheduler.build_light_timers(sch_jData["light_schedules"])
