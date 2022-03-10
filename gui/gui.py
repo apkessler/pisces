@@ -35,7 +35,7 @@ from dispense_client import dispense
 from helpers import *
 from windows import (Window, Subwindow, ErrorPromptPage, fontTuple)
 from system_settings import SystemSettingsPage
-from timer_settings import (AquariumLightsSettingsPage, GrowLightsSettingsPage, OutletSettingsPage)
+from timer_settings import (AquariumLightsSettingsPage, OutletSettingsPage)
 import scheduler
 
 ##### Globals ####
