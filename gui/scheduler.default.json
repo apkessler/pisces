@@ -1,5 +1,4 @@
 {
-    "server": "localhost:50051",
     "light_schedules": {
         "tank_lights": {
             "lights": [
