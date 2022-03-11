@@ -10,7 +10,6 @@
 
 # Standard imports
 import argparse
-from logging import config
 import os
 import datetime
 import threading

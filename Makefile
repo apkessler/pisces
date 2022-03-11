@@ -13,8 +13,12 @@ protos:
 
 
 .PHONY: install
-install: backup_configs
-	echo "Install?"
+install:
+
+
+	echo "Install"
+	python3 -m pip install -r requirements.txt
+
 	cp services/* ~/.config/systemd/user
 	systemctl --user daemon-reload
 	#add shared location to python path?
@@ -24,20 +28,14 @@ install: backup_configs
 	crontab tempcron
 	rm tempcron
 
-.PHONY: backup_configs
-backup_configs:
-	echo "Backing up default configs"
-	cp shared/dispense.json shared/dispense.json.default
-	cp scheduler/scheduler.json scheduler/scheduler.json.default
-	cp hwcontrol/hwcontrol_server.json hwcontrol/hwcontrol_server.json.default
-	cp gui/gui.json	gui/gui.json.default
+	systemctl --user enable hwcontrol.service
+	systemctl --user enable gui.service
+
 
 
 .PHONY: start_all
 start_all:
 	systemctl --user start hwcontrol.service
-	sleep 1
-	systemctl --user start scheduler.service
 	sleep 1
 	systemctl --user start gui.service
 
@@ -45,5 +43,4 @@ start_all:
 .PHONY: stop_all
 stop_all:
 	systemctl --user stop gui.service
-	systemctl --user stop scheduler.service
 	systemctl --user stop hwcontrol.service
