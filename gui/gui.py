@@ -86,7 +86,7 @@ class MainWindow(Window):
         with open(SCHEDULE_CONFIG_FILE, 'r') as configfile:
             sch_jData= json.load(configfile)
         self.the_scheduler.build_light_timers(sch_jData["light_schedules"])
-        self.the_scheduler.build_outlet_timers(sch_jData["outlet_schedules"]) #TODO: Need to account for lights overriden by growlights
+        self.the_scheduler.build_outlet_timers(sch_jData["outlet_schedules"])
 
         for event in sch_jData["events"]:
             self.the_scheduler.add_event(event["name"], event['trigger_time_hhmm'], lambda:DispensingCapturePage(volume_mL=event['volume_mL']))
@@ -570,7 +570,10 @@ class CalibratePhProcessPage(Subwindow):
 
 if __name__ == "__main__":
 
-    logger.add('gui.log', format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}", level="INFO", rotation="10MB")
+    logger.add(os.path.join(os.path.dirname(__file__), '../data/gui.log'),
+        format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
+        level="INFO",
+        rotation="10MB")
     logger.info("--------- GUI RESTART-------------")
 
     #Load the config file

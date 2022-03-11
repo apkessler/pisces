@@ -329,23 +329,17 @@ if __name__ == '__main__':
 
 
 
-    logger.add('scheduler.log', format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}", rotation="10MB", level="INFO")
+    logger.add(os.path.join(os.path.dirname(__file__), '../data/scheduler.log'),
+        format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
+        level="INFO",
+        rotation="10MB")
     logger.info("--------- SCHEDULER RESTART-------------")
-
-    parser = argparse.ArgumentParser(description='Run the Scheduler task')
-    parser.add_argument('--simulate', action='store_true', default=False, help='Run in simulated mode')
-    parser.add_argument('--days', type=int, default=2, help='How many days to run in simulated mode')
-
-    args = parser.parse_args()
-
-
-
 
     try:
         with grpc.insecure_channel('localhost:50051') as channel:
             hwCntrl = HardwareControlClient(channel)
 
-            schdlr = Scheduler(os.path.join(os.path.dirname(__file__), 'scheduler.json'), hwCntrl)
+            schdlr = Scheduler(hwCntrl)
 
             while (1):
                 schdlr.update(dt.datetime.now())

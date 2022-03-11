@@ -350,8 +350,11 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
 
 if __name__ == '__main__':
 
-    logger.add('hwcontrol_server.log', format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}", rotation="10MB", level="INFO")
 
+    logger.add(os.path.join(os.path.dirname(__file__), '../data/hwcontrol_server.log'),
+        format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
+        level="INFO",
+        rotation="10MB")
     logger.info("--------- SERVER RESTART-------------")
 
     #Load the config file
