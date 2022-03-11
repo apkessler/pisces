@@ -5,8 +5,8 @@ After=network.target hwcontrol.service
 
 [Service]
 Type=simple
-Restart=always
-RestartSec=1
+Restart=on-failure
+RestartSec=5
 #User=pi
 WorkingDirectory=/home/pi/Repositories/pisces
 ExecStart=/usr/bin/env python3 /home/pi/Repositories/pisces/gui/gui.py --fullscreen
