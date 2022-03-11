@@ -424,10 +424,24 @@ class DispensingCapturePage(Subwindow):
         tk.Label(self.master,
         text=f"Scheduled fertilizer dispense ({volume_mL}mL) in progress.",
         font=('Arial', 20)).pack(side=tk.TOP, pady=75)
-
+        logger.info('Starting dispense thread')
         self.dispense_stop_event = threading.Event()
         self.dispenseThread = threading.Thread(target=dispense, args=(hwCntrl, volume_mL, self.dispense_stop_event), daemon=True)
         self.dispenseThread.start()
+        self.master.after(1000, self.check_if_dispense_done)
+
+
+    def check_if_dispense_done(self):
+        '''Callback function called at 1Hz to check if dispensing done. If so, self destruct'''
+        if (self.dispenseThread.is_alive()):
+            logger.info('Dispense thread still running...')
+            self.master.after(1000, self.check_if_dispense_done)
+        else:
+            logger.info('Dispense thread done!')
+            self.dispenseThread.join()
+            self.exit()
+
+
 
     def abort(self):
         if (self.dispenseThread.is_alive()):
