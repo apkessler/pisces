@@ -35,7 +35,7 @@ from hwcontrol_client import HardwareControlClient
 from dispense_client import dispense
 from helpers import *
 from windows import (Window, Subwindow, ErrorPromptPage, fontTuple)
-from system_settings import SystemSettingsPage
+from system_settings import (SystemSettingsPage, RebootPromptPage)
 from timer_settings import (AquariumLightsSettingsPage, OutletSettingsPage)
 import scheduler
 
@@ -43,8 +43,6 @@ import scheduler
 
 hwCntrl = None #Global stub, because its easiest
 jData = None #config data
-
-
 
 class MainWindow(Window):
     """The main window (shown on launch). Should only be one of these.
@@ -142,7 +140,6 @@ class MainWindow(Window):
         self.the_scheduler.update(datetime.datetime.now())
         self.master.after(30*1000, self.update_scheduler)
 
-
     def refresh_data(self):
         self.updateTimestamp()
 
@@ -156,6 +153,8 @@ class MainWindow(Window):
         #Update the pH Reading
         ph = hwCntrl.getPH()
         self.phText.set(f"pH\n{ph:0.1f}")
+        #Uncomment next line to make pH button change color based on pH
+        #self.buttons[2].configure(bg=ph_to_color(ph))
 
         self.master.after(1000, self.refresh_data)
 
@@ -364,10 +363,8 @@ class FertilizerSettingsPage(Subwindow):
             ErrorPromptPage(f"Fertilizer dispense time must be at least\n10min before tank light on time ({tank_on_time.time()})")
         else:
             logger.info("Writing new settings to file...")
-            with open(self.path_to_configfile, 'w') as jsonfile:
+            with open(SCHEDULE_CONFIG_FILE, 'w') as jsonfile:
                 json.dump(self.config_data, jsonfile, indent=4)
-
-
 
             self.exit()
             RebootPromptPage()

@@ -14,6 +14,45 @@ from windows import fontTuple
 SCHEDULE_CONFIG_FILE = os.path.join(os.path.dirname(__file__), '../data/schedule.json')
 SCHEDULE_CONFIG_DEFAULT_FILE = os.path.join(os.path.dirname(__file__), 'schedule.default.json')
 
+def ph_to_color(ph:float) -> str:
+    '''Convert a pH value to color based on API Freshwater test kit color map
+
+    Parameters
+    ----------
+    ph : float
+        pH to convert
+
+    Returns
+    -------
+    str
+        Closest Hex RGB color code
+
+    '''
+    color_map = [
+    [6.0,'#FCF090'],
+    [6.4,'#F4F3BC'],
+    [6.6,'#CADDA7'],
+    [6.8,'#B3D2B7'],
+    [7.0,'#98C6B2'],
+    [7.2,'#82BBB7'],
+    [7.4,'#C9A443'],
+    [7.8,'#DE9D57'],
+    [8.0,'#BF815B'],
+    [8.2,'#985854'],
+    [8.4,'#714275'],
+    [8.8,'#52366D'],
+        ]
+
+    best_score = 100
+    best_item = None
+    for item in color_map:
+        score = abs(item[0] - ph)
+        if score < best_score:
+            best_score = score
+            best_item  = item
+
+    return best_item[1]
+
 def timeToHhmm(time:datetime.time) -> int:
     ''' Convert a datetime._time object to a simple time integer in form hhmm
 
@@ -253,3 +292,8 @@ class TimeSelector():
         hh = int(hhmm/100)
         mm = hhmm - hh*100
         return hh,mm
+
+if __name__ == '__main__':
+
+    ph_to_color(1.0)
+    ph_to_color(7.0)

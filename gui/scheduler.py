@@ -4,6 +4,7 @@
 # Scheduler task for aquarium lights.
 #
 #
+from typing import Callable
 import grpc
 import time
 import os
@@ -92,27 +93,10 @@ class GenericEvent():
         if (self.last_time == None):
             self.last_time = time_now
 
-        # if (self.is_active):
-        #     if (self.thread.is_alive()):
-        #         logger.info("Command is still running")
-        #     else:
-        #         logger.info("Command done!")
-        #         self.thread.join()
-        #         self.is_active = False
-
-        #         if (self.stop_callback != None):
-        #             self.stop_callback()
-
         if (self.last_time < self.trigger_time and time_now >= self.trigger_time):
                 logger.info(f"Running cmd {self.name}")
                 if (self.callback != None):
                     self.callback()
-                #self.is_active= True
-                #self.stop_event = threading.Event()
-                #self.thread = threading.Thread(target=dispense, args=(hwCntrl, self.jData['cmd_args']['volume_mL'], self.stop_event), daemon=True)
-                #self.thread.start()
-
-
 
         self.last_time = time_now
 
@@ -255,6 +239,17 @@ class LightTimer():
 
 class OutletTimer(LightTimer):
     def __init__(self, name:str, jData:dict, hwCntrl:HardwareControlClient):
+        '''OutletTimers are just barebones LightTimers
+
+        Parameters
+        ----------
+        name : str
+            Name of outlet timer
+        jData : dict
+            Configuration JSON dict
+        hwCntrl : HardwareControlClient
+            hwCntrl stub
+        '''
         jData['blue_lights_at_night'] = False
         jData["lights"] = [name]
         jData["eclipse_enabled"] = False
@@ -266,27 +261,59 @@ class Scheduler(object):
         self.hwCntrl = hwCntrl
         self.schds = []
 
-    def build_light_timers(self, jData):
+    def build_light_timers(self, jData:dict) -> None:
+        '''Build all Light Timers in config dict
+
+        Parameters
+        ----------
+        jData : dict
+            Dict of JSON Data
+        '''
         self.schds += [LightTimer(key, jD, self.hwCntrl) for key,jD in jData.items()]
 
-    def build_outlet_timers(self, jData):
+    def build_outlet_timers(self, jData:dict) -> None:
+        '''Build all OutletTimer objects from config dict
+
+        Parameters
+        ----------
+        jData : dict
+            Dict of JSON data
+        '''
         self.schds += [OutletTimer(key, jD, self.hwCntrl) for key,jD in jData.items()]
 
-    def add_event(self, name, time_hhmm, callback):
+    def add_event(self, name:str, time_hhmm:int, callback:Callable) -> None:
+        '''Create and append discrete event
+
+        Parameters
+        ----------
+        name : str
+            Name of event
+        time_hhmm : int
+            Time for event to occur
+        callback : function
+            Callback function associated with event
+        '''
         self.schds.append(GenericEvent(name, time_hhmm, callback, self.hwCntrl))
 
 
     def update(self, now:dt.datetime):
+        '''Called to update every timer object owned by this Scheduler
+
+        Parameters
+        ----------
+        now : dt.datetime
+            The current time
+        '''
         for schSM in self.schds:
                 schSM.update(now)
 
     def disable_timers(self, timer_list:list):
-        '''[summary]
+        '''Disable matching timers by name
 
         Parameters
         ----------
         timer_list : list
-            [description]
+            List of names of timers to disable
         '''
         for name in timer_list:
             found = False
@@ -299,19 +326,28 @@ class Scheduler(object):
 
 
     def resume_timers(self, timer_list:list):
-        '''[summary]
+        '''Resume matching timers by name
 
         Parameters
         ----------
         timer_list : list
-            [description]
+            List of names of timers to enable
         '''
         now = dt.datetime.now()
         for schSM in self.schds:
             if schSM.name in timer_list:
                 schSM.resume_schedule(now)
 
-    def set_event_callbacks(self, start_callback, stop_callback):
+    def set_event_callbacks(self, start_callback:Callable, stop_callback:Callable):
+        '''Set pre/post callback functions on events
+
+        Parameters
+        ----------
+        start_callback : function
+            Callback function to call before event starts
+        stop_callback : function
+            Callback function to call when event ends
+        '''
 
         for schSM in self.schds:
             if type(schSM) == DispenseEvent:
