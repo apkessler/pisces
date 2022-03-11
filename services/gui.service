@@ -1,6 +1,6 @@
 [Unit]
 Description=Pisces GUI Service
-After=network.target hwcontrol.service scheduler.service
+After=network.target hwcontrol.service
 #StartLimitIntervalSec=0
 
 [Service]
@@ -9,7 +9,7 @@ Restart=always
 RestartSec=1
 #User=pi
 WorkingDirectory=/home/pi/Repositories/pisces
-ExecStart=/usr/bin/env python3 /home/pi/Repositories/pisces/gui/gui.py
+ExecStart=/usr/bin/env python3 /home/pi/Repositories/pisces/gui/gui.py --fullscreen
 Environment="PYTHONPATH=/home/pi/Repositories/pisces/shared"
 Environment="DISPLAY=:0.0"
 #StandardOutput=

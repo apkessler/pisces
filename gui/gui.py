@@ -9,6 +9,7 @@
 ### Imports
 
 # Standard imports
+import argparse
 from logging import config
 import os
 import datetime
@@ -576,6 +577,11 @@ if __name__ == "__main__":
         rotation="10MB")
     logger.info("--------- GUI RESTART-------------")
 
+    parser = argparse.ArgumentParser("GUI Runner")
+    parser.add_argument("--fullscreen", "-f", action='store_true', default=False, help="Run in fullscreen mode")
+
+    args = parser.parse_args()
+
     #Load the config file
     with open(os.path.join(os.path.dirname(__file__), 'gui.json'), 'r') as jsonfile:
         jData = json.load(jsonfile)
@@ -585,8 +591,9 @@ if __name__ == "__main__":
         hwCntrl = HardwareControlClient(channel)
         try:
             root = tk.Tk()
-            main = MainWindow(root, jData['fullscreen'])
+            main = MainWindow(root, args.fullscreen)
             root.mainloop()
+            logger.error("Tkinter mainloop terminated!")
         except grpc.RpcError as rpc_error:
             logger.error(f"Unable to connect to server! {rpc_error.code()}")
             exit()
