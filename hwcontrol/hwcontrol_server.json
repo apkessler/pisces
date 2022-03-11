@@ -1,6 +1,5 @@
 {
     "server": "[::]:50051",
-    "use_mock_hw": true,
 
     "hwmap":
     {

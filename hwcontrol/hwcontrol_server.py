@@ -9,7 +9,7 @@ from concurrent import futures
 import grpc, json
 from collections import namedtuple
 import os
-
+import argparse
 from loguru import logger
 
 #Note: Lazy import of gpiozero below to support mock hw
@@ -357,14 +357,19 @@ if __name__ == '__main__':
         rotation="10MB")
     logger.info("--------- SERVER RESTART-------------")
 
+    parser = argparse.ArgumentParser("HwControl server")
+    parser.add_argument("--mock", "-m", action='store_true', default=False, help='Run with mock hardware for testing')
+
+    args = parser.parse_args()
+
     #Load the config file
     with open(os.path.join(os.path.dirname(__file__), 'hwcontrol_server.json'), 'r') as jsonfile:
         jData = json.load(jsonfile)
 
     logger.info("Loaded conf file", flush=True)
-    logger.info(f"UseMockHw={jData['use_mock_hw']}")
+    logger.info(f"UseMockHw={args.mock}")
 
-    if (jData['use_mock_hw']):
+    if (args.mock):
         import fakegpio as gz
         logger.info("Loaded fakegpio module.")
     else:
@@ -376,7 +381,7 @@ if __name__ == '__main__':
             logger.error(msg)
             raise Exception(msg)
 
-    hwMap.setup(jData['hwmap'], use_mock_hw=jData['use_mock_hw'])
+    hwMap.setup(jData['hwmap'], use_mock_hw=args.mock)
     logger.debug("launching grpc server")
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     hardwareControl_pb2_grpc.add_HardwareControlServicer_to_server(HardwareControl(), server)
