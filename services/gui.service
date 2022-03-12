@@ -1,6 +1,7 @@
 [Unit]
 Description=Pisces GUI Service
-After=network.target hwcontrol.service
+After=network.target graphical.target hwcontrol.service
+PartOf=hwcontrol.service
 #StartLimitIntervalSec=0
 
 [Service]
@@ -16,4 +17,4 @@ Environment="DISPLAY=:0.0"
 #StandatdError=inherit
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target

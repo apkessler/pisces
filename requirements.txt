@@ -5,5 +5,6 @@ pyyaml
 loguru
 matplotlib
 pandas
-shutil
 argparse
+systemd-python ##Make sure you get this one, not 'systemd'
+

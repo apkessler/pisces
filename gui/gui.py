@@ -344,9 +344,7 @@ class FertilizerSettingsPage(Subwindow):
         self.this_event['volume_mL'] = int(self.volume_var.get())
 
         #Grab the tank light on time for reference
-        for schedule in self.config_data['light_schedules']:
-            if (schedule['name'] == 'TankLights'):
-                self.tank_light_schedule = schedule
+        self.tank_light_schedule = self.config_data['light_schedules']['tank_lights']
 
         def hhmmToDatetime(hhmm) -> datetime.datetime:
             hh = int(hhmm/100)
@@ -376,6 +374,7 @@ class ManualFertilizerPage(Subwindow):
         super().__init__("Fertilizer Info")
 
         buttons = [
+            {'text': "Dispense\n1mL",   'callback': lambda: self.dispenseInThread(1)},
             {'text': "Dispense\n3mL",   'callback': lambda: self.dispenseInThread(3)},
             {'text': "Dispense\n10mL",  'callback': lambda: self.dispenseInThread(10)},
             {'text': "Hold to\ndispense\ncontinuously", 'callback': None}, #This button has special binding
@@ -554,7 +553,7 @@ class CalibratePhProcessPage(Subwindow):
         logger.info(f"Sending save cal command: {cmd}")
 
         result = hwCntrl.sendPhSensorCommand(cmd)
-        if (result == '1'):
+        if (result == '1' or result == ''):
             logger.info(f"calibration command success!")
         else:
             logger.error(f"calibration command failed ({result})")
