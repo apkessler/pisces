@@ -16,4 +16,4 @@ ExecStartPost=/bin/sleep 3
 #StandardError=inherit
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
