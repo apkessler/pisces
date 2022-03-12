@@ -17,7 +17,7 @@ install:
 
 
 	echo "Install"
-	python3 -m pip install -r requirements.txt
+	#python3 -m pip install -r requirements.txt
 
 	cp services/* ~/.config/systemd/user
 	systemctl --user daemon-reload
@@ -35,10 +35,8 @@ install:
 
 .PHONY: start_all
 start_all:
-	systemctl --user start hwcontrol.service
-	sleep 1
-	systemctl --user start gui.service
-
+	systemctl --user restart hwcontrol.service
+    #This should make gui restart also
 
 .PHONY: stop_all
 stop_all:
