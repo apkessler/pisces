@@ -29,23 +29,23 @@
             },
             {
                 "name": "Outlet1",
-                "enable_relay": null,
-                "mode_relay": "RelayCh1"
+                "enable_relay": "RelayCh1",
+                "mode_relay": null
             },
             {
                 "name": "Outlet2",
-                "enable_relay": null,
-                "mode_relay": "RelayCh2"
+                "enable_relay": "RelayCh2",
+                "mode_relay": null
             },
             {
                 "name": "Outlet3",
-                "enable_relay": null,
-                "mode_relay": "RelayCh3"
+                "enable_relay": "RelayCh3",
+                "mode_relay": null
             },
             {
                 "name": "Outlet4",
-                "enable_relay": null,
-                "mode_relay": "RelayCh4"
+                "enable_relay": "RelayCh4",
+                "mode_relay": null
             }
         ],
 
