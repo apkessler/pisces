@@ -6,5 +6,5 @@ loguru
 matplotlib
 pandas
 argparse
-systemd
+systemd-python ##Make sure you get this one, not 'systemd'
 
