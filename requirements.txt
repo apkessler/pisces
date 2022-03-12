@@ -5,5 +5,5 @@ pyyaml
 loguru
 matplotlib
 pandas
-shutil
 argparse
+
