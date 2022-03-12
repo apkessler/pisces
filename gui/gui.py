@@ -344,9 +344,7 @@ class FertilizerSettingsPage(Subwindow):
         self.this_event['volume_mL'] = int(self.volume_var.get())
 
         #Grab the tank light on time for reference
-        for schedule in self.config_data['light_schedules']:
-            if (schedule['name'] == 'TankLights'):
-                self.tank_light_schedule = schedule
+        self.tank_light_schedule = self.config_data['light_schedules']['tank_lights']
 
         def hhmmToDatetime(hhmm) -> datetime.datetime:
             hh = int(hhmm/100)
