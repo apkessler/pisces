@@ -101,7 +101,7 @@ def set_datetime(the_datetime:datetime.datetime):
 
     time = the_datetime.strftime("%Y-%m-%d %H:%M:%S")
     logger.info(f"Setting time to {time}")
-    sys_call(f'/usr/bin/sudo /usr/bin/date -s {time}')
+    sys_call(f'/usr/bin/sudo /usr/bin/timedatectl set-time "{time}"')
 
 def reboot_pi():
     logger.info("restarting the Pi")
