@@ -50,6 +50,8 @@ def dispense(hwCntrl, volume_ml:int, stop_event:threading.Event):
     logger.info("Turning off tank lights for pump")
     #Just manually disable the enable relay for tnk lights... this should be smarter.
     #Shh I am ashamed. This should really be handled on server side
+
+    cached_states = hwCntrl.getRelayStates()
     hwCntrl.setRelayState(5, False) #Tank Light 1
     hwCntrl.setRelayState(7, False) #Tank Light 2
 
@@ -75,8 +77,9 @@ def dispense(hwCntrl, volume_ml:int, stop_event:threading.Event):
 
     #renable the lights
     logger.info("Reenabling lights")
-    hwCntrl.setRelayState(5, True) #Tank Light 1
-    hwCntrl.setRelayState(7, True) #Tank Light 2
+
+    hwCntrl.setRelayState(5, cached_states[4]) #Tank Light 1
+    hwCntrl.setRelayState(7, cached_states[6]) #Tank Light 2
 
 
 
