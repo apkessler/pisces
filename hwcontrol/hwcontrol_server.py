@@ -150,7 +150,7 @@ class HardwareMap():
             use_mock_hw = use_mock_hw
             )
 
-        if (not 'use_mock_hw'):
+        if (not use_mock_hw):
             self.thermometerPoller = sensorpollers.ThermometerPoller(interval_s = self.jData['thermometer']['poll_interval_sec'])
             self.phSensorPoller = sensorpollers.PhSensorPoller(interval_s= self.jData['ph_sensor']['poll_interval_sec'])
         else:
