@@ -1,6 +1,7 @@
 [Unit]
 Description=Pisces GUI Service
 After=network.target hwcontrol.service
+PartOf=hwcontrol.service
 #StartLimitIntervalSec=0
 
 [Service]
