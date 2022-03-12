@@ -554,7 +554,7 @@ class CalibratePhProcessPage(Subwindow):
         logger.info(f"Sending save cal command: {cmd}")
 
         result = hwCntrl.sendPhSensorCommand(cmd)
-        if (result == '1'):
+        if (result == '1' or result == ''):
             logger.info(f"calibration command success!")
         else:
             logger.error(f"calibration command failed ({result})")
