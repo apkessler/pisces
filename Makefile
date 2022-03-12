@@ -24,7 +24,7 @@ install:
 	#add shared location to python path?
 
 	#add to cron tab (deletes any existing entries)
-	echo "0 * * * * PYTHONPATH=/home/pi/Repositories/pisces/shared python3 /home/pi/Repositories/pisces/shared/record_stats.py" >> tempcron
+	echo "0 * * * * PYTHONPATH=/home/pi/Repositories/pisces/shared python3 /home/pi/Repositories/pisces/shared/record_stats.py /home/pi/Repositories/pisces/data/telemetry.csv" >> tempcron
 	crontab tempcron
 	rm tempcron
 
