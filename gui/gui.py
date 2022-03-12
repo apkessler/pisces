@@ -374,6 +374,7 @@ class ManualFertilizerPage(Subwindow):
         super().__init__("Fertilizer Info")
 
         buttons = [
+            {'text': "Dispense\n1mL",   'callback': lambda: self.dispenseInThread(1)},
             {'text': "Dispense\n3mL",   'callback': lambda: self.dispenseInThread(3)},
             {'text': "Dispense\n10mL",  'callback': lambda: self.dispenseInThread(10)},
             {'text': "Hold to\ndispense\ncontinuously", 'callback': None}, #This button has special binding
