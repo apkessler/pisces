@@ -6,4 +6,5 @@ loguru
 matplotlib
 pandas
 argparse
+systemd
 
