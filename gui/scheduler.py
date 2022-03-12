@@ -255,6 +255,13 @@ class OutletTimer(LightTimer):
         jData["eclipse_enabled"] = False
         super().__init__(name, jData, hwCntrl)
 
+        #Disable the timer if this isn't in timer mode...
+        if (jData["mode"] in ['off', 'on']):
+            self.changeStateTo(TimerState.DISABLED)
+            self.hwCntrl.setLightColor(lightKeys[name], 'white' if jData['mode'] == 'on' else 'off') #Manually set the outlet state
+
+
+
 class Scheduler(object):
 
     def __init__(self, hwCntrl):
@@ -337,25 +344,6 @@ class Scheduler(object):
         for schSM in self.schds:
             if schSM.name in timer_list:
                 schSM.resume_schedule(now)
-
-    def set_event_callbacks(self, start_callback:Callable, stop_callback:Callable):
-        '''Set pre/post callback functions on events
-
-        Parameters
-        ----------
-        start_callback : function
-            Callback function to call before event starts
-        stop_callback : function
-            Callback function to call when event ends
-        '''
-
-        for schSM in self.schds:
-            if type(schSM) == DispenseEvent:
-                schSM.start_callback = start_callback
-                schSM.stop_callback = stop_callback
-                logger.debug("Set pre/post event callbacks")
-
-
 
 
 
