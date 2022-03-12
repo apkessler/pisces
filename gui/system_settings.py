@@ -3,7 +3,7 @@
 import shutil
 from helpers import *
 from windows import (Subwindow, fontTuple, ErrorPromptPage)
-
+import sys
 
 class SystemSettingsPage(Subwindow):
 
@@ -53,11 +53,18 @@ class SetSystemTimePage(Subwindow):
 
         self.exit_btn.grid(row=1, column=2, padx=10, pady=10)
 
+        tk.Label(self.master, text="Changing time requires GUI to restart.\nNote time channge may not work\nif system is connected to WiFi!",
+        font=('Arial', 16)).grid(row=5, column=0)
+
+
+
 
     def save(self):
         try:
             new_dt = datetime.datetime.combine(self.date_select.get_date(), self.time_select.get_time())
             set_datetime(new_dt)
+            RebootPromptPage(allow_defer=False)
+
         except ValueError:
             ErrorPromptPage("Invalid date/time!")
 
@@ -107,15 +114,18 @@ class AboutPage(Subwindow):
 
 class RebootPromptPage(Subwindow):
     ''' A Page to prompt the user to restart the GUI'''
-    def __init__(self):
+    def __init__(self, allow_defer=True):
         super().__init__("Relaunch Prompt", draw_exit_button=False)
 
         buttons = [
-            {'text': "Relaunch\nNow",   'callback': self.master.quit, 'color':'#ff5733'},
-            {'text': "Relaunch\nLater", 'callback': self.exit}
+            {'text': "Relaunch\nNow",   'callback': lambda: sys.exit(1), 'color':'#ff5733'}
         ]
 
+        if (allow_defer):
+            buttons.append({'text': "Relaunch\nLater", 'callback': self.exit})
+
         self.drawButtonGrid(buttons)
+
 
         tk.Label(self.master,
         text="The GUI must restart for changes to take effect!",
