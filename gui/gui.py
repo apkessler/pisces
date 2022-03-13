@@ -383,16 +383,18 @@ class ManualFertilizerPage(Subwindow):
         self.drawButtonGrid(buttons)
 
         #Link the hold to dispense button to press/release callbacks
-        self.buttons[2].bind("<ButtonPress>", self.on_press)
-        self.buttons[2].bind("<ButtonRelease>", self.on_release)
+        self.buttons[3].bind("<ButtonPress>", self.on_press)
+        self.buttons[3].bind("<ButtonRelease>", self.on_release)
 
     def on_press(self, event):
+        logger.info('Continuous dispense button pressed')
         self.dispense_stop_event = threading.Event()
         self.dispenseThread = threading.Thread(target=dispense, args=(hwCntrl, 100, self.dispense_stop_event), daemon=True)
         self.dispenseThread.start()
 
 
     def on_release(self, event):
+        logger.info('Continuous dispense button released')
         if (self.dispenseThread.is_alive()):
             self.dispense_stop_event.set()
             self.dispenseThread.join()
