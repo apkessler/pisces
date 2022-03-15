@@ -29,6 +29,9 @@ import matplotlib as plt
 from matplotlib.figure import (Figure, )
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
+from matplotlib.ticker import FormatStrFormatter
+import matplotlib.dates
+
 
 # Custom imports
 from hwcontrol_client import HardwareControlClient
@@ -175,16 +178,16 @@ class GraphPage(Subwindow):
 
         #Pull the safe hi/lo bounds to plot horz lines from config file
         if (field == 'Temperature (F)'):
-            self.safe_ylim_hi = jData['temp_hi_degF']
-            self.safe_ylim_lo = jData['temp_lo_degF']
+            self.safe_ylim = jData['temp_warning_degF']
+            self.yrange = jData['temp_axis_degF']
         elif (field == 'pH'):
-            self.safe_ylim_hi = jData['ph_hi']
-            self.safe_ylim_lo = jData['ph_lo']
+            self.safe_ylim = jData['ph_warning']
+            self.yrange = jData['ph_axis']
         else:
             raise Exception(f"Bad Graph Type {field}")
 
 
-        self.fig = Figure(figsize=(5,4), dpi = 100)
+        self.fig = Figure(figsize=(10,4), dpi = 100)
         self.ax = self.fig.add_subplot()
 
         self.field = field
@@ -202,7 +205,7 @@ class GraphPage(Subwindow):
         #By default, show the last week of data
         self.initial_now = datetime.datetime.now()
         one_week = datetime.timedelta(days=7)
-        self.plot_data(self.initial_now - one_week, self.initial_now)
+        self.plot_data(self.initial_now - one_week, self.initial_now, scale='week')
 
         # pack_toolbar=False will make it easier to use a layout manager later on.
         self.toolbar = NavigationToolbar2Tk(self.canvas, self.master, pack_toolbar=False)
@@ -211,7 +214,7 @@ class GraphPage(Subwindow):
         def show_previous_week():
             try:
                 self.initial_now -= one_week
-                self.plot_data(self.initial_now - one_week, self.initial_now)
+                self.plot_data(self.initial_now - one_week, self.initial_now, scale='week')
             except IndexError:
                 logger.info("Cannot go back any further!")
                 self.initial_now += one_week #Undo what we just tried...
@@ -221,11 +224,11 @@ class GraphPage(Subwindow):
             now = datetime.datetime.now()
             if (self.initial_now > now):
                 self.initial_now = now
-            self.plot_data(self.initial_now - one_week, self.initial_now)
+            self.plot_data(self.initial_now - one_week, self.initial_now, scale='week')
 
         def show_this_week():
             self.initial_now = datetime.datetime.now()
-            self.plot_data(self.initial_now - one_week, self.initial_now)
+            self.plot_data(self.initial_now - one_week, self.initial_now, scale='week')
 
         def show_all_time():
             self.plot_data(self.df.index.min(), self.df.index.max())
@@ -255,17 +258,23 @@ class GraphPage(Subwindow):
 
         self.canvas.get_tk_widget().pack(in_=bottom, side=tk.TOP, fill=tk.BOTH, expand=1)
 
-    def plot_data(self, start_time:datetime.datetime, end_time: datetime.datetime):
+    def plot_data(self, start_time:datetime.datetime, end_time: datetime.datetime, scale='auto'):
+        plt.rcParams.update({'font.size': 24})
 
         self.ax.cla()
         self.df[start_time: end_time].plot(y=[self.field], ax=self.ax)
 
-        if (self.safe_ylim_lo != None and self.safe_ylim_hi != None):
-            self.ax.hlines(y=[self.safe_ylim_lo, self.safe_ylim_hi], xmin=[start_time], xmax=[end_time], colors='red', linestyles='--', lw=1)
+        if (self.safe_ylim != None):
+            self.ax.hlines(y=self.safe_ylim, xmin=[start_time], xmax=[end_time], colors='red', linestyles='--', lw=1)
 
-        self.ax.set_ylabel(self.field)
+        #self.ax.set_ylabel(self.field)
+        self.ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+
+        self.ax.set_ylim(self.yrange)
         self.ax.set_xlabel('')
-        self.fig.subplots_adjust(bottom=0.166)
+        self.ax.grid(which='both')
+        self.ax.get_legend().remove()
+        self.fig.subplots_adjust(bottom=0.18, left=0.14)
         self.canvas.draw()
 
 

@@ -2,8 +2,8 @@
 {
   "server": "localhost:50051",
   "telemetry_file":"~/Repositories/pisces/data/telemetry.csv",
-  "temp_hi_degF": 80,
-  "temp_lo_degF": 75,
-  "ph_hi": null,
-  "ph_lo": null
+  "temp_warning_degF": [75,80],
+  "temp_axis_degF":[70,85],
+  "ph_warning":null,
+  "ph_axis":[7.0, 8.5]
 }
