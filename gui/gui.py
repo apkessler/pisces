@@ -374,9 +374,9 @@ class ManualFertilizerPage(Subwindow):
         super().__init__("Fertilizer Info")
 
         buttons = [
-            {'text': "Dispense\n1mL",   'callback': lambda: self.dispenseInThread(1)},
-            {'text': "Dispense\n3mL",   'callback': lambda: self.dispenseInThread(3)},
-            {'text': "Dispense\n10mL",  'callback': lambda: self.dispenseInThread(10)},
+            {'text': "Dispense\n1mL",   'callback': lambda: DispensingCapturePage(1, scheduled=False)},
+            {'text': "Dispense\n3mL",   'callback': lambda: DispensingCapturePage(3, scheduled=False)},
+            {'text': "Dispense\n10mL",  'callback': lambda: DispensingCapturePage(10, scheduled=False)},
             {'text': "Hold to\ndispense\ncontinuously", 'callback': None}, #This button has special binding
             {'text': "Fertilizer\nSettings", 'callback': lambda:FertilizerSettingsPage()}
         ]
@@ -413,7 +413,7 @@ class ManualFertilizerPage(Subwindow):
 
 class DispensingCapturePage(Subwindow):
     ''' A Page to capture the UI when a scheduled dispense is in progress'''
-    def __init__(self, volume_mL):
+    def __init__(self, volume_mL, scheduled=True):
         super().__init__("Dispense in Progress", draw_exit_button=False)
 
         buttons = [
@@ -422,8 +422,13 @@ class DispensingCapturePage(Subwindow):
 
         self.drawButtonGrid(buttons)
 
+        if (scheduled):
+            msg = f"Scheduled fertilizer dispense ({volume_mL}mL) in progress."
+        else:
+            msg = f"Fertilizer dispense ({volume_mL}mL) in progress."
+
         tk.Label(self.master,
-        text=f"Scheduled fertilizer dispense ({volume_mL}mL) in progress.",
+        text=msg,
         font=('Arial', 20)).pack(side=tk.TOP, pady=75)
         logger.info('Starting dispense thread')
         self.dispense_stop_event = threading.Event()
