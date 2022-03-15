@@ -205,7 +205,7 @@ class GraphPage(Subwindow):
         #By default, show the last week of data
         self.initial_now = datetime.datetime.now()
         one_week = datetime.timedelta(days=7)
-        self.plot_data(self.initial_now - one_week, self.initial_now, scale='week')
+        self.plot_data(self.initial_now - one_week, self.initial_now)
 
         # pack_toolbar=False will make it easier to use a layout manager later on.
         self.toolbar = NavigationToolbar2Tk(self.canvas, self.master, pack_toolbar=False)
@@ -214,7 +214,7 @@ class GraphPage(Subwindow):
         def show_previous_week():
             try:
                 self.initial_now -= one_week
-                self.plot_data(self.initial_now - one_week, self.initial_now, scale='week')
+                self.plot_data(self.initial_now - one_week, self.initial_now)
             except IndexError:
                 logger.info("Cannot go back any further!")
                 self.initial_now += one_week #Undo what we just tried...
@@ -224,11 +224,11 @@ class GraphPage(Subwindow):
             now = datetime.datetime.now()
             if (self.initial_now > now):
                 self.initial_now = now
-            self.plot_data(self.initial_now - one_week, self.initial_now, scale='week')
+            self.plot_data(self.initial_now - one_week, self.initial_now)
 
         def show_this_week():
             self.initial_now = datetime.datetime.now()
-            self.plot_data(self.initial_now - one_week, self.initial_now, scale='week')
+            self.plot_data(self.initial_now - one_week, self.initial_now)
 
         def show_all_time():
             self.plot_data(self.df.index.min(), self.df.index.max())
@@ -258,7 +258,7 @@ class GraphPage(Subwindow):
 
         self.canvas.get_tk_widget().pack(in_=bottom, side=tk.TOP, fill=tk.BOTH, expand=1)
 
-    def plot_data(self, start_time:datetime.datetime, end_time: datetime.datetime, scale='auto'):
+    def plot_data(self, start_time:datetime.datetime, end_time: datetime.datetime):
         plt.rcParams.update({'font.size': 24})
 
         self.ax.cla()
@@ -268,7 +268,11 @@ class GraphPage(Subwindow):
             self.ax.hlines(y=self.safe_ylim, xmin=[start_time], xmax=[end_time], colors='red', linestyles='--', lw=1)
 
         #self.ax.set_ylabel(self.field)
-        self.ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+        if (self.field == 'pH'):
+            self.ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+        else:
+            self.ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
+
 
         self.ax.set_ylim(self.yrange)
         self.ax.set_xlabel('')
