@@ -112,9 +112,16 @@ def shutdown_pi():
     logger.info("shutting down the Pi")
     sys_call("/usr/bin/sudo /sbin/shutdown -h now")
 
-# modular function to shutdown Pi
-def get_git_version():
-    sys_call("cd /home/pi/Repositories/pisces/; git describe")
+def get_git_version() -> str:
+    '''Get the git latest git hash. Only works if code is actually cloned
+
+    Returns
+    -------
+    str
+        Latest git hash
+    '''
+    return subprocess.check_output(["git", "describe", "--always"],
+        cwd=os.path.dirname(os.path.abspath(__file__))).strip().decode()
 
 def is_wifi_on() -> bool:
     '''Get WiFi radio status via `rfkill`.
