@@ -262,7 +262,15 @@ class GraphPage(Subwindow):
         plt.rcParams.update({'font.size': 24})
 
         self.ax.cla()
-        self.df[start_time: end_time].plot(y=[self.field], ax=self.ax)
+        try:
+            sub_df = self.df[start_time: end_time]
+            sub_df.plot(y=[self.field], ax=self.ax)
+        except KeyError:
+            logger.error("Could not grab dates of interest from telemetry file")
+            ErrorPromptPage("Oops! Looks like the telemetry file got corrupted.\nRepair of file attemped...\nPlease retry.")
+            self.repair_telemetry_file()
+            self.exit()
+            return
 
         if (self.safe_ylim != None):
             self.ax.hlines(y=self.safe_ylim, xmin=[start_time], xmax=[end_time], colors='red', linestyles='--', lw=1)
@@ -280,6 +288,26 @@ class GraphPage(Subwindow):
         self.ax.get_legend().remove()
         self.fig.subplots_adjust(bottom=0.18, left=0.14)
         self.canvas.draw()
+
+    def repair_telemetry_file(self):
+        '''
+        Attempt repairs of telemetery file. Specifically, sort entries by time
+        '''
+        logger.info("Attempting repair of telemetry file...")
+
+        #Read in the dataframe and parse timestamp strings to datetime
+        self.df = pd.read_csv(jData['telemetry_file'], parse_dates=["Timestamp"])
+
+        #Set the index to timestamp column so we can index by it
+        self.df.set_index('Timestamp', inplace=True)
+
+        #Sort by dates
+        self.df.sort_index(inplace=True)
+
+        #Send back to file
+        self.df.to_csv(jData['telemetry_file'])
+
+
 
 
 class SettingsPage(Subwindow):
