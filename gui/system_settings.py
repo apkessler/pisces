@@ -112,6 +112,13 @@ class AboutPage(Subwindow):
         text=f'Version: {get_git_version()}',
         font=('Arial', 20)).pack(side=tk.TOP, pady=100)
 
+
+        buttons = [
+            {'text': "Back home",  'callback': self.destroy_all}
+             ]
+        self.drawButtonGrid(buttons)
+
+
 class RebootPromptPage(Subwindow):
     ''' A Page to prompt the user to restart the GUI'''
     def __init__(self, allow_defer=True):

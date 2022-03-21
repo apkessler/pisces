@@ -1,5 +1,7 @@
 
 import tkinter as tk
+import weakref
+from loguru import logger
 fontTuple = ('Arial', 15)
 
 
@@ -74,10 +76,13 @@ class Subwindow(Window):
         [description]
     """
 
+    instances = weakref.WeakSet() #Set to track all instaces of Subwindow
+
     def __init__(self, title, exit_button_text="Back", draw_exit_button=True):
         super().__init__(title, tk.Toplevel(), Window.is_fullscreen)
 
-        self.master.grab_set()
+        Subwindow.instances.add(self) #Add self to list of instances
+        self.master.grab_set() #Make this screen front most layer
 
         self.exit_btn = tk.Button(self.master, text=exit_button_text, font=('Arial', 15), width=9, height=2, bg='#ff5733', command=self.exit)
         if (draw_exit_button):
@@ -86,6 +91,19 @@ class Subwindow(Window):
     def exit(self):
         self.master.destroy()
         self.master.update()
+
+    @classmethod
+    def get_instances(cls) -> list:
+        return list(Subwindow.instances)
+
+    @classmethod
+    def destroy_all(cls):
+        logger.debug('Destorying all subwindows')
+        windows = cls.get_instances()
+        logger.debug(str(windows))
+        for w in windows:
+            w.exit()
+
 
 
 class ErrorPromptPage(Subwindow):
