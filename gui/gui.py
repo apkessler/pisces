@@ -418,38 +418,10 @@ class ManualFertilizerPage(Subwindow):
             {'text': "Dispense\n1mL",   'callback': lambda: DispensingCapturePage(1, scheduled=False)},
             {'text': "Dispense\n3mL",   'callback': lambda: DispensingCapturePage(3, scheduled=False)},
             {'text': "Dispense\n10mL",  'callback': lambda: DispensingCapturePage(10, scheduled=False)},
-            {'text': "Hold to\ndispense\ncontinuously", 'callback': None}, #This button has special binding
+            {'text': "Dispense\n100mL", 'callback': lambda: DispensingCapturePage(100, scheduled=False)},
             {'text': "Fertilizer\nSettings", 'callback': lambda:FertilizerSettingsPage()}
         ]
         self.drawButtonGrid(buttons)
-
-        #Link the hold to dispense button to press/release callbacks
-        self.buttons[3].bind("<ButtonPress>", self.on_press)
-        self.buttons[3].bind("<ButtonRelease>", self.on_release)
-
-    def on_press(self, event):
-        logger.info('Continuous dispense button pressed')
-        self.dispense_stop_event = threading.Event()
-        self.dispenseThread = threading.Thread(target=dispense, args=(hwCntrl, 100, self.dispense_stop_event), daemon=True)
-        self.dispenseThread.start()
-
-
-    def on_release(self, event):
-        logger.info('Continuous dispense button released')
-        if (self.dispenseThread.is_alive()):
-            self.dispense_stop_event.set()
-            self.dispenseThread.join()
-            logger.info("Dispense thread killed")
-        else:
-            self.dispenseThread.join()
-            logger.info("Dispense thread already dead")
-
-
-    def dispenseInThread(self, volume_ml):
-        stop_event = threading.Event()
-        self.thread = threading.Thread(target=dispense, args=(hwCntrl, volume_ml, stop_event), daemon=True)
-        self.thread.start()
-        self.thread.join()
 
 
 class DispensingCapturePage(Subwindow):
@@ -538,7 +510,6 @@ class CalibratePhDonePage(Subwindow):
         super().__init__("pH Sensor Calibration")
 
         msg = "pH Sensor calibration complete! Woohoo!"
-
         tk.Label(self.master, text=msg, font=('Arial',18), justify=tk.LEFT).place(x=50, y=100)
 
         btn = tk.Button(self.master, text="Done", font=fontTuple, width=15, height=6, bg='#00ff00', command=self.exit)
