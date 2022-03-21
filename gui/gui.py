@@ -30,7 +30,6 @@ from matplotlib.figure import (Figure, )
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
 from matplotlib.ticker import FormatStrFormatter
-import matplotlib.dates
 
 
 # Custom imports
@@ -106,6 +105,24 @@ class MainWindow(Window):
         #After we're done setting everything up...
         self.update_scheduler()
         self.refresh_data()
+
+
+        self.lock_time_s = jData['lock_time_s']
+        self.lock_timer = None
+        self.kick_activity_timer()
+
+
+    def kick_activity_timer(self):
+        logger.debug("Reset activity timer")
+        if (self.lock_timer != None):
+            self.lock_timer.cancel()
+
+        self.lock_timer = threading.Timer(self.lock_time_s, self.activity_timer_expired)
+        self.lock_timer.start()
+
+    def activity_timer_expired(self):
+        logger.info("Activity timer expired!")
+
 
     def updateTimestamp(self):
         now = datetime.datetime.now()

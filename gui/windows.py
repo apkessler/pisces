@@ -5,6 +5,7 @@ from loguru import logger
 fontTuple = ('Arial', 15)
 
 
+
 class Window(object):
     """Generic window object. Do not instantiate directly.
 
@@ -24,7 +25,6 @@ class Window(object):
             Window.is_fullscreen= fullscreen
         if (Window.is_fullscreen):
             self.master.attributes('-fullscreen', True)
-
 
     def dummy(self):
         pass
