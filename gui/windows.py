@@ -5,11 +5,11 @@ from loguru import logger
 import threading
 fontTuple = ('Arial', 15)
 
-def activity_kick(func, kicker):
-    ''' Decorator to make a functoin update watchdog'''
+def activity_kick(func):
+    ''' Decorator to make a function update watchdog'''
 
     def wrap(*args, **kwargs):
-        kicker()
+        Window.kick_activity_watchdog(source=func.__name__)
         result = func(*args, **kwargs)
         return result
 
@@ -63,7 +63,7 @@ class Window(object):
         for inx, bInfo in enumerate(buttonMap):
             f = tk.Frame(frame, width=200, height=200, padx=10, pady=10) #make a frame where button goes
 
-            callback = activity_kick(bInfo['callback'], Window.kick_activity_watchdog) #Wrap the callback function with watchdog kicker
+            callback = activity_kick(bInfo['callback']) #Wrap the callback function with watchdog kicker
 
 
             if (type(bInfo['text']) is str):
@@ -87,8 +87,8 @@ class Window(object):
             self.buttons.append(b)
 
     @classmethod
-    def kick_activity_watchdog(cls):
-        logger.debug("kicking watchdog")
+    def kick_activity_watchdog(cls, source=None):
+        logger.debug(f"kicking watchdog from {source}")
         if (Window.activity_timer != None):
             Window.activity_timer.cancel()
         Window.activity_timer = threading.Timer(Window.activity_timeout_sec, Window.activity_expiration_callback)
@@ -126,6 +126,7 @@ class Subwindow(Window):
         if (draw_exit_button):
             self.exit_btn.place(x=450, y=10)
 
+    @activity_kick
     def exit(self):
         self.master.destroy()
         self.master.update()
