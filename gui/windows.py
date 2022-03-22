@@ -2,7 +2,18 @@
 import tkinter as tk
 import weakref
 from loguru import logger
+import threading
 fontTuple = ('Arial', 15)
+
+def activity_kick(func, kicker):
+    ''' Decorator to make a functoin update watchdog'''
+
+    def wrap(*args, **kwargs):
+        kicker()
+        result = func(*args, **kwargs)
+        return result
+
+    return wrap
 
 
 
@@ -14,7 +25,12 @@ class Window(object):
     object : [type]
         [description]
     """
+    #Class Vars
     is_fullscreen = None #class var
+    main_window = None
+    activity_timer = None
+    activity_timeout_sec = 5.0
+    activity_expiration_callback = lambda: logger.debug("Default expiration callback")
 
     def __init__(self, title, handle, fullscreen):
         self.master = handle
@@ -25,6 +41,10 @@ class Window(object):
             Window.is_fullscreen= fullscreen
         if (Window.is_fullscreen):
             self.master.attributes('-fullscreen', True)
+
+        if (Window.main_window == None):
+            logger.debug("Storing reference to main window")
+            Window.main_window = self #Store reference to main window
 
     def dummy(self):
         pass
@@ -43,12 +63,13 @@ class Window(object):
         for inx, bInfo in enumerate(buttonMap):
             f = tk.Frame(frame, width=200, height=200, padx=10, pady=10) #make a frame where button goes
 
+            callback = activity_kick(bInfo['callback'], Window.kick_activity_watchdog) #Wrap the callback function with watchdog kicker
 
 
             if (type(bInfo['text']) is str):
-                b = tk.Button(f, text=bInfo['text'], font=fontTuple, command=bInfo['callback'])
+                b = tk.Button(f, text=bInfo['text'], font=fontTuple, command=callback)
             else:
-                b = tk.Button(f, textvariable=bInfo['text'], font=fontTuple, command=bInfo['callback'])
+                b = tk.Button(f, textvariable=bInfo['text'], font=fontTuple, command=callback)
 
             if 'color' in bInfo:
                 b.configure(bg=bInfo['color'])
@@ -65,7 +86,24 @@ class Window(object):
             b.grid(sticky="NWSE")
             self.buttons.append(b)
 
+    @classmethod
+    def kick_activity_watchdog(cls):
+        logger.debug("kicking watchdog")
+        if (Window.activity_timer != None):
+            Window.activity_timer.cancel()
+        Window.activity_timer = threading.Timer(Window.activity_timeout_sec, Window.activity_expiration_callback)
+        Window.activity_timer.daemon = True #So we don't need to kill this when running exiting program
+        Window.activity_timer.start()
 
+    @classmethod
+    def set_activity_timeout(cls, time_sec:float):
+        logger.debug(f"Set activity timeout to {time_sec}s")
+        Window.activity_timeout_sec = time_sec
+
+
+    @classmethod
+    def set_activity_expiration_callback(cls, func):
+        Window.activity_expiration_callback = func
 
 class Subwindow(Window):
     """Generic Subwindow class. Make an inherited class from this for a custom subwindow.

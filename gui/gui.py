@@ -106,23 +106,16 @@ class MainWindow(Window):
         self.update_scheduler()
         self.refresh_data()
 
+        #Setup the activity watchdog for screen lock
+        self.set_activity_timeout(jData['lock_time_s'])
+        self.set_activity_expiration_callback(self.activity_expiration)
+        self.kick_activity_watchdog()
 
-        self.lock_time_s = jData['lock_time_s']
-        self.lock_timer = None
-        self.kick_activity_timer()
-
-
-    def kick_activity_timer(self):
-        logger.debug("Reset activity timer")
-        if (self.lock_timer != None):
-            self.lock_timer.cancel()
-
-        self.lock_timer = threading.Timer(self.lock_time_s, self.activity_timer_expired)
-        self.lock_timer.start()
-
-    def activity_timer_expired(self):
-        logger.info("Activity timer expired!")
-
+    def activity_expiration(self):
+        ''' This is the function what will be called when the activity watchdog expires.
+            Close all subwindows (return to home screen) and lock the screen. '''
+        logger.info("MainWindow activity expiration!")
+        Subwindow.destroy_all()
 
     def updateTimestamp(self):
         now = datetime.datetime.now()
