@@ -36,7 +36,7 @@ from matplotlib.ticker import FormatStrFormatter
 from hwcontrol_client import HardwareControlClient
 from dispense_client import dispense
 from helpers import *
-from windows import (Window, Subwindow, ErrorPromptPage, fontTuple)
+from windows import (Window, Subwindow, ErrorPromptPage, fontTuple, activity_kick)
 from system_settings import (SystemSettingsPage, RebootPromptPage)
 from timer_settings import (AquariumLightsSettingsPage, OutletSettingsPage)
 import scheduler
@@ -101,6 +101,12 @@ class MainWindow(Window):
 
         self.drawButtonGrid(buttons)
 
+        self.unlock_img = tk.PhotoImage(file=r"gui/unlock_icon.png").subsample(10,10)
+        self.lock_img = tk.PhotoImage(file=r"gui/lock_icon.png").subsample(10,10)
+        self.unlock_btn = tk.Button(self.master, text="Unlock",command=self.unlock_callback, font=('Arial', 15), width=5, height=2)#, bg='#ff5733', command=self.dummy)
+
+        self.icon = tk.Label(root, image=self.unlock_img)
+        self.icon.place(x=20,y=7)
 
         #After we're done setting everything up...
         self.update_scheduler()
@@ -111,11 +117,24 @@ class MainWindow(Window):
         self.set_activity_expiration_callback(self.activity_expiration)
         self.kick_activity_watchdog()
 
+    @activity_kick
+    def unlock_callback(self):
+        self.icon.configure(image=self.unlock_img)
+        self.unlock_btn.place_forget()
+        self.enable_all_buttons()
+
+
     def activity_expiration(self):
         ''' This is the function what will be called when the activity watchdog expires.
             Close all subwindows (return to home screen) and lock the screen. '''
         logger.info("MainWindow activity expiration!")
         Subwindow.destroy_all()
+
+        self.icon.configure(image=self.lock_img)
+        self.unlock_btn.place(x=120, y=10)
+        self.disable_all_buttons()
+
+
 
     def updateTimestamp(self):
         now = datetime.datetime.now()

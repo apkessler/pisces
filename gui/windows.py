@@ -49,6 +49,15 @@ class Window(object):
     def dummy(self):
         pass
 
+    def disable_all_buttons(self):
+        for button in self.buttons:
+            button['state'] = tk.DISABLED
+
+
+    def enable_all_buttons(self):
+        for button in self.buttons:
+            button['state'] = tk.NORMAL
+
     def drawButtonGrid(self, buttonMap):
         """Build the standard grid of buttons
 
@@ -67,9 +76,9 @@ class Window(object):
 
 
             if (type(bInfo['text']) is str):
-                b = tk.Button(f, text=bInfo['text'], font=fontTuple, command=callback)
+                b = tk.Button(f, text=bInfo['text'], font=fontTuple, command=callback)#, disabledforeground='black')
             else:
-                b = tk.Button(f, textvariable=bInfo['text'], font=fontTuple, command=callback)
+                b = tk.Button(f, textvariable=bInfo['text'], font=fontTuple, command=callback)#, disabledforeground='black')
 
             if 'color' in bInfo:
                 b.configure(bg=bInfo['color'])
