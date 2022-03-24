@@ -79,6 +79,20 @@ class MainWindow(Window):
 
         self.the_scheduler = scheduler.Scheduler(hwCntrl)
 
+
+        self.unlock_img = tk.PhotoImage(file=r"gui/unlock_icon.png").subsample(10,10)
+        self.lock_img = tk.PhotoImage(file=r"gui/lock_icon.png").subsample(10,10)
+        self.ph_img = tk.PhotoImage(file=r"gui/ph_icon.png").subsample(3,3)
+        self.temperature_img = tk.PhotoImage(file=r"gui/temperature_icon.png").subsample(3,3)
+
+        SCALE = 6
+        self.ph_img_small = tk.PhotoImage(file=r"gui/ph_icon.png").subsample(SCALE,SCALE)
+        self.temperature_img_small = tk.PhotoImage(file=r"gui/temperature_icon.png").subsample(SCALE,SCALE)
+        self.settings_img_small = tk.PhotoImage(file=r"gui/settings_icon.png").subsample(SCALE,SCALE)
+        self.fert_img_small = tk.PhotoImage(file=r"gui/fert_icon.png").subsample(SCALE,SCALE)
+        self.light_img_small = tk.PhotoImage(file=r"gui/light_icon.png").subsample(SCALE,SCALE)
+
+
         if (not os.path.exists(SCHEDULE_CONFIG_FILE)):
             #Copy the default config file!
             logger.info('No schedule json file found - copying default file.')
@@ -94,11 +108,12 @@ class MainWindow(Window):
             self.the_scheduler.add_event(event["name"], event['trigger_time_hhmm'], lambda:DispensingCapturePage(volume_mL=event['volume_mL']))
 
         buttons = [
-            {'text':self.lightModeText,     'callback': self.toggle_lights},
-            {'text':self.tempText,          'callback': lambda: GraphPage('Temperature (F)')},
-            {'text':self.phText,            'callback': lambda: GraphPage('pH')},
-            {'text':"Manual\nFertilizer",   'callback': lambda: ManualFertilizerPage()},
-            {'text':"Settings",             'callback': lambda: SettingsPage()}
+            {'text':self.lightModeText, 'callback': self.toggle_lights,                     'image':self.light_img_small},
+            {'text':self.temp_value,    'callback': lambda: GraphPage('Temperature (F)'),   'image':self.temperature_img_small},
+            {'text':self.ph_value,      'callback': lambda: GraphPage('pH'),                'image':self.ph_img_small},
+            {'text':"Fertilizer",       'callback': lambda: ManualFertilizerPage(),         'image':self.fert_img_small},
+            {'text':"Settings",         'callback': lambda: SettingsPage(),                 'image':self.settings_img_small},
+            {'text': "",                'callback': self.dummy,                             'image':self.lock_img}
         ]
 
         self.drawButtonGrid(buttons)
@@ -112,6 +127,7 @@ class MainWindow(Window):
         self.set_activity_timeout(jData['lock_time_s'])
         self.set_activity_expiration_callback(self.activity_expiration)
         self.kick_activity_watchdog()
+
 
 
     def activity_expiration(self):
@@ -185,9 +201,7 @@ class LockScreen(Subwindow):
     def __init__(self, main_window):
         super().__init__("Lock Screen", draw_exit_button=False)
 
-        self.unlock_img = tk.PhotoImage(file=r"gui/unlock_icon.png").subsample(10,10)
-        self.lock_img = tk.PhotoImage(file=r"gui/lock_icon.png").subsample(10,10)
-        self.unlock_btn = tk.Button(self.master, image=self.unlock_img, command=self.exit, font=('Arial', 15))
+        self.unlock_btn = tk.Button(self.master, image=main_window.unlock_img, command=self.exit, font=('Arial', 15))
         self.unlock_btn.place(x=50,y=50)
         #self.icon = tk.Label(root, image=self.unlock_img)
         #self.icon.place(x=20,y=7)
@@ -197,12 +211,10 @@ class LockScreen(Subwindow):
         frame.place(in_=self.master, anchor='c', relx=0.5, rely=0.55)
 
 
-        self.ph_img = tk.PhotoImage(file=r"gui/ph_icon.png").subsample(3,3)
-        self.temperature_img = tk.PhotoImage(file=r"gui/temperature_icon.png").subsample(3,3)
 
         tk.Label(self.master, textvariable=main_window.timeText, font=('Arial',30)).place(x=300, y=50)
-        tk.Label(frame, image=self.ph_img).grid(row=1,column=2, padx=50)
-        tk.Label(frame, image=self.temperature_img).grid(row=1,column=1, padx=50)
+        tk.Label(frame, image=main_window.ph_img).grid(row=1,column=2, padx=50)
+        tk.Label(frame, image=main_window.temperature_img).grid(row=1,column=1, padx=50)
 
         tk.Label(frame, textvariable=main_window.temp_value, font=('Arial',35)).grid(row=2,column=1, padx=50)
         tk.Label(frame, textvariable=main_window.ph_value, font=('Arial',35)).grid(row=2,column=2, padx=50)

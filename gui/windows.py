@@ -74,11 +74,25 @@ class Window(object):
 
             callback = activity_kick(bInfo['callback']) #Wrap the callback function with watchdog kicker
 
+            param_dict = dict()
+            param_dict['font'] = fontTuple
+            param_dict['command'] =callback
 
             if (type(bInfo['text']) is str):
-                b = tk.Button(f, text=bInfo['text'], font=fontTuple, command=callback)#, disabledforeground='black')
+                param_dict['text'] = bInfo['text']
             else:
-                b = tk.Button(f, textvariable=bInfo['text'], font=fontTuple, command=callback)#, disabledforeground='black')
+                param_dict['textvariable'] = bInfo['text']
+
+            if 'image' in bInfo:
+                param_dict['image'] = bInfo['image']
+                param_dict['compound'] = tk.TOP
+
+            b = tk.Button(f, **param_dict)
+
+            # if (type(bInfo['text']) is str):
+            #     b = tk.Button(f, text=bInfo['text'], font=fontTuple, command=callback)#, disabledforeground='black')
+            # else:
+            #     b = tk.Button(f, textvariable=bInfo['text'], font=fontTuple, command=callback)#, disabledforeground='black')
 
             if 'color' in bInfo:
                 b.configure(bg=bInfo['color'])
