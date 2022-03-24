@@ -70,9 +70,11 @@ class MainWindow(Window):
 
 
         self.tempText = tk.StringVar()
+        self.temp_value = tk.StringVar()
         self.tempText.set(f"Temperature\n???°F")
 
         self.phText = tk.StringVar()
+        self.ph_value = tk.StringVar()
         self.phText.set(f"pH\n???")
 
         self.the_scheduler = scheduler.Scheduler(hwCntrl)
@@ -101,12 +103,6 @@ class MainWindow(Window):
 
         self.drawButtonGrid(buttons)
 
-        self.unlock_img = tk.PhotoImage(file=r"gui/unlock_icon.png").subsample(10,10)
-        self.lock_img = tk.PhotoImage(file=r"gui/lock_icon.png").subsample(10,10)
-        self.unlock_btn = tk.Button(self.master, text="Unlock",command=self.unlock_callback, font=('Arial', 15), width=5, height=2)#, bg='#ff5733', command=self.dummy)
-
-        self.icon = tk.Label(root, image=self.unlock_img)
-        self.icon.place(x=20,y=7)
 
         #After we're done setting everything up...
         self.update_scheduler()
@@ -117,12 +113,6 @@ class MainWindow(Window):
         self.set_activity_expiration_callback(self.activity_expiration)
         self.kick_activity_watchdog()
 
-    @activity_kick
-    def unlock_callback(self):
-        self.icon.configure(image=self.unlock_img)
-        self.unlock_btn.place_forget()
-        self.enable_all_buttons()
-
 
     def activity_expiration(self):
         ''' This is the function what will be called when the activity watchdog expires.
@@ -130,11 +120,7 @@ class MainWindow(Window):
         logger.info("MainWindow activity expiration!")
         Subwindow.destroy_all()
 
-        self.icon.configure(image=self.lock_img)
-        self.unlock_btn.place(x=120, y=10)
-        self.disable_all_buttons()
-
-
+        LockScreen(self)
 
     def updateTimestamp(self):
         now = datetime.datetime.now()
@@ -181,10 +167,12 @@ class MainWindow(Window):
         temp_degC = hwCntrl.getTemperature_degC()
         temp_degF = (temp_degC * 9.0) / 5.0 + 32.0
         self.tempText.set(f"Temperature\n{temp_degF:0.1f}°F")
+        self.temp_value.set(f"{temp_degF:0.1f}°F")
 
         #Update the pH Reading
         ph = hwCntrl.getPH()
         self.phText.set(f"pH\n{ph:0.1f}")
+        self.ph_value.set(f"{ph:0.1f}")
         #Uncomment next line to make pH button change color based on pH
         #self.buttons[2].configure(bg=ph_to_color(ph))
 
@@ -192,6 +180,36 @@ class MainWindow(Window):
 
     def quit(self):
         self.root.quit()
+
+class LockScreen(Subwindow):
+    def __init__(self, main_window):
+        super().__init__("Lock Screen", draw_exit_button=False)
+
+        self.unlock_img = tk.PhotoImage(file=r"gui/unlock_icon.png").subsample(10,10)
+        self.lock_img = tk.PhotoImage(file=r"gui/lock_icon.png").subsample(10,10)
+        self.unlock_btn = tk.Button(self.master, image=self.unlock_img, command=self.exit, font=('Arial', 15))
+        self.unlock_btn.place(x=50,y=50)
+        #self.icon = tk.Label(root, image=self.unlock_img)
+        #self.icon.place(x=20,y=7)
+
+
+        frame = tk.Frame(self.master)
+        frame.place(in_=self.master, anchor='c', relx=0.5, rely=0.55)
+
+
+        self.ph_img = tk.PhotoImage(file=r"gui/ph_icon.png").subsample(3,3)
+        self.temperature_img = tk.PhotoImage(file=r"gui/temperature_icon.png").subsample(3,3)
+
+        tk.Label(self.master, textvariable=main_window.timeText, font=('Arial',30)).place(x=300, y=50)
+        tk.Label(frame, image=self.ph_img).grid(row=1,column=2, padx=50)
+        tk.Label(frame, image=self.temperature_img).grid(row=1,column=1, padx=50)
+
+        tk.Label(frame, textvariable=main_window.temp_value, font=('Arial',35)).grid(row=2,column=1, padx=50)
+        tk.Label(frame, textvariable=main_window.ph_value, font=('Arial',35)).grid(row=2,column=2, padx=50)
+
+
+
+
 
 
 class GraphPage(Subwindow):
