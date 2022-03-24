@@ -69,13 +69,8 @@ class MainWindow(Window):
         tk.Label(root, textvariable=self.timeText, font=('Arial',18)).place(x=475, y=15)
 
 
-        self.tempText = tk.StringVar()
         self.temp_value = tk.StringVar()
-        self.tempText.set(f"Temperature\n???°F")
-
-        self.phText = tk.StringVar()
         self.ph_value = tk.StringVar()
-        self.phText.set(f"pH\n???")
 
         self.the_scheduler = scheduler.Scheduler(hwCntrl)
 
@@ -113,7 +108,7 @@ class MainWindow(Window):
             {'text':self.ph_value,      'callback': lambda: GraphPage('pH'),                'image':self.ph_img_small},
             {'text':"Fertilizer",       'callback': lambda: ManualFertilizerPage(),         'image':self.fert_img_small},
             {'text':"Settings",         'callback': lambda: SettingsPage(),                 'image':self.settings_img_small},
-            {'text': "",                'callback': self.activity_expiration,                             'image':self.lock_img}
+            {'text': "",                'callback': self.activity_expiration,               'image':self.lock_img}
         ]
 
         self.drawButtonGrid(buttons)
@@ -186,12 +181,10 @@ class MainWindow(Window):
         #Update the temperature reading
         temp_degC = hwCntrl.getTemperature_degC()
         temp_degF = (temp_degC * 9.0) / 5.0 + 32.0
-        self.tempText.set(f"Temperature\n{temp_degF:0.1f}°F")
         self.temp_value.set(f"{temp_degF:0.1f}°F")
 
         #Update the pH Reading
         ph = hwCntrl.getPH()
-        self.phText.set(f"pH\n{ph:0.1f}")
         self.ph_value.set(f"{ph:0.1f}")
         #Uncomment next line to make pH button change color based on pH
         #self.buttons[2].configure(bg=ph_to_color(ph))
