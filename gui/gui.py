@@ -198,8 +198,11 @@ class LockScreen(Subwindow):
     def __init__(self, main_window):
         super().__init__("Lock Screen", draw_exit_button=False)
 
-        self.unlock_btn = tk.Button(self.master, image=main_window.unlock_img, command=self.exit, font=('Arial', 15))
-        self.unlock_btn.place(x=50,y=50)
+        #This doesn't actually make button bigger?
+        f = tk.Frame(self.master, width=300, height=200, padx=10, pady=10) #make a frame where button goes
+        f.place(x=50,y=50)
+        self.unlock_btn = tk.Button(f, image=main_window.unlock_img, command=self.exit)
+        self.unlock_btn.grid(sticky="NSWE")
         #self.icon = tk.Label(root, image=self.unlock_img)
         #self.icon.place(x=20,y=7)
 
