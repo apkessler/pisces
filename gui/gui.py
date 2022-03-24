@@ -113,7 +113,7 @@ class MainWindow(Window):
             {'text':self.ph_value,      'callback': lambda: GraphPage('pH'),                'image':self.ph_img_small},
             {'text':"Fertilizer",       'callback': lambda: ManualFertilizerPage(),         'image':self.fert_img_small},
             {'text':"Settings",         'callback': lambda: SettingsPage(),                 'image':self.settings_img_small},
-            {'text': "",                'callback': self.dummy,                             'image':self.lock_img}
+            {'text': "",                'callback': self.activity_expiration,                             'image':self.lock_img}
         ]
 
         self.drawButtonGrid(buttons)
@@ -133,6 +133,10 @@ class MainWindow(Window):
     def activity_expiration(self):
         ''' This is the function what will be called when the activity watchdog expires.
             Close all subwindows (return to home screen) and lock the screen. '''
+        if (Window.activity_timer != None):
+            #In case this was called manually, stop the timer
+            Window.activity_timer.cancel()
+
         logger.info("MainWindow activity expiration!")
         Subwindow.destroy_all()
 
