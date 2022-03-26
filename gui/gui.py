@@ -19,11 +19,10 @@ import shutil
 import tkinter as tk
 import grpc
 import json
-
 import pandas as pd
-
 from loguru import logger
 
+#Plotting imports
 import matplotlib as plt
 from matplotlib.figure import (Figure, )
 from matplotlib.backends.backend_tkagg import (
@@ -136,15 +135,22 @@ class MainWindow(Window):
 
     def activity_expiration(self):
         ''' This is the function what will be called when the activity watchdog expires.
-            Close all subwindows (return to home screen) and lock the screen. '''
+            If LockWindow is not already in existence, close all subwindows (return to home screen) and lock the screen.
+            Otherwise, just kill the timer. '''
         if (Window.activity_timer != None):
             #In case this was called manually, stop the timer
             Window.activity_timer.cancel()
 
-        logger.info("MainWindow activity expiration!")
-        Subwindow.destroy_all()
+        logger.debug("MainWindow activity expiration!")
 
-        LockScreen(self)
+        if (LockScreen.is_locked()):
+            logger.debug("LockScreen already exists, not opening new one.")
+            # LockScreen.grab_set() #Make this screen front most layer
+
+        else:
+            Subwindow.destroy_all()
+            LockScreen(self)
+
 
     def updateTimestamp(self):
         now = datetime.datetime.now()
@@ -209,8 +215,12 @@ class MainWindow(Window):
         self.root.quit()
 
 class LockScreen(Subwindow):
+
+    _is_locked = False
+
     def __init__(self, main_window):
         super().__init__("Lock Screen", draw_exit_button=False, draw_lock_button=False)
+        LockScreen._is_locked = True
 
         self.lock_img = tk.PhotoImage(file=os.path.join(ICON_PATH, "lock_icon.png")).subsample(10,10)
         b = tk.Button(self.master, image=self.lock_img, command=self.exit)
@@ -228,7 +238,15 @@ class LockScreen(Subwindow):
         tk.Label(frame, textvariable=main_window.temp_value, font=('Arial',35)).grid(row=2,column=1, padx=50)
         tk.Label(frame, textvariable=main_window.ph_value, font=('Arial',35)).grid(row=2,column=2, padx=50)
 
+    @classmethod
+    def is_locked(cls) -> bool:
+        return cls._is_locked
 
+    def exit(self):
+        '''Override default exit'''
+        LockScreen._is_locked = False
+        logger.debug("Lock screen destroyed")
+        super().exit()
 
 
 
@@ -517,7 +535,7 @@ class DispensingCapturePage(Subwindow):
         self.dispenseThread.start()
         self.master.after(1000, self.check_if_dispense_done)
 
-
+    @activity_kick
     def check_if_dispense_done(self):
         '''Callback function called at 1Hz to check if dispensing done. If so, self destruct'''
         if (self.dispenseThread.is_alive()):
@@ -528,8 +546,6 @@ class DispensingCapturePage(Subwindow):
             self.dispenseThread.join()
             self.exit()
 
-
-
     def abort(self):
         if (self.dispenseThread.is_alive()):
             self.dispense_stop_event.set()
@@ -539,6 +555,11 @@ class DispensingCapturePage(Subwindow):
             self.dispenseThread.join()
             logger.info("Dispense thread already dead")
         self.exit()
+        #If aborted, kill all subwindows (including LockScreen, if relevant) and return to MainPage.
+        #This is not the ideal behavior, but a workaround to the fact that if you abort
+        #a scheduled dispense, the ordering of windows gets screwed up (the 2nd highest window moves to front?)
+        #Anyway, this is a rough workaround for that behavior.
+        Subwindow.destroy_all()
 
 
 class CalibratePhStartPage(Subwindow):
