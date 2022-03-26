@@ -297,6 +297,7 @@ class GraphPage(Subwindow):
         self.toolbar = NavigationToolbar2Tk(self.canvas, self.master, pack_toolbar=False)
         self.toolbar.update()
 
+        @activity_kick
         def show_previous_week():
             try:
                 self.initial_now -= one_week
@@ -305,6 +306,7 @@ class GraphPage(Subwindow):
                 logger.info("Cannot go back any further!")
                 self.initial_now += one_week #Undo what we just tried...
 
+        @activity_kick
         def show_next_week():
             self.initial_now += one_week
             now = datetime.datetime.now()
@@ -312,10 +314,12 @@ class GraphPage(Subwindow):
                 self.initial_now = now
             self.plot_data(self.initial_now - one_week, self.initial_now)
 
+        @activity_kick
         def show_this_week():
             self.initial_now = datetime.datetime.now()
             self.plot_data(self.initial_now - one_week, self.initial_now)
 
+        @activity_kick
         def show_all_time():
             self.plot_data(self.df.index.min(), self.df.index.max())
 
