@@ -22,7 +22,6 @@ import json
 
 import pandas as pd
 
-from typing import Tuple
 from loguru import logger
 
 import matplotlib as plt
@@ -67,7 +66,7 @@ class MainWindow(Window):
 
         self.timeText = tk.StringVar()
         self.updateTimestamp()
-        tk.Label(root, textvariable=self.timeText, font=('Arial',18)).place(x=475, y=15)
+        tk.Label(root, textvariable=self.timeText, font=('Arial',25)).place(x=425, y=15)
 
 
         self.temp_value = tk.StringVar()
@@ -76,8 +75,8 @@ class MainWindow(Window):
         self.the_scheduler = scheduler.Scheduler(hwCntrl)
 
 
-        self.unlock_img = tk.PhotoImage(file=os.path.join(ICON_PATH, "unlock_icon.png")).subsample(10,10)
-        self.lock_img = tk.PhotoImage(file=os.path.join(ICON_PATH, "lock_icon.png")).subsample(10,10)
+        # self.unlock_img = tk.PhotoImage(file=os.path.join(ICON_PATH, "unlock_icon.png")).subsample(10,10)
+
         self.ph_img = tk.PhotoImage(file=os.path.join(ICON_PATH, "ph_icon.png")).subsample(3,3)
         self.temperature_img = tk.PhotoImage(file=os.path.join(ICON_PATH, "temperature_icon.png")).subsample(3,3)
 
@@ -115,8 +114,8 @@ class MainWindow(Window):
             {'text':self.temp_value,    'callback': lambda: GraphPage('Temperature (F)'),   'image':self.temperature_img_small},
             {'text':self.ph_value,      'callback': lambda: GraphPage('pH'),                'image':self.ph_img_small},
             {'text':"Fertilizer",       'callback': lambda: ManualFertilizerPage(),         'image':self.fert_img_small},
-            {'text':"Settings",         'callback': lambda: SettingsPage(),                 'image':self.settings_img_small},
-            {'text': "",                'callback': self.activity_expiration,               'image':self.lock_img}
+            {'text':"Settings",         'callback': lambda: SettingsPage(),                 'image':self.settings_img_small}
+#            {'text': "",                'callback': self.activity_expiration,               'image':self.lock_img}
         ]
 
         self.drawButtonGrid(buttons)
@@ -130,6 +129,8 @@ class MainWindow(Window):
         self.set_activity_timeout(jData['lock_time_s'])
         self.set_activity_expiration_callback(self.activity_expiration)
         self.kick_activity_watchdog()
+
+        self.draw_lock_button()
 
 
 
@@ -209,21 +210,16 @@ class MainWindow(Window):
 
 class LockScreen(Subwindow):
     def __init__(self, main_window):
-        super().__init__("Lock Screen", draw_exit_button=False)
+        super().__init__("Lock Screen", draw_exit_button=False, draw_lock_button=False)
 
-        #This doesn't actually make button bigger?
-        f = tk.Frame(self.master, width=300, height=200, padx=10, pady=10) #make a frame where button goes
-        f.place(x=50,y=50)
-        self.unlock_btn = tk.Button(f, image=main_window.unlock_img, command=self.exit)
-        self.unlock_btn.grid(sticky="NSWE")
-        #self.icon = tk.Label(root, image=self.unlock_img)
-        #self.icon.place(x=20,y=7)
+        self.lock_img = tk.PhotoImage(file=os.path.join(ICON_PATH, "lock_icon.png")).subsample(10,10)
+        b = tk.Button(self.master, image=self.lock_img, command=self.exit)
+        b.place(x=20, y=7)
+        b.configure(bg='#BBBBBB')
 
-
+        #Make the frame to put the real time status info
         frame = tk.Frame(self.master)
         frame.place(in_=self.master, anchor='c', relx=0.5, rely=0.55)
-
-
 
         tk.Label(self.master, textvariable=main_window.timeText, font=('Arial',30)).place(x=300, y=50)
         tk.Label(frame, image=main_window.ph_img).grid(row=1,column=2, padx=50)
@@ -240,7 +236,7 @@ class LockScreen(Subwindow):
 class GraphPage(Subwindow):
 
     def __init__(self, field:str):
-        super().__init__(field)
+        super().__init__(field, draw_exit_button=False, draw_lock_button=False)
 
         #Read in the dataframe and parse timestamp strings to datetime
         self.df = pd.read_csv(jData['telemetry_file'], parse_dates=["Timestamp"])
@@ -307,11 +303,11 @@ class GraphPage(Subwindow):
 
         #We need to manually recreate the Back button since it got wiped by the matplotlib canvas
         back_btn = tk.Button(self.master, text="Back", font=fontTuple, width=9, height=2, bg='#ff5733', command=self.exit)
-        last_week_btn = tk.Button(self.master, text="Back\n 1 Week", command=show_previous_week,  font=fontTuple, width=9, height=2)
-        next_week_btn = tk.Button(self.master, text="Forward\n1 Week", command=show_next_week,  font=fontTuple, width=9, height=2)
-        this_week_btn = tk.Button(self.master, text="This\nWeek", command=show_this_week,  font=fontTuple, width=9, height=2)
+        last_week_btn = tk.Button(self.master, text="Back\n 1 Week", command=show_previous_week,  bg='#BBBBBB', font=fontTuple, width=9, height=2)
+        next_week_btn = tk.Button(self.master, text="Forward\n1 Week", command=show_next_week, bg='#BBBBBB', font=fontTuple, width=9, height=2)
+        this_week_btn = tk.Button(self.master, text="This\nWeek", command=show_this_week,  bg='#BBBBBB', font=fontTuple, width=9, height=2)
 
-        all_time_btn = tk.Button(self.master, text="All\nTime", command=show_all_time,  font=fontTuple, width=9, height=2)
+        all_time_btn = tk.Button(self.master, text="All\nTime", command=show_all_time, bg='#BBBBBB', font=fontTuple, width=9, height=2)
 
 
         # Packing order is important. Widgets are processed sequentially and if there
@@ -499,7 +495,7 @@ class ManualFertilizerPage(Subwindow):
 class DispensingCapturePage(Subwindow):
     ''' A Page to capture the UI when a scheduled dispense is in progress'''
     def __init__(self, volume_mL, scheduled=True):
-        super().__init__("Dispense in Progress", draw_exit_button=False)
+        super().__init__("Dispense in Progress", draw_exit_button=False, draw_lock_button=False)
 
         buttons = [
             {'text': "Abort",     'callback': self.abort, 'color':'#ff5733'}

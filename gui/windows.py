@@ -3,6 +3,7 @@ import tkinter as tk
 import weakref
 from loguru import logger
 import threading
+import os
 fontTuple = ('Arial', 15)
 
 def activity_kick(func):
@@ -31,6 +32,7 @@ class Window(object):
     activity_timer = None
     activity_timeout_sec = 5.0
     activity_expiration_callback = lambda: logger.debug("Default expiration callback")
+    lock_img = None
 
     def __init__(self, title, handle, fullscreen):
         self.master = handle
@@ -45,6 +47,24 @@ class Window(object):
         if (Window.main_window == None):
             logger.debug("Storing reference to main window")
             Window.main_window = self #Store reference to main window
+
+
+    def draw_lock_button(self, command=None):
+        '''_summary_
+
+        Parameters
+        ----------
+        command : _type_, optional
+            _description_, by default None
+        '''
+
+        #Only load the lock image once per class
+        if (Window.lock_img == None):
+            Window.lock_img = tk.PhotoImage(file=os.path.join(os.path.dirname(__file__),'icons', "unlock_icon.png")).subsample(10,10)
+
+        self.lock_btn = tk.Button(self.master, image=Window.lock_img, command=Window.activity_expiration_callback)
+        self.lock_btn.place(x=32, y=10)
+        self.lock_btn.configure(bg='#BBBBBB')
 
     def dummy(self):
         pass
@@ -68,7 +88,7 @@ class Window(object):
         """
         self.buttons = []
         frame = tk.Frame(self.master)
-        frame.place(in_=self.master, anchor='c', relx=0.5, rely=0.55)
+        frame.place(in_=self.master, anchor='c', relx=0.5, rely=0.57)
         for inx, bInfo in enumerate(buttonMap):
             f = tk.Frame(frame, width=200, height=200, padx=10, pady=10) #make a frame where button goes
 
@@ -89,15 +109,10 @@ class Window(object):
 
             b = tk.Button(f, **param_dict)
 
-            # if (type(bInfo['text']) is str):
-            #     b = tk.Button(f, text=bInfo['text'], font=fontTuple, command=callback)#, disabledforeground='black')
-            # else:
-            #     b = tk.Button(f, textvariable=bInfo['text'], font=fontTuple, command=callback)#, disabledforeground='black')
-
             if 'color' in bInfo:
                 b.configure(bg=bInfo['color'])
             else:
-                #b.configure(bg='#f5f5f5')
+                b.configure(bg='#BBBBBB')
                 pass
 
 
@@ -139,15 +154,19 @@ class Subwindow(Window):
 
     instances = weakref.WeakSet() #Set to track all instaces of Subwindow
 
-    def __init__(self, title, exit_button_text="Back", draw_exit_button=True):
+    def __init__(self, title, exit_button_text="Back", draw_exit_button=True, draw_lock_button=True):
         super().__init__(title, tk.Toplevel(), Window.is_fullscreen)
 
         Subwindow.instances.add(self) #Add self to list of instances
         self.master.grab_set() #Make this screen front most layer
 
+
         self.exit_btn = tk.Button(self.master, text=exit_button_text, font=('Arial', 15), width=9, height=2, bg='#ff5733', command=self.exit)
         if (draw_exit_button):
-            self.exit_btn.place(x=450, y=10)
+            self.exit_btn.place(x=500, y=10)
+
+        if (draw_lock_button):
+            self.draw_lock_button()
 
     @activity_kick
     def exit(self):
@@ -171,7 +190,7 @@ class Subwindow(Window):
 class ErrorPromptPage(Subwindow):
     ''' A Page to display an error message'''
     def __init__(self, msg):
-        super().__init__("Error", draw_exit_button=False)
+        super().__init__("Error", draw_exit_button=False, draw_lock_button=False)
 
         buttons = [
             {'text': "OK",     'callback': self.exit}
@@ -186,4 +205,3 @@ class ErrorPromptPage(Subwindow):
         tk.Label(self.master,
         text=msg,
         font=('Arial', 20)).pack(side=tk.TOP, pady=10)
-
