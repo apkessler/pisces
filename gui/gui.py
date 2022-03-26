@@ -569,9 +569,10 @@ class CalibratePhStartPage(Subwindow):
 
         msg = "To calibrate the pH sensor, you will need all three\nof the calibration solutions (pH=7.0, 4.0, 10.0)." + \
                "\n\nIf you've got those ready, go ahead\nand hit the START button!" + \
-                "\n\nWARNING: Starting this process will\nerase any existing calibration."
+                "\n\nWARNING: Starting this process will erase any existing\ncalibration," +\
+                "and disable the screen from locking."
 
-        tk.Label(self.master, text=msg, font=('Arial',18), justify=tk.LEFT).place(x=50, y=100)
+        tk.Label(self.master, text=msg, font=('Arial',18), justify=tk.LEFT).place(x=25, y=100)
 
         btn = tk.Button(self.master, text="Start!", font=fontTuple, width=15, height=4, bg='#00ff00', command=self.run_sequence)
         btn.place(x=250, y=330)
@@ -609,7 +610,7 @@ class CalibratePhDonePage(Subwindow):
 class CalibratePhProcessPage(Subwindow):
 
     def __init__(self):
-        super().__init__(f"pH Sensor Calibration", exit_button_text="Abort")
+        super().__init__(f"pH Sensor Calibration", exit_button_text="Abort", draw_lock_button=False)
 
         self.index = 0
         self.sequence = [
@@ -645,6 +646,7 @@ class CalibratePhProcessPage(Subwindow):
 
         self.refresh_data()
 
+    @activity_kick
     def refresh_data(self):
 
         #Update the pH Reading
@@ -653,6 +655,7 @@ class CalibratePhProcessPage(Subwindow):
 
         self.master.after(1000, self.refresh_data)
 
+    @activity_kick
     def save_calibration(self):
         '''
             TODO: Send the save calibration command to sensor...
