@@ -45,6 +45,7 @@ import scheduler
 
 hwCntrl = None #Global stub, because its easiest
 jData = None #config data
+ICON_PATH = os.path.join(os.path.dirname(__file__), 'icons')
 
 class MainWindow(Window):
     """The main window (shown on launch). Should only be one of these.
@@ -75,17 +76,24 @@ class MainWindow(Window):
         self.the_scheduler = scheduler.Scheduler(hwCntrl)
 
 
-        self.unlock_img = tk.PhotoImage(file=r"gui/unlock_icon.png").subsample(10,10)
-        self.lock_img = tk.PhotoImage(file=r"gui/lock_icon.png").subsample(10,10)
-        self.ph_img = tk.PhotoImage(file=r"gui/ph_icon.png").subsample(3,3)
-        self.temperature_img = tk.PhotoImage(file=r"gui/temperature_icon.png").subsample(3,3)
+        self.unlock_img = tk.PhotoImage(file=os.path.join(ICON_PATH, "unlock_icon.png")).subsample(10,10)
+        self.lock_img = tk.PhotoImage(file=os.path.join(ICON_PATH, "lock_icon.png")).subsample(10,10)
+        self.ph_img = tk.PhotoImage(file=os.path.join(ICON_PATH, "ph_icon.png")).subsample(3,3)
+        self.temperature_img = tk.PhotoImage(file=os.path.join(ICON_PATH, "temperature_icon.png")).subsample(3,3)
 
         SCALE = 6
-        self.ph_img_small = tk.PhotoImage(file=r"gui/ph_icon.png").subsample(SCALE,SCALE)
-        self.temperature_img_small = tk.PhotoImage(file=r"gui/temperature_icon.png").subsample(SCALE,SCALE)
-        self.settings_img_small = tk.PhotoImage(file=r"gui/settings_icon.png").subsample(SCALE,SCALE)
-        self.fert_img_small = tk.PhotoImage(file=r"gui/fert_icon.png").subsample(SCALE,SCALE)
-        self.light_img_small = tk.PhotoImage(file=r"gui/light_icon.png").subsample(SCALE,SCALE)
+        self.ph_img_small = tk.PhotoImage(file=os.path.join(ICON_PATH, "ph_icon.png")).subsample(SCALE,SCALE)
+        self.temperature_img_small = tk.PhotoImage(file=os.path.join(ICON_PATH, "temperature_icon.png")).subsample(SCALE,SCALE)
+        self.settings_img_small = tk.PhotoImage(file=os.path.join(ICON_PATH, "settings_icon.png")).subsample(SCALE,SCALE)
+        self.fert_img_small = tk.PhotoImage(file=os.path.join(ICON_PATH, "fert_icon.png")).subsample(SCALE,SCALE)
+
+        #self.light_img_small = tk.PhotoImage(file=os.path.join(ICON_PATH, "light_icon.png")).subsample(SCALE,SCALE)
+
+        self.light_white = tk.PhotoImage(file=os.path.join(ICON_PATH, "light_white.png")).subsample(SCALE,SCALE)
+        self.light_blue = tk.PhotoImage(file=os.path.join(ICON_PATH, "light_blue.png")).subsample(SCALE,SCALE)
+        self.light_timer = tk.PhotoImage(file=os.path.join(ICON_PATH, "light_timer.png")).subsample(SCALE,SCALE)
+        self.light_off = tk.PhotoImage(file=os.path.join(ICON_PATH, "light_off.png")).subsample(SCALE,SCALE)
+
 
 
         if (not os.path.exists(SCHEDULE_CONFIG_FILE)):
@@ -103,7 +111,7 @@ class MainWindow(Window):
             self.the_scheduler.add_event(event["name"], event['trigger_time_hhmm'], lambda:DispensingCapturePage(volume_mL=event['volume_mL']))
 
         buttons = [
-            {'text':self.lightModeText, 'callback': self.toggle_lights,                     'image':self.light_img_small},
+            {'text':self.lightModeText, 'callback': self.toggle_lights,                     'image':self.light_timer},
             {'text':self.temp_value,    'callback': lambda: GraphPage('Temperature (F)'),   'image':self.temperature_img_small},
             {'text':self.ph_value,      'callback': lambda: GraphPage('pH'),                'image':self.ph_img_small},
             {'text':"Fertilizer",       'callback': lambda: ManualFertilizerPage(),         'image':self.fert_img_small},
@@ -146,23 +154,28 @@ class MainWindow(Window):
 
         newMode = self.lightToggleModes[self.currentLightToggleModeInx]
         self.lightModeText.set("Lights:\n"+newMode)
+
         logger.info(f"Toggled to mode {newMode}")
 
         if (newMode == 'Schedule'):
             self.the_scheduler.resume_timers(['tank_lights', 'outlet1'])
+            self.buttons[0].configure(image=self.light_timer)
 
         elif (newMode == 'All On'):
+            self.buttons[0].configure(image=self.light_white)
             self.the_scheduler.disable_timers(['tank_lights', 'outlet1'])
             for lightId in [1,2,3]:
                 hwCntrl.setLightColor(lightId, 'white')
 
         elif (newMode == 'All Blue'):
+            self.buttons[0].configure(image=self.light_blue)
             self.the_scheduler.disable_timers(['tank_lights', 'outlet1'])
             for lightId in [1,2]:
                 hwCntrl.setLightColor(lightId, 'blue')
             hwCntrl.setLightColor(3, 'white') #Keep gro lights on
 
         elif (newMode == 'All Off'):
+            self.buttons[0].configure(image=self.light_off)
             self.the_scheduler.disable_timers(['tank_lights', 'outlet1'])
             for lightId in [1,2,3]:
                 hwCntrl.setLightColor(lightId, 'off')
