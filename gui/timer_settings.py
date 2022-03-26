@@ -3,7 +3,7 @@
 
 from sys import get_coroutine_origin_tracking_depth
 from helpers import *
-from windows import (Subwindow, fontTuple, ErrorPromptPage)
+from windows import (Subwindow, fontTuple, ErrorPromptPage, activity_kick)
 from system_settings import (RebootPromptPage)
 import os
 
@@ -96,6 +96,7 @@ class AquariumLightsSettingsPage(Subwindow):
         btn = tk.Button(self.master, text="Save", font=fontTuple, width=12, height=4, bg='#00ff00', command=self.save_settings)
         btn.grid(row=2, column=2, padx=10, pady=10)
 
+    @activity_kick
     def save_settings(self):
 
         #Pull out the requisite info, and write it back to config
@@ -159,10 +160,10 @@ class OutletSettingsPage(Subwindow):
         button_frame = tk.Frame(self.master)
         button_frame.grid(row=2, column =0, sticky='ew', padx=10, pady=10)
 
-        btn = tk.Button(button_frame, text="Previous\nOutlet", font=fontTuple, width=10, height=4, command=self.back)
+        btn = tk.Button(button_frame, text="Previous\nOutlet", font=fontTuple, width=10, height=4, bg='#BBBBBB', command=self.back)
         btn.grid(row=2, column=0, padx=10, pady=10)
 
-        btn = tk.Button(button_frame, text="Next\nOutlet", font=fontTuple, width=10, height=4, command=self.next)
+        btn = tk.Button(button_frame, text="Next\nOutlet", font=fontTuple, width=10, height=4, bg='#BBBBBB', command=self.next, )
         btn.grid(row=2, column=1, padx=10, pady=10)
 
         btn = tk.Button(self.master, text="Cancel", font=fontTuple, width=10, height=4, bg='#ff5733', command=self.exit)
@@ -179,6 +180,7 @@ class OutletSettingsPage(Subwindow):
 
         self.redraw_for_outlet(self.outlet_list[self.outlet_inx])
 
+    @activity_kick
     def mode_selector_callback(self, *args):
         '''Callback function for when the Mode dropdown changes. If 'Timer' is selected, enable time fields.
         Otherwise, disable. '''
@@ -199,7 +201,7 @@ class OutletSettingsPage(Subwindow):
         this_sched["sunrise_hhmm"] = self.sunrise_selector.get_hhmm()
         this_sched["sunset_hhmm"]  = self.sunset_selector.get_hhmm()
 
-
+    @activity_kick
     def next(self):
         '''Callback function to move to next outlet.
         '''
@@ -210,6 +212,7 @@ class OutletSettingsPage(Subwindow):
 
         self.redraw_for_outlet(self.outlet_list[self.outlet_inx])
 
+    @activity_kick
     def back(self):
         ''' Callback function to move to previous outlet.'''
         self.cache_settings()
@@ -240,21 +243,11 @@ class OutletSettingsPage(Subwindow):
         self.sunset_selector.set_time(this_sched['sunset_hhmm'])
         self.mode_selector.set(this_sched['mode']) #This will disable the time fields if on/off selected, or otherwise enable them
 
-        # #Totally disable the entry fields if this outlet is owned by GrowLight
-        # if (outlet_name in self.config_data["light_schedules"]["grow_lights"]["lights"]):
-        #     self.info_text.set("This outlet is configured as a Grow Light!")
-        #     self.sunrise_selector.disable()
-        #     self.sunset_selector.disable()
-        #     self.optionmenu.config(state=tk.DISABLED)
-
-        # else:
-        #     self.info_text.set("")
-        #     self.optionmenu.config(state=tk.NORMAL)
-
     def get_outlet_sched(self, name:str) ->dict:
         ''' Get the schedule for this outlet as a dict'''
         return self.config_data["outlet_schedules"][name]
 
+    @activity_kick
     def save_settings(self):
         '''Save the cached settings to file
         '''

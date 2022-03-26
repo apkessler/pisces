@@ -2,7 +2,7 @@
 
 import shutil
 from helpers import *
-from windows import (Subwindow, fontTuple, ErrorPromptPage)
+from windows import (Subwindow, fontTuple, ErrorPromptPage, activity_kick)
 import sys
 
 class SystemSettingsPage(Subwindow):
@@ -53,12 +53,12 @@ class SetSystemTimePage(Subwindow):
 
         self.exit_btn.grid(row=1, column=2, padx=10, pady=10)
 
-        tk.Label(self.master, text="Changing time requires GUI to restart.\nNote time channge may not work\nif system is connected to WiFi!",
+        tk.Label(self.master, text="Changing time requires GUI to restart.\nNote time change may not work\nif system is connected to WiFi!",
         font=('Arial', 16)).grid(row=5, column=0)
 
 
 
-
+    @activity_kick
     def save(self):
         try:
             new_dt = datetime.datetime.combine(self.date_select.get_date(), self.time_select.get_time())
@@ -92,6 +92,7 @@ class NetworkSettingsPage(Subwindow):
              ]
         self.drawButtonGrid(buttons)
 
+    @activity_kick
     def toggle_wifi(self):
         set_wifi_state(not is_wifi_on())
         self.update_wifi_button()
