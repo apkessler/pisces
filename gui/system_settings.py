@@ -72,19 +72,20 @@ class SetSystemTimePage(Subwindow):
 class NetworkSettingsPage(Subwindow):
     def __init__(self):
         super().__init__("Network Info")
-
-        tk.Label(self.master, text=f"IP Address:", font=("Arial", 24)).grid(row=1, column=0, padx=5, pady=5)
-        tk.Label(self.master, text=f"{get_ip()}", font=("Arial", 24)).grid(row=1, column=1, padx=5, pady= 5)
-        tk.Label(self.master, text=f"WiFi status: ", font=('Arial', 24)).grid(row=2, column=0, padx=5, pady=5)
+        f = tk.Frame(self.master)
+        f.place(x=50,y=80)
+        tk.Label(f, text=f"IP Address:", font=("Arial", 24)).grid(row=1, column=0, padx=5, pady=2)
+        tk.Label(f, text=f"{get_ip()}", font=("Arial", 24)).grid(row=1, column=1, padx=5, pady= 2)
+        tk.Label(f, text=f"WiFi status: ", font=('Arial', 24)).grid(row=2, column=0, padx=5, pady=2)
         self.wifi_status_var = tk.StringVar()
-        tk.Label(self.master, textvar=self.wifi_status_var, font=("Arial", 24)).grid(row=2, column=1, padx=5, pady=5)
+        tk.Label(f, textvar=self.wifi_status_var, font=("Arial", 24)).grid(row=2, column=1, padx=5, pady=2)
 
         self.wifi_button_var = tk.StringVar()
         self.update_wifi_button()
 
-        txt= 'To change connected WiFi network\n' + \
+        txt= 'To change connected WiFi network,\n' + \
              'exit GUI and use WiFi dropdown.'
-        tk.Label(self.master, text=txt, font=("Arial", 16)).place(x=50, y=400)
+        tk.Label(self.master, text=txt, font=("Arial", 16)).place(x=150, y=400)
 
 
         buttons = [
