@@ -262,6 +262,8 @@ class GraphPage(Subwindow):
         #Set the index to timestamp column so we can index by it
         self.df.set_index('Timestamp', inplace=True)
 
+        logger.info(f'Dataset ranges from {self.df.index.min()} to {self.df.index.max()}')
+
         #Pull the safe hi/lo bounds to plot horz lines from config file
         if (field == 'Temperature (F)'):
             self.safe_ylim = jData['temp_warning_degF']
@@ -289,47 +291,23 @@ class GraphPage(Subwindow):
 
 
         #By default, show the last week of data
-        self.initial_now = datetime.datetime.now()
-        one_week = datetime.timedelta(days=7)
-        self.plot_data(self.initial_now - one_week, self.initial_now)
+        self.max_time_to_plot = self.df.index.max() #Rather than use actual "now" timestamp, use the last piece of data in lpg
+
+        self.ONE_WEEK = datetime.timedelta(days=7)
+        self.plot_data(self.max_time_to_plot - self.ONE_WEEK, self.max_time_to_plot)
 
         # pack_toolbar=False will make it easier to use a layout manager later on.
         self.toolbar = NavigationToolbar2Tk(self.canvas, self.master, pack_toolbar=False)
         self.toolbar.update()
 
-        @activity_kick
-        def show_previous_week():
-            try:
-                self.initial_now -= one_week
-                self.plot_data(self.initial_now - one_week, self.initial_now)
-            except IndexError:
-                logger.info("Cannot go back any further!")
-                self.initial_now += one_week #Undo what we just tried...
-
-        @activity_kick
-        def show_next_week():
-            self.initial_now += one_week
-            now = datetime.datetime.now()
-            if (self.initial_now > now):
-                self.initial_now = now
-            self.plot_data(self.initial_now - one_week, self.initial_now)
-
-        @activity_kick
-        def show_this_week():
-            self.initial_now = datetime.datetime.now()
-            self.plot_data(self.initial_now - one_week, self.initial_now)
-
-        @activity_kick
-        def show_all_time():
-            self.plot_data(self.df.index.min(), self.df.index.max())
 
         #We need to manually recreate the Back button since it got wiped by the matplotlib canvas
         back_btn = tk.Button(self.master, text="Back", font=fontTuple, width=9, height=2, bg='#ff5733', command=self.exit)
-        last_week_btn = tk.Button(self.master, text="Back\n 1 Week", command=show_previous_week,  bg='#BBBBBB', font=fontTuple, width=9, height=2)
-        next_week_btn = tk.Button(self.master, text="Forward\n1 Week", command=show_next_week, bg='#BBBBBB', font=fontTuple, width=9, height=2)
-        this_week_btn = tk.Button(self.master, text="This\nWeek", command=show_this_week,  bg='#BBBBBB', font=fontTuple, width=9, height=2)
+        last_week_btn = tk.Button(self.master, text="Back\n 1 Week", command=self.show_previous_week,  bg='#BBBBBB', font=fontTuple, width=9, height=2)
+        next_week_btn = tk.Button(self.master, text="Forward\n1 Week", command=self.show_next_week, bg='#BBBBBB', font=fontTuple, width=9, height=2)
+        this_week_btn = tk.Button(self.master, text="This\nWeek", command=self.show_this_week,  bg='#BBBBBB', font=fontTuple, width=9, height=2)
 
-        all_time_btn = tk.Button(self.master, text="All\nTime", command=show_all_time, bg='#BBBBBB', font=fontTuple, width=9, height=2)
+        all_time_btn = tk.Button(self.master, text="All\nTime", command=self.show_all_time, bg='#BBBBBB', font=fontTuple, width=9, height=2)
 
 
         # Packing order is important. Widgets are processed sequentially and if there
@@ -348,10 +326,49 @@ class GraphPage(Subwindow):
 
         self.canvas.get_tk_widget().pack(in_=bottom, side=tk.TOP, fill=tk.BOTH, expand=1)
 
+    @activity_kick
+    def show_previous_week(self):
+        ''' Move the plotting window back 7 days. Reject if the latest time on the plot (right-hand side)
+        is before the oldest data in our log (i.e. nothing would be plotted).
+        '''
+        self.max_time_to_plot -= self.ONE_WEEK #New right hand side of x-axis
+
+        if (self.max_time_to_plot <= self.df.index.min()):
+            logger.info('Cannot go back further -- RHS of plot would be before any data')
+            self.max_time_to_plot += self.ONE_WEEK #Undo what we just tried...
+        else:
+            self.plot_data(self.max_time_to_plot - self.ONE_WEEK, self.max_time_to_plot)
+
+    @activity_kick
+    def show_next_week(self):
+        ''' Increment the plotting window forward 7 days. Reject if the earliest time on the plot (Left-hand side)
+        is after the most recent data in our log (i.e. nothing would be plotted).
+        '''
+        self.max_time_to_plot += self.ONE_WEEK
+
+        now = self.df.index.max() #Rather than use actual "now" timestamp, use the last piece of data in lpg
+        if ((self.max_time_to_plot - self.ONE_WEEK) >= now):
+            logger.info(f'Cannot go forward further -- LHS of plot would be after any data.')
+            self.max_time_to_plot -= self.ONE_WEEK #Undo what we just tried...
+
+        self.plot_data((self.max_time_to_plot - self.ONE_WEEK), self.max_time_to_plot)
+
+    @activity_kick
+    def show_this_week(self):
+        ''' Show the most recent 7 day's worth of data.
+        '''
+        self.max_time_to_plot = self.df.index.max()
+        self.plot_data(self.max_time_to_plot - self.ONE_WEEK, self.max_time_to_plot)
+
+    @activity_kick
+    def show_all_time(self):
+        self.plot_data(self.df.index.min(), self.df.index.max())
+
     def plot_data(self, start_time:datetime.datetime, end_time: datetime.datetime):
         plt.rcParams.update({'font.size': 24})
 
         self.ax.cla()
+        logger.info(f'Plotting between {start_time} and {end_time}')
         try:
             sub_df = self.df[start_time: end_time]
             sub_df.plot(y=[self.field], ax=self.ax)
