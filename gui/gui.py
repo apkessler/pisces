@@ -508,7 +508,7 @@ class ManualFertilizerPage(Subwindow):
             {'text': "Dispense\n1mL",   'callback': lambda: DispensingCapturePage(1, scheduled=False)},
             {'text': "Dispense\n3mL",   'callback': lambda: DispensingCapturePage(3, scheduled=False)},
             {'text': "Dispense\n10mL",  'callback': lambda: DispensingCapturePage(10, scheduled=False)},
-            {'text': "Dispense\n20mL", 'callback': lambda: DispensingCapturePage(20, scheduled=False)},
+            {'text': "Dispense\n15mL", 'callback': lambda: DispensingCapturePage(15, scheduled=False)},
             {'text': "Fertilizer\nSettings", 'callback': lambda:FertilizerSettingsPage()}
         ]
         self.drawButtonGrid(buttons)
