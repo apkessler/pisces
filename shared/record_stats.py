@@ -44,7 +44,7 @@ def main():
         csvwriter = csv.writer(statsfile, delimiter=',')
         if (add_header):
             csvwriter.writerow(["Timestamp", "Temperature (F)", "pH"])
-        csvwriter.writerow([datetime.datetime.now(), round(the_temp_F,2), round(the_pH,2)])
+        csvwriter.writerow([datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), round(the_temp_F,2), round(the_pH,2)])
 
 
 
