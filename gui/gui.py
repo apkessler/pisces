@@ -265,17 +265,10 @@ class GraphPage(Subwindow):
         logger.info(f'Dataset ranges from {self.df.index.min()} to {self.df.index.max()}')
 
         #Pull the safe hi/lo bounds to plot horz lines from config file
-        self.yaxis_buffer_factor = 0.25
-        if (field == 'Temperature (F)'):
-            self.safe_ylim = jData['temp_warning_degF']
-            self.yrange = jData['temp_axis_degF']
-            self.min_yaxis_range = 5
-        elif (field == 'pH'):
-            self.safe_ylim = jData['ph_warning']
-            self.yrange = jData['ph_axis']
-            self.min_yaxis_range = 1
-        else:
-            raise Exception(f"Bad Graph Type {field}")
+        try:
+            self.settings = jData['graph_settings'][field]
+        except KeyError:
+            raise Exception(f"Bad Graph Type {field}") from KeyError
 
 
         self.fig = Figure(figsize=(10,4), dpi = 100)
@@ -382,33 +375,24 @@ class GraphPage(Subwindow):
             self.exit()
             return
 
-        if (self.safe_ylim != None):
+        if (self.settings['yaxis_warnings'] != None):
             #If there are warning lines, draw them
-            self.ax.hlines(y=self.safe_ylim, xmin=[start_time], xmax=[end_time], colors='red', linestyles='--', lw=1)
+            self.ax.hlines(y=self.settings['yaxis_warnings'], xmin=[start_time], xmax=[end_time], colors='red', linestyles='--', lw=1)
 
-        #self.ax.set_ylabel(self.field)
-        if (self.field == 'pH'):
-            self.ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
-        else:
-            self.ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
+        self.ax.yaxis.set_major_formatter(FormatStrFormatter(self.settings['formatter']))
 
         #Decide on y-axis limits
-        if (0):#self.yrange != None):
-            #If there are absolute yranges set, use those
-            self.ax.set_ylim(self.yrange)
-        else:
-            #Otherwise, decide on custom ones
-            min_val = sub_df[self.field].min()
-            max_val = sub_df[self.field].max()
-            the_range = max_val - min_val
-            if (the_range < self.min_yaxis_range):
-                the_range = self.min_yaxis_range
+        min_val = sub_df[self.field].min()
+        max_val = sub_df[self.field].max()
+        the_range = max_val - min_val
+        if (the_range < self.settings['yaxis_min_range']):
+            the_range = self.settings['yaxis_min_range']
 
-            buffer = self.yaxis_buffer_factor*self.min_yaxis_range
-            yrange = [min_val - buffer, max_val + buffer]
-            yrange_rounded = [round(x,1) for x in yrange]
-            logger.debug(f'Values in this window: [{min_val}, {max_val}] --> {yrange} --> {yrange_rounded}')
-            self.ax.set_ylim(yrange_rounded)
+        buffer = self.settings['yaxis_buffer_factor']*the_range
+        yrange = [min_val - buffer, max_val + buffer]
+        yrange_rounded = [round(x,1) for x in yrange]
+        logger.debug(f'Values in this window: [{min_val}, {max_val}] --> {yrange} --> {yrange_rounded}')
+        self.ax.set_ylim(yrange_rounded)
 
         self.ax.set_xlabel('')
         self.ax.grid(which='both')
