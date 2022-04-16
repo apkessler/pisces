@@ -260,8 +260,8 @@ class GraphPage(Subwindow):
         self.df = pd.read_csv(jData['telemetry_file'], parse_dates=["Timestamp"])
 
         #Set the index to timestamp column so we can index by it
+        self.df['Timestamp'] = self.df['Timestamp'].dt.round('60min') #Rounding to the nearest hour makes x-axis auto labelling cleaner
         self.df.set_index('Timestamp', inplace=True)
-
         logger.info(f'Dataset ranges from {self.df.index.min()} to {self.df.index.max()}')
 
         #Pull the safe hi/lo bounds to plot horz lines from config file
