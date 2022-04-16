@@ -685,8 +685,8 @@ class CalibratePhProcessPage(Subwindow):
         self.errorText = tk.StringVar()
         tk.Label(self.master, textvar=self.errorText, font=('Arial',18), fg='#f00', justify=tk.LEFT).place(x=320, y=420)
 
-        btn = tk.Button(self.master, text="Next", font=fontTuple, width=12, height=4, bg='#00ff00', command=self.save_calibration)
-        btn.place(x=350, y=300)
+        self.next_btn = tk.Button(self.master, text="Next", font=fontTuple, width=10, height=3, bg='#00ff00', command=self.save_calibration)
+        self.next_btn.place(x=200, y=300)
 
         self.refresh_data()
 
@@ -723,6 +723,7 @@ class CalibratePhProcessPage(Subwindow):
             self.titleText.set(f"{self.sequence[self.index][2]} calibration @ pH={self.sequence[self.index][0]}")
             self.line1Text.set(f"1. Get the {self.sequence[self.index][0]} calibration solution.\n")
             self.errorText.set("")
+            self.next_btn.place(x=200 + int(self.index*150), y=300)
 
     def exit(self):
         '''
