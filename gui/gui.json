@@ -3,9 +3,11 @@
   "server": "localhost:50051",
   "telemetry_file":"~/Repositories/pisces/data/telemetry.csv",
   "temp_warning_degF": [75,80],
-  "temp_axis_degF":[72,82],
+  "temp_axis_degF":null,
+  "temp_min_axis_range_degF": 5,
   "ph_warning":null,
   "ph_axis":[8.5,9.0],
+  "ph_min_axis_range": 0.5,
   "lock_time_s":60.0
 }
 

@@ -265,12 +265,15 @@ class GraphPage(Subwindow):
         logger.info(f'Dataset ranges from {self.df.index.min()} to {self.df.index.max()}')
 
         #Pull the safe hi/lo bounds to plot horz lines from config file
+        self.yaxis_buffer_factor = 0.25
         if (field == 'Temperature (F)'):
             self.safe_ylim = jData['temp_warning_degF']
             self.yrange = jData['temp_axis_degF']
+            self.min_yaxis_range = 5
         elif (field == 'pH'):
             self.safe_ylim = jData['ph_warning']
             self.yrange = jData['ph_axis']
+            self.min_yaxis_range = 1
         else:
             raise Exception(f"Bad Graph Type {field}")
 
@@ -291,7 +294,7 @@ class GraphPage(Subwindow):
 
 
         #By default, show the last week of data
-        self.max_time_to_plot = self.df.index.max() #Rather than use actual "now" timestamp, use the last piece of data in lpg
+        self.max_time_to_plot = self.df.index.max() #Rather than use actual "now" timestamp, use the last piece of data in log
 
         self.ONE_WEEK = datetime.timedelta(days=7)
         self.plot_data(self.max_time_to_plot - self.ONE_WEEK, self.max_time_to_plot)
@@ -380,6 +383,7 @@ class GraphPage(Subwindow):
             return
 
         if (self.safe_ylim != None):
+            #If there are warning lines, draw them
             self.ax.hlines(y=self.safe_ylim, xmin=[start_time], xmax=[end_time], colors='red', linestyles='--', lw=1)
 
         #self.ax.set_ylabel(self.field)
@@ -388,8 +392,24 @@ class GraphPage(Subwindow):
         else:
             self.ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
 
+        #Decide on y-axis limits
+        if (0):#self.yrange != None):
+            #If there are absolute yranges set, use those
+            self.ax.set_ylim(self.yrange)
+        else:
+            #Otherwise, decide on custom ones
+            min_val = sub_df[self.field].min()
+            max_val = sub_df[self.field].max()
+            the_range = max_val - min_val
+            if (the_range < self.min_yaxis_range):
+                the_range = self.min_yaxis_range
 
-        self.ax.set_ylim(self.yrange)
+            buffer = self.yaxis_buffer_factor*self.min_yaxis_range
+            yrange = [min_val - buffer, max_val + buffer]
+            yrange_rounded = [round(x,1) for x in yrange]
+            logger.debug(f'Values in this window: [{min_val}, {max_val}] --> {yrange} --> {yrange_rounded}')
+            self.ax.set_ylim(yrange_rounded)
+
         self.ax.set_xlabel('')
         self.ax.grid(which='both')
         self.ax.get_legend().remove()
