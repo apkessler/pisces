@@ -268,7 +268,9 @@ class GraphPage(Subwindow):
         try:
             self.settings = jData['graph_settings'][field]
         except KeyError:
-            raise Exception(f"Bad Graph Type {field}") from KeyError
+            logger.error(f'Bad Graph Type "{field}"')
+            self.exit()
+
 
 
         self.fig = Figure(figsize=(10,4), dpi = 100)
@@ -358,9 +360,20 @@ class GraphPage(Subwindow):
 
     @activity_kick
     def show_all_time(self):
+        ''' Plot all available data
+        '''
         self.plot_data(self.df.index.min(), self.df.index.max())
 
     def plot_data(self, start_time:datetime.datetime, end_time: datetime.datetime):
+        ''' Actually plot the data in `self.df` between `start_time` and `end_time`
+
+        Parameters
+        ----------
+        start_time : datetime.datetime
+            The beginning the data range
+        end_time : datetime.datetime
+            The end of the data range
+        '''
         plt.rcParams.update({'font.size': 24})
 
         self.ax.cla()
@@ -377,7 +390,13 @@ class GraphPage(Subwindow):
 
         if (self.settings['yaxis_warnings'] != None):
             #If there are warning lines, draw them
-            self.ax.hlines(y=self.settings['yaxis_warnings'], xmin=[start_time], xmax=[end_time], colors='red', linestyles='--', lw=1)
+            self.ax.hlines(
+                y=self.settings['yaxis_warnings'],
+                xmin=[start_time],
+                xmax=[end_time],
+                colors='red',
+                linestyles='--',
+                lw=1)
 
         self.ax.yaxis.set_major_formatter(FormatStrFormatter(self.settings['formatter']))
 
