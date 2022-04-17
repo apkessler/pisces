@@ -154,8 +154,8 @@ class HardwareMap():
             self.thermometerPoller = sensorpollers.ThermometerPoller(interval_s = self.jData['thermometer']['poll_interval_sec'])
             self.phSensorPoller = sensorpollers.PhSensorPoller(interval_s= self.jData['ph_sensor']['poll_interval_sec'])
         else:
-            self.thermometerPoller = sensorpollers.SimulatedPoller(interval_s = self.jData['thermometer']['poll_interval_sec'], minV=-10, maxV=100, stepV=0.1)
-            self.phSensorPoller = sensorpollers.SimulatedPoller(interval_s= self.jData['ph_sensor']['poll_interval_sec'], minV=0, maxV=10, stepV=0.01)
+            self.thermometerPoller = sensorpollers.SimulatedPoller(interval_s = self.jData['thermometer']['poll_interval_sec'], minV=22, maxV=30, stepV=0.1)
+            self.phSensorPoller = sensorpollers.SimulatedPoller(interval_s= self.jData['ph_sensor']['poll_interval_sec'], minV=7, maxV=8, stepV=0.01)
 
     def bufferLightCmd(self, lightInx, state):
         """Record the given command to be applied later (when scope is released)
