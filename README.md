@@ -59,3 +59,16 @@ PYTHONPATH=shared/ python hwcontrol/hwcontrol.py -m
 PYTHONPATH=shared/ python gui/gui.py
 ```
 
+## Local AP Mode
+
+The script `scripts/enable_AP.sh` will turn the Raspberry Pi into a local WiFi access point. That is, rather then connect
+to an existing WiFi network, it will broadcast its *own* WiFi network that another computer can connect to.
+This can be a convenient way to communicate with the instrument when a local network is not available. However, note that in
+this mode it is a local network only, and will not have connection to the wider internet.
+
+To disable local AP mode, run `scripts/disable_AP.sh`.
+
+## Checking internal Raspberry Pi Temperature
+```bash
+$ /opt/vc/bin/vcgencmd measure_temp
+```
