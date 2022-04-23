@@ -315,6 +315,10 @@ class GraphPage(Subwindow):
         def m_fmt (x, pos=None):
             return month_fmt(x)[0]
 
+        day_fmt = mdates.DateFormatter('%d')
+        def d_fmt (x, pos=None):
+            return day_fmt(x)
+
         buffer = self.settings['yaxis_buffer_factor']*the_range
         yrange = [min_val - buffer, max_val + buffer]
         yrange_rounded = [round(x,1) for x in yrange]
@@ -325,14 +329,17 @@ class GraphPage(Subwindow):
         if (self.mode == 'week'):
             self.ax.xaxis.set_major_locator(mdates.DayLocator())
             self.ax.xaxis.set_major_formatter(mdates.ConciseDateFormatter(self.ax.xaxis.get_major_locator()))
+            self.ax.set_title('Week of ' + start_time.strftime('%b %d %Y'))
 
         elif (self.mode == 'month'):
             self.ax.xaxis.set_major_locator(mdates.WeekdayLocator(byweekday=mdates.SU)) #Tick on Sundays every week
-            self.ax.xaxis.set_major_formatter(mdates.ConciseDateFormatter(self.ax.xaxis.get_major_locator()))
+            self.ax.xaxis.set_major_formatter(FuncFormatter(d_fmt))
+            self.ax.set_title(start_time.strftime('%b %Y'))
 
         elif (self.mode == 'year'):
             self.ax.xaxis.set_major_locator(mdates.MonthLocator())
             self.ax.xaxis.set_major_formatter(FuncFormatter(m_fmt))
+            self.ax.set_title(start_time.strftime('%Y'))
 
 
         self.ax.grid(which='both')
