@@ -6,6 +6,7 @@ import tkinter as tk
 import json
 import os
 from typing import Tuple
+import calendar
 #from windows import fontTuple
 from loguru import logger
 
@@ -161,6 +162,20 @@ def set_wifi_state(state:bool) -> bool:
 
 def set_local_ap_mode(mode:bool) -> bool:
     logger.info(f"Setting local AP mode to {mode}")
+
+
+def get_start_of_year(dt:datetime.datetime) -> datetime.datetime:
+    return datetime.datetime(dt.year, 1, 1)
+
+def get_end_of_year(dt:datetime.datetime) -> datetime.datetime:
+    return datetime.datetime(dt.year, 12, 31, 23, 59)
+
+def get_start_of_month(dt:datetime.datetime) -> datetime.datetime:
+    return datetime.datetime(dt.year, dt.month, 1)
+
+def get_end_of_month(dt:datetime.datetime) -> datetime.datetime:
+    days_in_month = calendar.monthrange(dt.year, dt.month)[1]
+    return datetime.datetime(dt.year, dt.month, days_in_month, 23, 59)
 
 class DateSelector():
     ''' Helper Class for drawing date selector GUI elements'''
