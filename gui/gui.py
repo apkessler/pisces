@@ -39,6 +39,7 @@ import scheduler
 hwCntrl = None #Global stub, because its easiest
 jData = None #config data
 ICON_PATH = os.path.join(os.path.dirname(__file__), 'icons')
+MAX_VOLUME_ML = 15
 
 class MainWindow(Window):
     """The main window (shown on launch). Should only be one of these.
@@ -338,6 +339,9 @@ class FertilizerSettingsPage(Subwindow):
             # gets messed up by a night -> day or day -> night transition. We could try to fix this with a scope param,
             # then there's more weird edges cases if the lights are in a manual mode...
             ErrorPromptPage(f"Fertilizer dispense time must be at least\n10min before tank light on time ({tank_on_time.time()})")
+        elif (self.this_event['volume_mL'] > MAX_VOLUME_ML):
+            #We limit this because at longer dispenses seem to cause pump to start skipping?
+            ErrorPromptPage(f"Fertilizer dispense volume cannot exceed {MAX_VOLUME_ML}mL")
         else:
             logger.info("Writing new settings to file...")
             with open(SCHEDULE_CONFIG_FILE, 'w') as jsonfile:
