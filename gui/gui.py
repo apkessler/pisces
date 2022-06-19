@@ -23,13 +23,12 @@ import json
 import pandas as pd
 from loguru import logger
 
-
 # Custom imports
 from hwcontrol_client import HardwareControlClient
 from dispense_client import dispense
 from helpers import *
 from windows import (Window, Subwindow, ErrorPromptPage, fontTuple, activity_kick)
-from system_settings import (SystemSettingsPage, RebootPromptPage)
+from system_settings import (SystemSettingsPage, RebootPromptPage, NetworkSettingsPage)
 from timer_settings import (AquariumLightsSettingsPage, OutletSettingsPage)
 from graph_pages import GraphPage
 import scheduler
@@ -127,6 +126,12 @@ class MainWindow(Window):
 
         self.draw_lock_button()
 
+        #Configure for entire window class
+        self.set_wifi_callback(lambda:NetworkSettingsPage())
+        self.set_get_wifi_state_func(is_wifi_on)
+
+        self.draw_wifi_indicator(as_button=True)
+
 
 
     def activity_expiration(self):
@@ -215,13 +220,15 @@ class LockScreen(Subwindow):
     _is_locked = False
 
     def __init__(self, main_window):
-        super().__init__("Lock Screen", draw_exit_button=False, draw_lock_button=False)
+        super().__init__("Lock Screen", draw_exit_button=False, draw_lock_button=False, draw_wifi_button=False)
         LockScreen._is_locked = True
 
         self.lock_img = tk.PhotoImage(file=os.path.join(ICON_PATH, "lock_icon.png")).subsample(10,10)
         b = tk.Button(self.master, image=self.lock_img, command=self.exit)
         b.place(x=20, y=7)
         b.configure(bg='#BBBBBB')
+
+        self.draw_wifi_indicator(as_button=False)
 
         #Make the frame to put the real time status info
         frame = tk.Frame(self.master)

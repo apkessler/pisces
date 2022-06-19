@@ -71,11 +71,14 @@ class SetSystemTimePage(Subwindow):
 
 class NetworkSettingsPage(Subwindow):
     def __init__(self):
-        super().__init__("Network Info")
+        super().__init__("Network Info", draw_wifi_button=False)
+        self.draw_wifi_indicator(as_button=False)
         f = tk.Frame(self.master)
         f.place(x=50,y=80)
         tk.Label(f, text=f"IP Address:", font=("Arial", 24)).grid(row=1, column=0, padx=5, pady=2)
-        tk.Label(f, text=f"{get_ip()}", font=("Arial", 24)).grid(row=1, column=1, padx=5, pady= 2)
+        self.ip_addr_var = tk.StringVar()
+        tk.Label(f, textvar=self.ip_addr_var, font=("Arial", 24)).grid(row=1, column=1, padx=5, pady= 2)
+
         tk.Label(f, text=f"WiFi status: ", font=('Arial', 24)).grid(row=2, column=0, padx=5, pady=2)
         self.wifi_status_var = tk.StringVar()
         tk.Label(f, textvar=self.wifi_status_var, font=("Arial", 24)).grid(row=2, column=1, padx=5, pady=2)
@@ -93,10 +96,22 @@ class NetworkSettingsPage(Subwindow):
              ]
         self.drawButtonGrid(buttons)
 
+        self.refresh_data()
+
+    def refresh_data(self):
+        logger.debug("Refreshing IP data")
+        #Update the pH Reading
+        self.ip_addr_var.set(get_ip())
+        self.master.after(2000, self.refresh_data)
+
     @activity_kick
     def toggle_wifi(self):
         set_wifi_state(not is_wifi_on())
-        self.update_wifi_button()
+
+        #The easiest way to force wifi indicator to referesh is just
+        #to exit and reopen the page...
+        self.exit()
+        NetworkSettingsPage()
 
     def update_wifi_button(self):
         if (is_wifi_on()):

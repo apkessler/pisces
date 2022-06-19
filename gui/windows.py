@@ -32,7 +32,11 @@ class Window(object):
     activity_timer = None
     activity_timeout_sec = 5.0
     activity_expiration_callback = lambda: logger.debug("Default expiration callback")
+    wifi_callback = lambda: logger.debug("Default wifi callback")
+    get_wifi_state_func = lambda: None
     lock_img = None
+    wifi_on_img = None
+    wifi_off_img = None
 
     def __init__(self, title, handle, fullscreen):
         self.master = handle
@@ -49,7 +53,7 @@ class Window(object):
             Window.main_window = self #Store reference to main window
 
 
-    def draw_lock_button(self, command=None):
+    def draw_lock_button(self):
         '''_summary_
 
         Parameters
@@ -65,6 +69,32 @@ class Window(object):
         self.lock_btn = tk.Button(self.master, image=Window.lock_img, command=Window.activity_expiration_callback)
         self.lock_btn.place(x=32, y=10)
         self.lock_btn.configure(bg='#BBBBBB')
+
+    def draw_wifi_indicator(self, as_button=True):
+        '''_summary_
+
+        '''
+
+        wifi_state = Window.get_wifi_state_func()
+
+        #Only load the image once per class
+        if (Window.wifi_on_img == None):
+            Window.wifi_on_img = tk.PhotoImage(file=os.path.join(os.path.dirname(__file__),'icons', "wifi_on_icon.png")).subsample(10,10)
+
+        if (Window.wifi_off_img == None):
+            Window.wifi_off_img = tk.PhotoImage(file=os.path.join(os.path.dirname(__file__),'icons', "wifi_off_icon.png")).subsample(10,10)
+
+
+        wifi_img = Window.wifi_on_img if wifi_state else Window.wifi_off_img
+
+        if (as_button):
+            self.wifi_btn = tk.Button(self.master, image=wifi_img, command=Window.wifi_callback)
+            self.wifi_btn.place(x=150, y=10)
+            self.wifi_btn.configure(bg='#BBBBBB')
+        else:
+            self.wifi_canvas = tk.Canvas(self.master, width=wifi_img.width(), height=wifi_img.height())
+            self.wifi_canvas.create_image(0, 0, anchor=tk.NW, image=wifi_img)
+            self.wifi_canvas.place(x=150,y=10)
 
     def dummy(self):
         pass
@@ -143,6 +173,14 @@ class Window(object):
     def set_activity_expiration_callback(cls, func):
         Window.activity_expiration_callback = func
 
+    @classmethod
+    def set_wifi_callback(cls, func):
+        Window.wifi_callback = func
+
+    @classmethod
+    def set_get_wifi_state_func(cls,func):
+        Window.get_wifi_state_func = func
+
 class Subwindow(Window):
     """Generic Subwindow class. Make an inherited class from this for a custom subwindow.
 
@@ -154,7 +192,7 @@ class Subwindow(Window):
 
     instances = weakref.WeakSet() #Set to track all instaces of Subwindow
 
-    def __init__(self, title, exit_button_text="Back", draw_exit_button=True, draw_lock_button=True):
+    def __init__(self, title, exit_button_text="Back", draw_exit_button=True, draw_lock_button=True, draw_wifi_button=True):
         super().__init__(title, tk.Toplevel(), Window.is_fullscreen)
 
         Subwindow.instances.add(self) #Add self to list of instances
@@ -167,6 +205,9 @@ class Subwindow(Window):
 
         if (draw_lock_button):
             self.draw_lock_button()
+
+        if (draw_wifi_button):
+            self.draw_wifi_indicator(as_button=True)
 
     @activity_kick
     def exit(self):
