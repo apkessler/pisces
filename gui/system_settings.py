@@ -110,8 +110,8 @@ class NetworkSettingsPage(Subwindow):
 
         #The easiest way to force wifi indicator to referesh is just
         #to exit and reopen the page...
-        self.exit()
         NetworkSettingsPage()
+        self.exit()
 
     def update_wifi_button(self):
         if (is_wifi_on()):
