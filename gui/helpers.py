@@ -7,6 +7,7 @@ import json
 import os
 from typing import Tuple
 import calendar
+import shlex
 #from windows import fontTuple
 from loguru import logger
 
@@ -87,9 +88,10 @@ def get_ip() -> str:
 def sys_call(cmd:str) -> str:
     output = ""
     try:
-        process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
+        tokens = shlex.split(cmd) #Use shlex.split so quoted spaces are treated as a single token
+        logger.debug(tokens)
+        process = subprocess.Popen(tokens, stdout=subprocess.PIPE)
         output = process.communicate()[0]
-        logger.info(output)
     except FileNotFoundError:
         logger.error(f"Could not execute sys call: '{cmd}'")
         output = None
@@ -97,12 +99,25 @@ def sys_call(cmd:str) -> str:
         return output
 
 def set_datetime(the_datetime:datetime.datetime):
-    #sudo date -s YYYY-MM-DD HH:MM:SS
-    #date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
+    ''' Set the system date time to provided value.
+        Return success/fail
+    '''
+    #Turn NTP off so we can change the time
+    sys_call("/usr/bin/sudo /usr/bin/timedatectl set-ntp 0")
 
     time = the_datetime.strftime("%Y-%m-%d %H:%M:%S")
     logger.info(f"Setting time to {time}")
     sys_call(f'/usr/bin/sudo /usr/bin/timedatectl set-time "{time}"')
+
+    #Turn NTP back on (note this may override the change we just tried to make)
+    sys_call("/usr/bin/sudo /usr/bin/timedatectl set-ntp 1")
+
+    #Look at what the time is now
+    new_now = datetime.datetime.now()
+    time_error = new_now - the_datetime
+    logger.debug(f'Err={time_error}')
+    return (time_error.total_seconds() > 1.5)
+
 
 def reboot_pi():
     logger.info("restarting the Pi")
@@ -133,7 +148,6 @@ def is_wifi_on() -> bool:
         True if WiFi is on, False if Wifi is off or unable to determine
     '''
     resp = sys_call('rfkill -J')
-    print(resp)
     try:
         jData = json.loads(resp)
         for interface in jData[""]:

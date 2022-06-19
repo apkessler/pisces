@@ -37,7 +37,8 @@ class SystemSettingsPage(Subwindow):
 
 class SetSystemTimePage(Subwindow):
     def __init__(self):
-        super().__init__("System Time Settings", draw_exit_button=False)
+        #We manually draw the exit button a grid below...
+        super().__init__("System Time Settings", draw_exit_button=False, draw_wifi_button=False)
 
         tk.Label(self.master, text="Time (hh:mm)", font=('Arial', 20)).grid(row=1, column=0)
         tk.Label(self.master, text="Date (YYYY-MM-DD)", font=('Arial', 20)).grid(row=3, column=0)
@@ -62,7 +63,10 @@ class SetSystemTimePage(Subwindow):
     def save(self):
         try:
             new_dt = datetime.datetime.combine(self.date_select.get_date(), self.time_select.get_time())
-            set_datetime(new_dt)
+            err = set_datetime(new_dt)
+            if (err):
+                ErrorPromptPage("Failed to set date/time.")
+            
             RebootPromptPage(allow_defer=False)
 
         except ValueError:
@@ -123,7 +127,7 @@ class NetworkSettingsPage(Subwindow):
 
 class AboutPage(Subwindow):
     def __init__(self):
-        super().__init__("About")
+        super().__init__("About", draw_wifi_button=False)
 
         tk.Label(self.master,
         text=f'Version: {get_git_version()}',
@@ -138,19 +142,26 @@ class AboutPage(Subwindow):
 
 class RebootPromptPage(Subwindow):
     ''' A Page to prompt the user to restart the GUI'''
+    @activity_kick
     def __init__(self, allow_defer=True):
-        super().__init__("Relaunch Prompt", draw_exit_button=False)
+        super().__init__("Relaunch Prompt", draw_lock_button=False, draw_exit_button=False, draw_wifi_button=False)
 
         buttons = [
             {'text': "Relaunch\nNow",   'callback': lambda: sys.exit(1), 'color':'#ff5733'}
         ]
 
-        if (allow_defer):
-            buttons.append({'text': "Relaunch\nLater", 'callback': self.exit})
-
-        self.drawButtonGrid(buttons)
-
 
         tk.Label(self.master,
         text="The GUI must restart for changes to take effect!",
-        font=('Arial', 20)).pack(side=tk.TOP, pady=75)
+        font=('Arial', 20)).pack(side=tk.TOP, pady=50)
+
+        if (allow_defer):
+            buttons.append({'text': "Relaunch\nLater", 'callback': self.exit})
+        else:
+            tk.Label(self.master,
+            text="The GUI will restart automatically in 10sec.",
+            font=('Arial', 20)).pack(side=tk.TOP, pady=10)
+            self.master.after(10_000, lambda: sys.exit(1))
+
+        self.drawButtonGrid(buttons)
+

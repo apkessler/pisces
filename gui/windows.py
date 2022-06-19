@@ -230,8 +230,9 @@ class Subwindow(Window):
 
 class ErrorPromptPage(Subwindow):
     ''' A Page to display an error message'''
+    @activity_kick
     def __init__(self, msg):
-        super().__init__("Error", draw_exit_button=False, draw_lock_button=False)
+        super().__init__("Error", draw_exit_button=False, draw_lock_button=False, draw_wifi_button=False)
 
         buttons = [
             {'text': "OK",     'callback': self.exit}
