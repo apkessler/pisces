@@ -2,7 +2,7 @@
 
 import shutil
 from helpers import *
-from windows import (Subwindow, fontTuple, ErrorPromptPage, activity_kick)
+from windows import (Subwindow, fontTuple, ErrorPromptPage, ConfirmPromptPage, activity_kick)
 import sys
 
 class SystemSettingsPage(Subwindow):
@@ -12,11 +12,11 @@ class SystemSettingsPage(Subwindow):
 
         buttons = [
             {'text':"About",            'callback': lambda: AboutPage()},
-            {'text':"Shutdown\nBox",    'callback': shutdown_pi},
-            {'text':"Exit GUI",         'callback': self.quitGui},
+            {'text':"Shutdown\nBox",    'callback': lambda: ConfirmPromptPage("Are you sure you want to shutdown?", shutdown_pi)},
+            {'text':"Exit GUI",         'callback': lambda: ConfirmPromptPage("Are you sure you want to quit?",self.quitGui)},
             {'text':"Network\nSettings", 'callback': lambda: NetworkSettingsPage()},
             {'text':"Set Time",         'callback': lambda: SetSystemTimePage()},
-            {'text':"Restore\nDefaults", 'callback': self.restore_defaults}
+            {'text':"Restore\nDefaults", 'callback': lambda: ConfirmPromptPage("Are you sure?", self.restore_defaults)}
         ]
 
         self.drawButtonGrid(buttons)

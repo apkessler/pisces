@@ -27,7 +27,7 @@ from loguru import logger
 from hwcontrol_client import HardwareControlClient
 from dispense_client import dispense
 from helpers import *
-from windows import (Window, Subwindow, ErrorPromptPage, fontTuple, activity_kick)
+from windows import (Window, Subwindow, ErrorPromptPage, ConfirmPromptPage, fontTuple, activity_kick)
 from system_settings import (SystemSettingsPage, RebootPromptPage, NetworkSettingsPage)
 from timer_settings import (AquariumLightsSettingsPage, OutletSettingsPage)
 from graph_pages import GraphPage
@@ -262,7 +262,7 @@ class SettingsPage(Subwindow):
         super().__init__("Settings")
 
         buttons = [
-            {'text':"Reboot\nBox",      'callback': reboot_pi},
+            {'text':"Reboot\nBox",      'callback': lambda:ConfirmPromptPage("Are you sure you want to reboot?", reboot_pi)},
             {'text':"Aquarium\nLights", 'callback': lambda: AquariumLightsSettingsPage()},
             {'text':"Outlet\nTimers",      'callback': lambda: OutletSettingsPage()},
             {'text':"Fertilizer\nSettings", 'callback': lambda: FertilizerSettingsPage()},

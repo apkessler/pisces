@@ -247,3 +247,27 @@ class ErrorPromptPage(Subwindow):
         tk.Label(self.master,
         text=msg,
         font=('Arial', 20)).pack(side=tk.TOP, pady=10)
+
+
+class ConfirmPromptPage(Subwindow):
+    ''' A Page to confirm a request'''
+    @activity_kick
+    def __init__(self, msg, cmd):
+        super().__init__("Confirm", draw_exit_button=False, draw_lock_button=False, draw_wifi_button=False)
+
+        self.cmd = cmd
+
+        buttons = [
+            {'text': "Yes",     'callback': self.execute},
+            {'text': "No",     'callback': self.exit}
+        ]
+
+        self.drawButtonGrid(buttons)
+
+        tk.Label(self.master,
+        text=msg,
+        font=('Arial', 20)).pack(side=tk.TOP, pady=40)
+
+    def execute(self):
+        self.cmd()
+        self.exit()
