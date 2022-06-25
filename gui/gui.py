@@ -28,7 +28,7 @@ from hwcontrol_client import HardwareControlClient
 from dispense_client import dispense
 from helpers import *
 from windows import (Window, Subwindow, ErrorPromptPage, ConfirmPromptPage, fontTuple, activity_kick)
-from system_settings import (SystemSettingsPage, RebootPromptPage, NetworkSettingsPage)
+from system_settings import (SystemSettingsPage, RelaunchPromptPage, NetworkSettingsPage)
 from timer_settings import (AquariumLightsSettingsPage, OutletSettingsPage)
 from graph_pages import GraphPage
 import scheduler
@@ -355,7 +355,7 @@ class FertilizerSettingsPage(Subwindow):
                 json.dump(self.config_data, jsonfile, indent=4)
 
             self.exit()
-            RebootPromptPage()
+            RelaunchPromptPage()
 
 
 class ManualFertilizerPage(Subwindow):
@@ -581,7 +581,3 @@ if __name__ == "__main__":
         except grpc.RpcError as rpc_error:
             logger.error(f"Unable to connect to server! {rpc_error.code()}")
             exit()
-
-
-
-

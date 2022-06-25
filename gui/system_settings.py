@@ -34,7 +34,7 @@ class SystemSettingsPage(Subwindow):
         shutil.copyfile(SCHEDULE_CONFIG_DEFAULT_FILE, SCHEDULE_CONFIG_FILE)
 
         self.exit()
-        RebootPromptPage()
+        RelaunchPromptPage()
 
 class SetSystemTimePage(Subwindow):
     def __init__(self):
@@ -71,7 +71,7 @@ class SetSystemTimePage(Subwindow):
             err = set_datetime(new_dt)
             logger.debug(f"Set time error: {err}")
 
-            RebootPromptPage(allow_defer=False)
+            RelaunchPromptPage(allow_defer=False)
 
         except ValueError:
             ErrorPromptPage("Invalid date/time!")
@@ -144,7 +144,7 @@ class AboutPage(Subwindow):
         self.drawButtonGrid(buttons)
 
 
-class RebootPromptPage(Subwindow):
+class RelaunchPromptPage(Subwindow):
     ''' A Page to prompt the user to restart the GUI'''
 
     def __init__(self, allow_defer=True, auto_accept_time_sec=10):
