@@ -108,26 +108,31 @@ class NetworkSettingsPage(Subwindow):
 
     def refresh_data(self):
         logger.debug("Refreshing IP data")
-        #Update the pH Reading
         self.ip_addr_var.set(get_ip())
         self.master.after(2000, self.refresh_data)
 
     @activity_kick
     def toggle_wifi(self):
+        ''' Callback when Toggle WiFi button hit'''
         set_wifi_state(not is_wifi_on())
-
-        #The easiest way to force wifi indicator to referesh is just
-        #to exit and reopen the page...
-        NetworkSettingsPage()
-        self.exit()
+        self.update_wifi_button()
 
     def update_wifi_button(self):
+        ''' Check current state of Wifi and update text/icons'''
+        self.update_wifi_indicator()
+
         if (is_wifi_on()):
             self.wifi_button_var.set("Turn WiFi\nOff")
             self.wifi_status_var.set("On")
         else:
             self.wifi_button_var.set("Turn WiFi\nOn")
             self.wifi_status_var.set("Off")
+
+    def exit(self):
+        ''' On exit from this window, force WiFi indicator on main screen to update'''
+        logger.info('Updating Wifi status on MainWindow')
+        self.main_window.update_wifi_indicator()
+        super().exit()
 
 class AboutPage(Subwindow):
     def __init__(self):

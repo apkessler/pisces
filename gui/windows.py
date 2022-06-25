@@ -79,7 +79,7 @@ class Window(object):
             is called again.
 
         '''
-
+        self.wifi_is_button = as_button
         wifi_state = Window.get_wifi_state_func()
 
         #Only load the image once per class
@@ -97,9 +97,18 @@ class Window(object):
             self.wifi_btn.place(x=150, y=10)
             self.wifi_btn.configure(bg='#BBBBBB')
         else:
-            self.wifi_canvas = tk.Canvas(self.master, width=wifi_img.width(), height=wifi_img.height())
-            self.wifi_canvas.create_image(0, 0, anchor=tk.NW, image=wifi_img)
-            self.wifi_canvas.place(x=150,y=10)
+            self.wifi_label = tk.Label(self.master, image=wifi_img)
+            self.wifi_label.place(x=150,y=10)
+
+    def update_wifi_indicator(self):
+        ''' Check current wifi status, and update button/indicator'''
+        wifi_state = Window.get_wifi_state_func()
+        logger.debug(f'Updating WiFi indicator (Status = {wifi_state})')
+        wifi_img = Window.wifi_on_img if wifi_state else Window.wifi_off_img
+        if (self.wifi_is_button):
+            self.wifi_btn.configure(image=wifi_img)
+        else:
+            self.wifi_label.configure(image=wifi_img)
 
     def dummy(self):
         pass
@@ -195,7 +204,7 @@ class Subwindow(Window):
         [description]
     """
 
-    instances = weakref.WeakSet() #Set to track all instaces of Subwindow
+    instances = weakref.WeakSet() #Set to track all instances of Subwindow
 
     def __init__(self, title, exit_button_text="Back", draw_exit_button=True, draw_lock_button=True, draw_wifi_indicator=False):
         super().__init__(title, tk.Toplevel(), Window.is_fullscreen)
