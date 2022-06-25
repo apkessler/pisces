@@ -220,7 +220,7 @@ class LockScreen(Subwindow):
     _is_locked = False
 
     def __init__(self, main_window):
-        super().__init__("Lock Screen", draw_exit_button=False, draw_lock_button=False, draw_wifi_button=False)
+        super().__init__("Lock Screen", draw_exit_button=False, draw_lock_button=False, draw_wifi_indicator=True)
         LockScreen._is_locked = True
 
         self.lock_img = tk.PhotoImage(file=os.path.join(ICON_PATH, "lock_icon.png")).subsample(10,10)

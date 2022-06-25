@@ -70,8 +70,13 @@ class Window(object):
         self.lock_btn.place(x=32, y=10)
         self.lock_btn.configure(bg='#BBBBBB')
 
-    def draw_wifi_indicator(self, as_button=True):
-        '''_summary_
+    def draw_wifi_indicator(self, as_button=False):
+        '''Draw the WiFi status indicator at the top of the window.
+            If `as_button` is TRUE, it is draw as a button that when clicked goes to the NetworkSettingsPage.
+            If `as_button` is FALSE, it is drawn as a static image.
+
+            Note that the indicator will not automatically change/update based on Wifi status unless this function
+            is called again.
 
         '''
 
@@ -192,7 +197,7 @@ class Subwindow(Window):
 
     instances = weakref.WeakSet() #Set to track all instaces of Subwindow
 
-    def __init__(self, title, exit_button_text="Back", draw_exit_button=True, draw_lock_button=True, draw_wifi_button=True):
+    def __init__(self, title, exit_button_text="Back", draw_exit_button=True, draw_lock_button=True, draw_wifi_indicator=False):
         super().__init__(title, tk.Toplevel(), Window.is_fullscreen)
 
         Subwindow.instances.add(self) #Add self to list of instances
@@ -206,8 +211,8 @@ class Subwindow(Window):
         if (draw_lock_button):
             self.draw_lock_button()
 
-        if (draw_wifi_button):
-            self.draw_wifi_indicator(as_button=True)
+        if (draw_wifi_indicator):
+            self.draw_wifi_indicator()
 
     @activity_kick
     def exit(self):
@@ -232,7 +237,7 @@ class ErrorPromptPage(Subwindow):
     ''' A Page to display an error message'''
     @activity_kick
     def __init__(self, msg):
-        super().__init__("Error", draw_exit_button=False, draw_lock_button=False, draw_wifi_button=False)
+        super().__init__("Error", draw_exit_button=False, draw_lock_button=False)
 
         buttons = [
             {'text': "OK",     'callback': self.exit}
@@ -253,7 +258,7 @@ class ConfirmPromptPage(Subwindow):
     ''' A Page to confirm a request'''
     @activity_kick
     def __init__(self, msg, cmd):
-        super().__init__("Confirm", draw_exit_button=False, draw_lock_button=False, draw_wifi_button=False)
+        super().__init__("Confirm", draw_exit_button=False, draw_lock_button=False)
 
         self.cmd = cmd
 

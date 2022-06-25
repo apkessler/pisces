@@ -39,7 +39,7 @@ class SystemSettingsPage(Subwindow):
 class SetSystemTimePage(Subwindow):
     def __init__(self):
         #We manually draw the exit button a grid below...
-        super().__init__("System Time Settings", draw_exit_button=False, draw_wifi_button=False)
+        super().__init__("System Time Settings", draw_exit_button=False)
 
         tk.Label(self.master, text="Time (hh:mm)", font=('Arial', 20)).grid(row=1, column=0)
         tk.Label(self.master, text="Date (YYYY-MM-DD)", font=('Arial', 20)).grid(row=3, column=0)
@@ -79,8 +79,8 @@ class SetSystemTimePage(Subwindow):
 
 class NetworkSettingsPage(Subwindow):
     def __init__(self):
-        super().__init__("Network Info", draw_wifi_button=False)
-        self.draw_wifi_indicator(as_button=False)
+        super().__init__("Network Info", draw_wifi_indicator=True)
+
         f = tk.Frame(self.master)
         f.place(x=50,y=80)
         tk.Label(f, text=f"IP Address:", font=("Arial", 24)).grid(row=1, column=0, padx=5, pady=2)
@@ -148,7 +148,7 @@ class RelaunchPromptPage(Subwindow):
     ''' A Page to prompt the user to restart the GUI'''
 
     def __init__(self, allow_defer=True, auto_accept_time_sec=10):
-        super().__init__("Relaunch Prompt", draw_lock_button=False, draw_exit_button=False, draw_wifi_button=False)
+        super().__init__("Relaunch Prompt", draw_lock_button=False, draw_exit_button=False)
         self.auto_accept_time_sec = auto_accept_time_sec
         buttons = [
             {'text': "Relaunch\nNow",   'callback': self.do_the_relaunch, 'color':'#ff5733'}
