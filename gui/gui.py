@@ -297,7 +297,7 @@ class FertilizerSettingsPage(Subwindow):
 
         time_setting_frame = tk.LabelFrame(self.master, text="Daily Dispense Settings", font=fontTuple)
 
-        tk.Label(self.master, text="Changes will take effect on next system reboot.", font=('Arial', 16)).grid(row=4, column=0)
+        tk.Label(self.master, text="Changes will take effect on next GUI restart.", font=('Arial', 16)).grid(row=4, column=0)
 
         time_setting_frame.grid(row=1, column =0, sticky='ew', padx=10, pady=10)
 
