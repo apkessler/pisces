@@ -16,6 +16,20 @@ from windows import fontTuple
 SCHEDULE_CONFIG_FILE = os.path.join(os.path.dirname(__file__), '../data/schedule.json')
 SCHEDULE_CONFIG_DEFAULT_FILE = os.path.join(os.path.dirname(__file__), 'schedule.default.json')
 
+try:
+    import systemd.daemon
+    has_systemd = True
+except ModuleNotFoundError:
+    print('Cannot find systemd module')
+    has_systemd = False
+
+def notify_systemd_watchdog():
+    logger.debug('systemd watchdog kick')
+    if (has_systemd):
+        systemd.daemon.notify('WATCHDOG=1')
+    else:
+        pass
+
 def ph_to_color(ph:float) -> str:
     '''Convert a pH value to color based on API Freshwater test kit color map
 

@@ -14,13 +14,11 @@ import os
 import datetime
 import threading
 import shutil
-from dateutil import relativedelta
 
 # 3rd party imports
 import tkinter as tk
 import grpc
 import json
-import pandas as pd
 from loguru import logger
 
 # Custom imports
@@ -32,6 +30,7 @@ from system_settings import (SystemSettingsPage, RelaunchPromptPage, NetworkSett
 from timer_settings import (AquariumLightsSettingsPage, OutletSettingsPage)
 from graph_pages import GraphPage
 import scheduler
+
 
 ##### Globals ####
 
@@ -189,13 +188,23 @@ class MainWindow(Window):
                 hwCntrl.setLightColor(lightId, 'off')
 
     def update_scheduler(self):
+        ''' Called every 30sec. Makes decisions about what should happen at this time, etc.
+        '''
 
         logger.debug("Scheduler update")
         self.the_scheduler.update(datetime.datetime.now())
         self.master.after(30*1000, self.update_scheduler)
 
     def refresh_data(self):
+        '''Called every 1sec. Updates time, gets fresh pH/Temp readings, and kicks the systemd watchdog.
+        '''
+
+        #Kick the systemd watchdog. This is to catch the tkinter timers getting messed up due to a system time change,
+        #likely triggered by an NTP sync
+        notify_systemd_watchdog()
+
         self.updateTimestamp()
+
 
         #Update all things that need updating
 
