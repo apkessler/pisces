@@ -4,6 +4,7 @@ import shutil
 from helpers import *
 from windows import (Subwindow, fontTuple, ErrorPromptPage, ConfirmPromptPage, activity_kick)
 import sys
+import time
 
 class SystemSettingsPage(Subwindow):
 
@@ -49,24 +50,27 @@ class SetSystemTimePage(Subwindow):
         self.date_select = DateSelector(self.master, datetime.datetime.now().date())
         self.date_select.grid(row=4, column=0, pady=10, padx=10)
 
-        btn = tk.Button(self.master, text="Save", font=fontTuple, width=12, height=4, bg='#00ff00', command=self.save)
+        btn = tk.Button(self.master, text="Save", font=fontTuple, width=12, height=4, bg='#00ff00', command=self.save_callback)
         btn.grid(row=5, column=2, padx=10, pady=10)
 
         self.exit_btn.grid(row=1, column=2, padx=10, pady=10)
 
-        tk.Label(self.master, text="Changing time requires GUI to restart.\nNote time change may not work\nif system is connected to WiFi!",
-        font=('Arial', 16)).grid(row=5, column=0)
+
+        tk.Label(self.master, text="System will automatically update\nto internet time if available.", font=('Arial', 16)).grid(row=5, column=0)
+        tk.Label(self.master, text="Changing time will cause GUI to restart.", font=('Arial', 16)).grid(row=6, column=0)
 
 
 
     @activity_kick
-    def save(self):
+    def save_callback(self):
+        ''' Function called when "Save" button hit.
+            Grabs date/time from user input, and calls system set-time interface.
+        '''
         try:
             new_dt = datetime.datetime.combine(self.date_select.get_date(), self.time_select.get_time())
             err = set_datetime(new_dt)
-            if (err):
-                ErrorPromptPage("Failed to set date/time.")
-            
+            logger.debug(f"Set time error: {err}")
+
             RebootPromptPage(allow_defer=False)
 
         except ValueError:
@@ -142,15 +146,16 @@ class AboutPage(Subwindow):
 
 class RebootPromptPage(Subwindow):
     ''' A Page to prompt the user to restart the GUI'''
-    @activity_kick
-    def __init__(self, allow_defer=True):
-        super().__init__("Relaunch Prompt", draw_lock_button=False, draw_exit_button=False, draw_wifi_button=False)
 
+    def __init__(self, allow_defer=True, auto_accept_time_sec=10):
+        super().__init__("Relaunch Prompt", draw_lock_button=False, draw_exit_button=False, draw_wifi_button=False)
+        self.auto_accept_time_sec = auto_accept_time_sec
         buttons = [
-            {'text': "Relaunch\nNow",   'callback': lambda: sys.exit(1), 'color':'#ff5733'}
+            {'text': "Relaunch\nNow",   'callback': self.do_the_relaunch, 'color':'#ff5733'}
         ]
 
-
+        self.kick_activity_watchdog(source='RelaunchPromptInit')
+        self.init_time_monotonic_sec = time.monotonic()
         tk.Label(self.master,
         text="The GUI must restart for changes to take effect!",
         font=('Arial', 20)).pack(side=tk.TOP, pady=50)
@@ -159,9 +164,29 @@ class RebootPromptPage(Subwindow):
             buttons.append({'text': "Relaunch\nLater", 'callback': self.exit})
         else:
             tk.Label(self.master,
-            text="The GUI will restart automatically in 10sec.",
+            text=f"The GUI will restart automatically in {auto_accept_time_sec}sec.",
             font=('Arial', 20)).pack(side=tk.TOP, pady=10)
-            self.master.after(10_000, lambda: sys.exit(1))
+            logger.debug(self.master)
+            self.master.after(1000, self.check_time)
 
         self.drawButtonGrid(buttons)
 
+    @activity_kick
+    def check_time(self):
+        ''' We use a monotonic clock to look at the reboot countdown, since this might happen
+            right after a system time change and things may get weird relying on just `after`.
+        '''
+
+        mono_now = time.monotonic()
+        elp_sec = mono_now - self.init_time_monotonic_sec
+        logger.debug(f'Monotonic delta={elp_sec:.2f}sec')
+        if (elp_sec >= self.auto_accept_time_sec):
+            self.do_the_relaunch()
+        else:
+            self.master.after(1000, self.check_time)
+
+
+    def do_the_relaunch(self):
+        logger.warning('Doing the relaunch!')
+        time.sleep(0.5) #Give logs time to flush, etc.
+        sys.exit(1) # Exit with error so systemd relaunches the service
