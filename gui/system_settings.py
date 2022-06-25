@@ -34,7 +34,7 @@ class SystemSettingsPage(Subwindow):
         shutil.copyfile(SCHEDULE_CONFIG_DEFAULT_FILE, SCHEDULE_CONFIG_FILE)
 
         self.exit()
-        RelaunchPromptPage()
+        RelaunchPromptPage(allow_defer=False)
 
 class SetSystemTimePage(Subwindow):
     def __init__(self):
@@ -50,7 +50,7 @@ class SetSystemTimePage(Subwindow):
         self.date_select = DateSelector(self.master, datetime.datetime.now().date())
         self.date_select.grid(row=4, column=0, pady=10, padx=10)
 
-        btn = tk.Button(self.master, text="Save", font=fontTuple, width=12, height=4, bg='#00ff00', command=self.save_callback)
+        btn = tk.Button(self.master, text="Save and\nRelaunch", font=fontTuple, width=12, height=4, bg='#00ff00', command=self.save_callback)
         btn.grid(row=5, column=2, padx=10, pady=10)
 
         self.exit_btn.grid(row=1, column=2, padx=10, pady=10)
@@ -71,7 +71,13 @@ class SetSystemTimePage(Subwindow):
             err = set_datetime(new_dt)
             logger.debug(f"Set time error: {err}")
 
-            RelaunchPromptPage(allow_defer=False)
+
+            #Rather then call RelaunchPromptPage here, we just go straight to exit/relaunch.
+            #This is because changing the time can have unexpected behavior wrt tkinter event
+            #expirations, etc. So for example system might suddenly lock, blocking you from restarting.
+            time.sleep(0.5) #Delay for 0.5sec to allow logs to flush
+            sys.exit(1)
+
 
         except ValueError:
             ErrorPromptPage("Invalid date/time!")
@@ -150,7 +156,9 @@ class AboutPage(Subwindow):
 
 
 class RelaunchPromptPage(Subwindow):
-    ''' A Page to prompt the user to restart the GUI'''
+    ''' A Page to prompt the user to restart the GUI
+        Note that timed reboot might now work correctly after adjusting system time.
+    '''
 
     def __init__(self, allow_defer=True, auto_accept_time_sec=10):
         super().__init__("Relaunch Prompt", draw_lock_button=False, draw_exit_button=False)
@@ -179,7 +187,8 @@ class RelaunchPromptPage(Subwindow):
     @activity_kick
     def check_time(self):
         ''' We use a monotonic clock to look at the reboot countdown, since this might happen
-            right after a system time change and things may get weird relying on just `after`.
+            right after a system time change and things may get weird relying on just `after`
+            (but even, weird stuff might happen, so not reccomended right after changing system time.)
         '''
 
         mono_now = time.monotonic()
