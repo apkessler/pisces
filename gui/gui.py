@@ -14,6 +14,8 @@ import os
 import datetime
 import threading
 import shutil
+import time
+
 
 # 3rd party imports
 import tkinter as tk
@@ -115,6 +117,7 @@ class MainWindow(Window):
 
 
         #After we're done setting everything up...
+        self.scheduler_count = 0
         self.update_scheduler()
         self.refresh_data()
 
@@ -130,6 +133,7 @@ class MainWindow(Window):
         self.set_get_wifi_state_func(is_wifi_on)
 
         self.draw_wifi_indicator(as_button=True)
+
 
 
 
@@ -190,23 +194,29 @@ class MainWindow(Window):
     def update_scheduler(self):
         ''' Called every 30sec. Makes decisions about what should happen at this time, etc.
         '''
-
-        logger.debug("Scheduler update")
+        self.last_scheduler_update_mono_sec = time.monotonic()
+        logger.debug(f"Scheduler update")
         self.the_scheduler.update(datetime.datetime.now())
-        self.master.after(30*1000, self.update_scheduler)
+
 
     def refresh_data(self):
         '''Called every 1sec. Updates time, gets fresh pH/Temp readings, and kicks the systemd watchdog.
+            Updates scheduler every 30th call.
         '''
 
         #Kick the systemd watchdog. This is to catch the tkinter timers getting messed up due to a system time change,
         #likely triggered by an NTP sync
         notify_systemd_watchdog()
 
+
         self.updateTimestamp()
 
-
-        #Update all things that need updating
+        #By doing this in this function, it is tied to the systemd watchdog. And if the displayed time is
+        #updating, then the scheduler is alive!
+        self.scheduler_count +=1
+        if (self.scheduler_count >= 30):
+            self.update_scheduler()
+            self.scheduler_count = 0
 
         #Update the temperature reading
         temp_degC = hwCntrl.getTemperature_degC()

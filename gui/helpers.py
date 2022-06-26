@@ -24,11 +24,14 @@ except ModuleNotFoundError:
     has_systemd = False
 
 def notify_systemd_watchdog():
-    logger.debug('systemd watchdog kick')
+    ''' Send systemd the watchdog kick notification.'''
+
+    #logger.debug('systemd watchdog kick')
     if (has_systemd):
         systemd.daemon.notify('WATCHDOG=1')
     else:
         pass
+
 
 def ph_to_color(ph:float) -> str:
     '''Convert a pH value to color based on API Freshwater test kit color map
