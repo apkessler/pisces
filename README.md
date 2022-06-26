@@ -1,6 +1,6 @@
-# pisces
-Aquarium automation via Raspberry Pi
-
+# RaspberryPisces
+Aquarium automation via Raspberry Pi 🐟 🐠 
+ 
 # Installation
 
 Clone repository on target.
