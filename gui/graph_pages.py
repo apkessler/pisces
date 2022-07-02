@@ -83,14 +83,14 @@ class GraphPage(Subwindow):
 
 
         #We need to manually recreate the Back button since it got wiped by the matplotlib canvas
-        self.back_btn = tk.Button(self.master, text="Back", font=fontTuple, width=9, height=2, bg='#ff5733', command=self.exit)
-        self.prev_btn = tk.Button(self.master, text="Back 1\n???", command=self.show_previous,  bg='#BBBBBB', font=fontTuple, width=9, height=2)
+        self.back_btn = tk.Button(self.master, text="Back", font=fontTuple, width=7, height=2, bg='#ff5733', command=self.exit)
+        self.prev_btn = tk.Button(self.master, text="Back 1\n???", command=self.show_previous,  bg='#BBBBBB', font=fontTuple, width=7, height=2)
 
-        this_week_btn = tk.Button(self.master, text="This\nWeek", command=self.show_this_week,  bg='#BBBBBB', font=fontTuple, width=9, height=2)
-        this_month_btn = tk.Button(self.master, text="This\nMonth", command=self.show_this_month, bg='#BBBBBB', font=fontTuple, width=9, height=2)
-        this_year_btn = tk.Button(self.master, text="This\nYear", command=self.show_this_year,  bg='#BBBBBB', font=fontTuple, width=9, height=2)
+        this_week_btn = tk.Button(self.master, text="This\nWeek", command=self.show_this_week,  bg='#BBBBBB', font=fontTuple, width=7, height=2)
+        this_month_btn = tk.Button(self.master, text="This\nMonth", command=self.show_this_month, bg='#BBBBBB', font=fontTuple, width=7, height=2)
+        this_year_btn = tk.Button(self.master, text="This\nYear", command=self.show_this_year,  bg='#BBBBBB', font=fontTuple, width=7, height=2)
 
-        self.next_btn = tk.Button(self.master, text="Forward 1\n???", command=self.show_next, bg='#BBBBBB', font=fontTuple, width=9, height=2)
+        self.next_btn = tk.Button(self.master, text="Forward 1\n???", command=self.show_next, bg='#BBBBBB', font=fontTuple, width=7, height=2)
 
 
 
