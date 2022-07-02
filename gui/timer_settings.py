@@ -4,7 +4,7 @@
 from sys import get_coroutine_origin_tracking_depth
 from helpers import *
 from windows import (Subwindow, fontTuple, ErrorPromptPage, activity_kick)
-from system_settings import (RebootPromptPage)
+from system_settings import (RelaunchPromptPage)
 import os
 
 
@@ -118,7 +118,7 @@ class AquariumLightsSettingsPage(Subwindow):
                 json.dump(self.config_data, jsonfile, indent=4)
 
             self.exit()
-            RebootPromptPage()
+            RelaunchPromptPage()
 
 class OutletSettingsPage(Subwindow):
     ''' Page for adjusting Outlet Settings '''
@@ -267,4 +267,4 @@ class OutletSettingsPage(Subwindow):
             json.dump(self.config_data, jsonfile, indent=4)
 
         self.exit()
-        RebootPromptPage()
+        RelaunchPromptPage()

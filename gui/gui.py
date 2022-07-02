@@ -14,36 +14,32 @@ import os
 import datetime
 import threading
 import shutil
+import time
+
 
 # 3rd party imports
 import tkinter as tk
 import grpc
 import json
-import pandas as pd
 from loguru import logger
-
-#Plotting imports
-import matplotlib as plt
-from matplotlib.figure import (Figure, )
-from matplotlib.backends.backend_tkagg import (
-    FigureCanvasTkAgg, NavigationToolbar2Tk)
-from matplotlib.ticker import FormatStrFormatter
-
 
 # Custom imports
 from hwcontrol_client import HardwareControlClient
 from dispense_client import dispense
 from helpers import *
-from windows import (Window, Subwindow, ErrorPromptPage, fontTuple, activity_kick)
-from system_settings import (SystemSettingsPage, RebootPromptPage)
+from windows import (Window, Subwindow, ErrorPromptPage, ConfirmPromptPage, fontTuple, activity_kick)
+from system_settings import (SystemSettingsPage, RelaunchPromptPage, NetworkSettingsPage)
 from timer_settings import (AquariumLightsSettingsPage, OutletSettingsPage)
+from graph_pages import GraphPage
 import scheduler
+
 
 ##### Globals ####
 
 hwCntrl = None #Global stub, because its easiest
 jData = None #config data
 ICON_PATH = os.path.join(os.path.dirname(__file__), 'icons')
+MAX_VOLUME_ML = 15
 
 class MainWindow(Window):
     """The main window (shown on launch). Should only be one of these.
@@ -110,8 +106,8 @@ class MainWindow(Window):
 
         buttons = [
             {'text':self.lightModeText, 'callback': self.toggle_lights,                     'image':self.light_timer},
-            {'text':self.temp_value,    'callback': lambda: GraphPage('Temperature (F)'),   'image':self.temperature_img_small},
-            {'text':self.ph_value,      'callback': lambda: GraphPage('pH'),                'image':self.ph_img_small},
+            {'text':self.temp_value,    'callback': lambda: GraphPage('Temperature (F)', jData),   'image':self.temperature_img_small},
+            {'text':self.ph_value,      'callback': lambda: GraphPage('pH',jData),                'image':self.ph_img_small},
             {'text':"Fertilizer",       'callback': lambda: ManualFertilizerPage(),         'image':self.fert_img_small},
             {'text':"Settings",         'callback': lambda: SettingsPage(),                 'image':self.settings_img_small}
 #            {'text': "",                'callback': self.activity_expiration,               'image':self.lock_img}
@@ -121,6 +117,7 @@ class MainWindow(Window):
 
 
         #After we're done setting everything up...
+        self.scheduler_count = 0
         self.update_scheduler()
         self.refresh_data()
 
@@ -130,6 +127,13 @@ class MainWindow(Window):
         self.kick_activity_watchdog()
 
         self.draw_lock_button()
+
+        #Configure for entire window class
+        self.set_wifi_callback(lambda:NetworkSettingsPage())
+        self.set_get_wifi_state_func(is_wifi_on)
+
+        self.draw_wifi_indicator(as_button=True)
+
 
 
 
@@ -188,15 +192,31 @@ class MainWindow(Window):
                 hwCntrl.setLightColor(lightId, 'off')
 
     def update_scheduler(self):
-
-        logger.debug("Scheduler update")
+        ''' Called every 30sec. Makes decisions about what should happen at this time, etc.
+        '''
+        self.last_scheduler_update_mono_sec = time.monotonic()
+        logger.debug(f"Scheduler update")
         self.the_scheduler.update(datetime.datetime.now())
-        self.master.after(30*1000, self.update_scheduler)
+
 
     def refresh_data(self):
+        '''Called every 1sec. Updates time, gets fresh pH/Temp readings, and kicks the systemd watchdog.
+            Updates scheduler every 30th call.
+        '''
+
+        #Kick the systemd watchdog. This is to catch the tkinter timers getting messed up due to a system time change,
+        #likely triggered by an NTP sync
+        notify_systemd_watchdog()
+
+
         self.updateTimestamp()
 
-        #Update all things that need updating
+        #By doing this in this function, it is tied to the systemd watchdog. And if the displayed time is
+        #updating, then the scheduler is alive!
+        self.scheduler_count +=1
+        if (self.scheduler_count >= 30):
+            self.update_scheduler()
+            self.scheduler_count = 0
 
         #Update the temperature reading
         temp_degC = hwCntrl.getTemperature_degC()
@@ -219,13 +239,15 @@ class LockScreen(Subwindow):
     _is_locked = False
 
     def __init__(self, main_window):
-        super().__init__("Lock Screen", draw_exit_button=False, draw_lock_button=False)
+        super().__init__("Lock Screen", draw_exit_button=False, draw_lock_button=False, draw_wifi_indicator=True)
         LockScreen._is_locked = True
 
         self.lock_img = tk.PhotoImage(file=os.path.join(ICON_PATH, "lock_icon.png")).subsample(10,10)
         b = tk.Button(self.master, image=self.lock_img, command=self.exit)
         b.place(x=20, y=7)
         b.configure(bg='#BBBBBB')
+
+        self.draw_wifi_indicator(as_button=False)
 
         #Make the frame to put the real time status info
         frame = tk.Frame(self.master)
@@ -251,153 +273,6 @@ class LockScreen(Subwindow):
 
 
 
-class GraphPage(Subwindow):
-
-    def __init__(self, field:str):
-        super().__init__(field, draw_exit_button=False, draw_lock_button=False)
-
-        #Read in the dataframe and parse timestamp strings to datetime
-        self.df = pd.read_csv(jData['telemetry_file'], parse_dates=["Timestamp"])
-
-        #Set the index to timestamp column so we can index by it
-        self.df.set_index('Timestamp', inplace=True)
-
-        #Pull the safe hi/lo bounds to plot horz lines from config file
-        if (field == 'Temperature (F)'):
-            self.safe_ylim = jData['temp_warning_degF']
-            self.yrange = jData['temp_axis_degF']
-        elif (field == 'pH'):
-            self.safe_ylim = jData['ph_warning']
-            self.yrange = jData['ph_axis']
-        else:
-            raise Exception(f"Bad Graph Type {field}")
-
-
-        self.fig = Figure(figsize=(10,4), dpi = 100)
-        self.ax = self.fig.add_subplot()
-
-        self.field = field
-
-        top = tk.Frame(self.master)
-        bottom = tk.Frame(self.master)
-        top.pack(side=tk.TOP)
-        bottom.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
-
-
-        self.canvas = FigureCanvasTkAgg(self.fig, master=bottom) # A tk.DrawingArea
-        self.canvas.draw()
-
-
-        #By default, show the last week of data
-        self.initial_now = datetime.datetime.now()
-        one_week = datetime.timedelta(days=7)
-        self.plot_data(self.initial_now - one_week, self.initial_now)
-
-        # pack_toolbar=False will make it easier to use a layout manager later on.
-        self.toolbar = NavigationToolbar2Tk(self.canvas, self.master, pack_toolbar=False)
-        self.toolbar.update()
-
-        @activity_kick
-        def show_previous_week():
-            try:
-                self.initial_now -= one_week
-                self.plot_data(self.initial_now - one_week, self.initial_now)
-            except IndexError:
-                logger.info("Cannot go back any further!")
-                self.initial_now += one_week #Undo what we just tried...
-
-        @activity_kick
-        def show_next_week():
-            self.initial_now += one_week
-            now = datetime.datetime.now()
-            if (self.initial_now > now):
-                self.initial_now = now
-            self.plot_data(self.initial_now - one_week, self.initial_now)
-
-        @activity_kick
-        def show_this_week():
-            self.initial_now = datetime.datetime.now()
-            self.plot_data(self.initial_now - one_week, self.initial_now)
-
-        @activity_kick
-        def show_all_time():
-            self.plot_data(self.df.index.min(), self.df.index.max())
-
-        #We need to manually recreate the Back button since it got wiped by the matplotlib canvas
-        back_btn = tk.Button(self.master, text="Back", font=fontTuple, width=9, height=2, bg='#ff5733', command=self.exit)
-        last_week_btn = tk.Button(self.master, text="Back\n 1 Week", command=show_previous_week,  bg='#BBBBBB', font=fontTuple, width=9, height=2)
-        next_week_btn = tk.Button(self.master, text="Forward\n1 Week", command=show_next_week, bg='#BBBBBB', font=fontTuple, width=9, height=2)
-        this_week_btn = tk.Button(self.master, text="This\nWeek", command=show_this_week,  bg='#BBBBBB', font=fontTuple, width=9, height=2)
-
-        all_time_btn = tk.Button(self.master, text="All\nTime", command=show_all_time, bg='#BBBBBB', font=fontTuple, width=9, height=2)
-
-
-        # Packing order is important. Widgets are processed sequentially and if there
-        # is no space left, because the window is too small, they are not displayed.
-        # The canvas is rather flexible in its size, so we pack it last which makes
-        # sure the UI controls are displayed as long as possible.
-
-        last_week_btn.pack(in_=top, side=tk.LEFT)
-        next_week_btn.pack(in_=top, side=tk.LEFT)
-
-        this_week_btn.pack(in_=top, side=tk.LEFT)
-        all_time_btn.pack(in_=top, side=tk.LEFT)
-
-        back_btn.pack(in_=top, side=tk.LEFT)
-        #self.toolbar.pack(in_=bottom, side=tk.BOTTOM, fill=tk.X)
-
-        self.canvas.get_tk_widget().pack(in_=bottom, side=tk.TOP, fill=tk.BOTH, expand=1)
-
-    def plot_data(self, start_time:datetime.datetime, end_time: datetime.datetime):
-        plt.rcParams.update({'font.size': 24})
-
-        self.ax.cla()
-        try:
-            sub_df = self.df[start_time: end_time]
-            sub_df.plot(y=[self.field], ax=self.ax)
-        except KeyError:
-            logger.error("Could not grab dates of interest from telemetry file")
-            ErrorPromptPage("Oops! Looks like the telemetry file got corrupted.\nRepair of file attemped...\nPlease retry.")
-            self.repair_telemetry_file()
-            self.exit()
-            return
-
-        if (self.safe_ylim != None):
-            self.ax.hlines(y=self.safe_ylim, xmin=[start_time], xmax=[end_time], colors='red', linestyles='--', lw=1)
-
-        #self.ax.set_ylabel(self.field)
-        if (self.field == 'pH'):
-            self.ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
-        else:
-            self.ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
-
-
-        self.ax.set_ylim(self.yrange)
-        self.ax.set_xlabel('')
-        self.ax.grid(which='both')
-        self.ax.get_legend().remove()
-        self.fig.subplots_adjust(bottom=0.18, left=0.14)
-        self.canvas.draw()
-
-    def repair_telemetry_file(self):
-        '''
-        Attempt repairs of telemetery file. Specifically, sort entries by time
-        '''
-        logger.info("Attempting repair of telemetry file...")
-
-        #Read in the dataframe and parse timestamp strings to datetime
-        self.df = pd.read_csv(jData['telemetry_file'], parse_dates=["Timestamp"])
-
-        #Set the index to timestamp column so we can index by it
-        self.df.set_index('Timestamp', inplace=True)
-
-        #Sort by dates
-        self.df.sort_index(inplace=True)
-
-        #Send back to file
-        self.df.to_csv(jData['telemetry_file'])
-
-
 
 
 class SettingsPage(Subwindow):
@@ -406,7 +281,7 @@ class SettingsPage(Subwindow):
         super().__init__("Settings")
 
         buttons = [
-            {'text':"Reboot\nBox",      'callback': reboot_pi},
+            {'text':"Reboot\nBox",      'callback': lambda:ConfirmPromptPage("Are you sure you want to reboot?", reboot_pi)},
             {'text':"Aquarium\nLights", 'callback': lambda: AquariumLightsSettingsPage()},
             {'text':"Outlet\nTimers",      'callback': lambda: OutletSettingsPage()},
             {'text':"Fertilizer\nSettings", 'callback': lambda: FertilizerSettingsPage()},
@@ -441,7 +316,7 @@ class FertilizerSettingsPage(Subwindow):
 
         time_setting_frame = tk.LabelFrame(self.master, text="Daily Dispense Settings", font=fontTuple)
 
-        tk.Label(self.master, text="Changes will take effect on next system reboot.", font=('Arial', 16)).grid(row=4, column=0)
+        tk.Label(self.master, text="Changes will take effect on next GUI restart.", font=('Arial', 16)).grid(row=4, column=0)
 
         time_setting_frame.grid(row=1, column =0, sticky='ew', padx=10, pady=10)
 
@@ -490,13 +365,16 @@ class FertilizerSettingsPage(Subwindow):
             # gets messed up by a night -> day or day -> night transition. We could try to fix this with a scope param,
             # then there's more weird edges cases if the lights are in a manual mode...
             ErrorPromptPage(f"Fertilizer dispense time must be at least\n10min before tank light on time ({tank_on_time.time()})")
+        elif (self.this_event['volume_mL'] > MAX_VOLUME_ML):
+            #We limit this because at longer dispenses seem to cause pump to start skipping?
+            ErrorPromptPage(f"Fertilizer dispense volume cannot exceed {MAX_VOLUME_ML}mL")
         else:
             logger.info("Writing new settings to file...")
             with open(SCHEDULE_CONFIG_FILE, 'w') as jsonfile:
                 json.dump(self.config_data, jsonfile, indent=4)
 
             self.exit()
-            RebootPromptPage()
+            RelaunchPromptPage()
 
 
 class ManualFertilizerPage(Subwindow):
@@ -645,8 +523,8 @@ class CalibratePhProcessPage(Subwindow):
         self.errorText = tk.StringVar()
         tk.Label(self.master, textvar=self.errorText, font=('Arial',18), fg='#f00', justify=tk.LEFT).place(x=320, y=420)
 
-        btn = tk.Button(self.master, text="Next", font=fontTuple, width=12, height=4, bg='#00ff00', command=self.save_calibration)
-        btn.place(x=350, y=300)
+        self.next_btn = tk.Button(self.master, text="Next", font=fontTuple, width=10, height=3, bg='#00ff00', command=self.save_calibration)
+        self.next_btn.place(x=200, y=300)
 
         self.refresh_data()
 
@@ -683,6 +561,7 @@ class CalibratePhProcessPage(Subwindow):
             self.titleText.set(f"{self.sequence[self.index][2]} calibration @ pH={self.sequence[self.index][0]}")
             self.line1Text.set(f"1. Get the {self.sequence[self.index][0]} calibration solution.\n")
             self.errorText.set("")
+            self.next_btn.place(x=200 + int(self.index*150), y=300)
 
     def exit(self):
         '''
@@ -721,7 +600,3 @@ if __name__ == "__main__":
         except grpc.RpcError as rpc_error:
             logger.error(f"Unable to connect to server! {rpc_error.code()}")
             exit()
-
-
-
-
