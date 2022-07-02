@@ -49,6 +49,8 @@ class AquariumLightsSettingsPage(Subwindow):
         menu = eclipse_setting_frame.nametowidget(w.menuname)
         menu.config(font=big_font)  # Set the dropdown menu's font
         w.grid(row=3, column=1, sticky='w')
+        self.blue_at_night_var.trace("w", self.widget_update)
+
 
         tk.Label(eclipse_setting_frame, text="Enabled:", font=big_font).grid(row=1, column=0)
         tk.Label(eclipse_setting_frame, text="Interval (min)", font=big_font).grid(row=2, column=0)
@@ -63,6 +65,7 @@ class AquariumLightsSettingsPage(Subwindow):
         menu = eclipse_setting_frame.nametowidget(w.menuname)
         menu.config(font=big_font)  # Set the dropdown menu's font
         w.grid(row=1, column=1, sticky='w')
+        self.period_blue_lights_enabled.trace("w", self.widget_update)
 
         self.blue_interval_min_var = tk.IntVar()
         self.blue_interval_min_var.set(self.tank_light_schedule['eclipse_frequency_min'])
@@ -75,7 +78,8 @@ class AquariumLightsSettingsPage(Subwindow):
                         textvariable=self.blue_interval_min_var,
                         width=4,
                         font=('Courier', 30),
-                        justify=tk.CENTER)
+                        justify=tk.CENTER,
+                        command=self.widget_update)
         self.blue_interval_select.grid(row=2, column=1)
 
         self.blue_duration_min_var = tk.IntVar()
@@ -88,13 +92,19 @@ class AquariumLightsSettingsPage(Subwindow):
                         textvariable=self.blue_duration_min_var,
                         width=4,
                         font=('Courier', 30),
-                        justify=tk.CENTER)
+                        justify=tk.CENTER,
+                        command=self.widget_update)
         self.blue_duration_select.grid(row=3, column=1)
 
         btn = tk.Button(self.master, text="Cancel", font=fontTuple, width=12, height=4, bg='#ff5733', command=self.exit)
         btn.grid(row=1, column=2, padx=10, pady=10)
         btn = tk.Button(self.master, text="Save", font=fontTuple, width=12, height=4, bg='#00ff00', command=self.save_settings)
         btn.grid(row=2, column=2, padx=10, pady=10)
+    
+    @activity_kick
+    def widget_update(self, *args, **kwargs):
+        #This just exists to call the activity kicker
+        pass
 
     @activity_kick
     def save_settings(self):

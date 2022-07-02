@@ -8,10 +8,9 @@ import os
 from typing import Tuple
 import calendar
 import shlex
-#from windows import fontTuple
 from loguru import logger
 
-from windows import fontTuple
+from windows import (fontTuple, activity_kick)
 
 SCHEDULE_CONFIG_FILE = os.path.join(os.path.dirname(__file__), '../data/schedule.json')
 SCHEDULE_CONFIG_DEFAULT_FILE = os.path.join(os.path.dirname(__file__), 'schedule.default.json')
@@ -234,7 +233,9 @@ class DateSelector():
                         textvariable=self.year,
                         width=4,
                         font=('Courier', 30),
-                        justify=tk.CENTER
+                        justify=tk.CENTER,
+                        command=self.spinbox_update
+
         )
         s.pack(side=tk.LEFT)
 
@@ -246,7 +247,8 @@ class DateSelector():
                         textvariable=self.month,
                         width=4,
                         font=('Courier', 30),
-                        justify=tk.CENTER
+                        justify=tk.CENTER,
+                        command=self.spinbox_update
         )
         s.pack(side=tk.LEFT)
 
@@ -260,10 +262,15 @@ class DateSelector():
                         textvariable=self.day,
                         width=4,
                         font=('Courier', 30),
-                        justify=tk.CENTER
+                        justify=tk.CENTER,
+                        command=self.spinbox_update
         )
         s.pack(side=tk.LEFT)
 
+    @activity_kick
+    def spinbox_update(self):
+        pass
+    
     def get_date(self) -> datetime.date:
         return datetime.datetime(
             year=int(self.year.get()),
@@ -295,7 +302,9 @@ class TimeSelector():
                         width=4,
                         font=('Courier', 30),
 #                        style='TSpinbox',
-                        justify=tk.CENTER
+                        justify=tk.CENTER,
+                        command= self.spinbox_update
+
         )
 
         self.mm_var = tk.StringVar()
@@ -308,13 +317,18 @@ class TimeSelector():
                         textvariable=self.mm_var,
                         width=4,
                         font=('Courier', 30),
-                        justify=tk.CENTER
+                        justify=tk.CENTER,
+                        command=self.spinbox_update
         )
 
 
         self.hh_select.pack(side=tk.LEFT)
         tk.Label(self.frame, text=":", font=fontTuple).pack(side=tk.LEFT)
         self.mm_select.pack(side=tk.LEFT)
+
+    @activity_kick
+    def spinbox_update(self):
+        pass
 
     def get_hhmm(self) -> int:
         hh_str = self.hh_var.get()
