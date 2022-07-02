@@ -14,25 +14,25 @@ import os
 import datetime
 import threading
 import shutil
-from dateutil import relativedelta
+import time
+
 
 # 3rd party imports
 import tkinter as tk
 import grpc
 import json
-import pandas as pd
 from loguru import logger
-
 
 # Custom imports
 from hwcontrol_client import HardwareControlClient
 from dispense_client import dispense
 from helpers import *
-from windows import (Window, Subwindow, ErrorPromptPage, fontTuple, activity_kick)
-from system_settings import (SystemSettingsPage, RebootPromptPage)
+from windows import (Window, Subwindow, ErrorPromptPage, ConfirmPromptPage, fontTuple, activity_kick)
+from system_settings import (SystemSettingsPage, RelaunchPromptPage, NetworkSettingsPage)
 from timer_settings import (AquariumLightsSettingsPage, OutletSettingsPage)
 from graph_pages import GraphPage
 import scheduler
+
 
 ##### Globals ####
 
@@ -117,6 +117,7 @@ class MainWindow(Window):
 
 
         #After we're done setting everything up...
+        self.scheduler_count = 0
         self.update_scheduler()
         self.refresh_data()
 
@@ -126,6 +127,13 @@ class MainWindow(Window):
         self.kick_activity_watchdog()
 
         self.draw_lock_button()
+
+        #Configure for entire window class
+        self.set_wifi_callback(lambda:NetworkSettingsPage())
+        self.set_get_wifi_state_func(is_wifi_on)
+
+        self.draw_wifi_indicator(as_button=True)
+
 
 
 
@@ -184,15 +192,31 @@ class MainWindow(Window):
                 hwCntrl.setLightColor(lightId, 'off')
 
     def update_scheduler(self):
-
-        logger.debug("Scheduler update")
+        ''' Called every 30sec. Makes decisions about what should happen at this time, etc.
+        '''
+        self.last_scheduler_update_mono_sec = time.monotonic()
+        logger.debug(f"Scheduler update")
         self.the_scheduler.update(datetime.datetime.now())
-        self.master.after(30*1000, self.update_scheduler)
+
 
     def refresh_data(self):
+        '''Called every 1sec. Updates time, gets fresh pH/Temp readings, and kicks the systemd watchdog.
+            Updates scheduler every 30th call.
+        '''
+
+        #Kick the systemd watchdog. This is to catch the tkinter timers getting messed up due to a system time change,
+        #likely triggered by an NTP sync
+        notify_systemd_watchdog()
+
+
         self.updateTimestamp()
 
-        #Update all things that need updating
+        #By doing this in this function, it is tied to the systemd watchdog. And if the displayed time is
+        #updating, then the scheduler is alive!
+        self.scheduler_count +=1
+        if (self.scheduler_count >= 30):
+            self.update_scheduler()
+            self.scheduler_count = 0
 
         #Update the temperature reading
         temp_degC = hwCntrl.getTemperature_degC()
@@ -215,13 +239,15 @@ class LockScreen(Subwindow):
     _is_locked = False
 
     def __init__(self, main_window):
-        super().__init__("Lock Screen", draw_exit_button=False, draw_lock_button=False)
+        super().__init__("Lock Screen", draw_exit_button=False, draw_lock_button=False, draw_wifi_indicator=True)
         LockScreen._is_locked = True
 
         self.lock_img = tk.PhotoImage(file=os.path.join(ICON_PATH, "lock_icon.png")).subsample(10,10)
         b = tk.Button(self.master, image=self.lock_img, command=self.exit)
         b.place(x=20, y=7)
         b.configure(bg='#BBBBBB')
+
+        self.draw_wifi_indicator(as_button=False)
 
         #Make the frame to put the real time status info
         frame = tk.Frame(self.master)
@@ -255,7 +281,7 @@ class SettingsPage(Subwindow):
         super().__init__("Settings")
 
         buttons = [
-            {'text':"Reboot\nBox",      'callback': reboot_pi},
+            {'text':"Reboot\nBox",      'callback': lambda:ConfirmPromptPage("Are you sure you want to reboot?", reboot_pi)},
             {'text':"Aquarium\nLights", 'callback': lambda: AquariumLightsSettingsPage()},
             {'text':"Outlet\nTimers",      'callback': lambda: OutletSettingsPage()},
             {'text':"Fertilizer\nSettings", 'callback': lambda: FertilizerSettingsPage()},
@@ -290,7 +316,7 @@ class FertilizerSettingsPage(Subwindow):
 
         time_setting_frame = tk.LabelFrame(self.master, text="Daily Dispense Settings", font=fontTuple)
 
-        tk.Label(self.master, text="Changes will take effect on next system reboot.", font=('Arial', 16)).grid(row=4, column=0)
+        tk.Label(self.master, text="Changes will take effect on next GUI restart.", font=('Arial', 16)).grid(row=4, column=0)
 
         time_setting_frame.grid(row=1, column =0, sticky='ew', padx=10, pady=10)
 
@@ -348,7 +374,7 @@ class FertilizerSettingsPage(Subwindow):
                 json.dump(self.config_data, jsonfile, indent=4)
 
             self.exit()
-            RebootPromptPage()
+            RelaunchPromptPage()
 
 
 class ManualFertilizerPage(Subwindow):
@@ -574,7 +600,3 @@ if __name__ == "__main__":
         except grpc.RpcError as rpc_error:
             logger.error(f"Unable to connect to server! {rpc_error.code()}")
             exit()
-
-
-
-

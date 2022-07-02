@@ -20,7 +20,7 @@ def generate_data():
     with open('telemetry.csv', 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(['Timestamp', 'Temperature (F)', 'pH'])
-        the_time = datetime.datetime(2011, 3, 10, 0)
+        the_time = datetime.datetime(2017, 3, 10, 0)
         dt = datetime.timedelta(hours=1)
         temp = 77.0
         ph = 7.8

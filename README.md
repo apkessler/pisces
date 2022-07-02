@@ -1,6 +1,6 @@
-# pisces
-Aquarium automation via Raspberry Pi
-
+# RaspberryPisces
+Aquarium automation via Raspberry Pi 🐟 🐠 
+ 
 # Installation
 
 Clone repository on target.
@@ -11,6 +11,9 @@ cd pisces
 git pull
 
 python3 -m pip install -r requirements.txt
+sudo apt install python3-numpy
+sudo apt install python3-pandas
+sudo apt install python3-matplotlib
 make install
 ```
 
@@ -21,6 +24,7 @@ telemetry updating script.
 Pull latest from Git, and rerun `make install`
 
 # Other notes
+The `grpcio` package has been tricky to install on RPi for whatever reason...
 
 ## Configuration Files
 

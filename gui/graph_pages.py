@@ -240,7 +240,7 @@ class GraphPage(Subwindow):
         self.max_time_to_plot = now
 
         self.set_mode('week')
-        self.plot_data(self.max_time_to_plot - self.ONE_WEEK, self.max_time_to_plot)
+        self.plot_data(self.max_time_to_plot - self.ONE_WEEK, self.max_time_to_plot, title='Last 7 days')
 
 
     @activity_kick
@@ -251,7 +251,7 @@ class GraphPage(Subwindow):
         self.max_time_to_plot = now
 
         self.set_mode('month')
-        self.plot_data(get_start_of_month(now), get_end_of_month(now))
+        self.plot_data(self.max_time_to_plot - self.ONE_MONTH, self.max_time_to_plot, title='Last 30 days')
 
 
     @activity_kick
@@ -262,11 +262,11 @@ class GraphPage(Subwindow):
         self.max_time_to_plot = now
 
         self.set_mode('year')
-        self.plot_data(get_start_of_year(now), get_end_of_year(now))
+        self.plot_data(self.max_time_to_plot - self.ONE_YEAR, self.max_time_to_plot, title='Last 12 months')
 
 
 
-    def plot_data(self, start_time:datetime.datetime, end_time:datetime.datetime):
+    def plot_data(self, start_time:datetime.datetime, end_time:datetime.datetime, title=None):
         ''' Actually plot the data in `self.df` between `start_time` and `end_time`
 
         Parameters
@@ -340,6 +340,9 @@ class GraphPage(Subwindow):
             self.ax.xaxis.set_major_locator(mdates.MonthLocator())
             self.ax.xaxis.set_major_formatter(FuncFormatter(m_fmt))
             self.ax.set_title(start_time.strftime('%Y'))
+
+        if (title != None):
+            self.ax.set_title(title)
 
 
         self.ax.grid(which='both')
