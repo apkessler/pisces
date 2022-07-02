@@ -142,7 +142,7 @@ class NetworkSettingsPage(Subwindow):
 
 class AboutPage(Subwindow):
     def __init__(self):
-        super().__init__("About", draw_wifi_button=False)
+        super().__init__("About")
 
         tk.Label(self.master,
         text=f'Version: {get_git_version()}',
