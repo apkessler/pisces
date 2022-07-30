@@ -100,10 +100,11 @@ class NetworkSettingsPage(Subwindow):
         self.wifi_button_var = tk.StringVar()
         self.update_wifi_button()
 
-        txt= 'To change connected WiFi network,\n' + \
-             'exit GUI and use WiFi dropdown.'
-        tk.Label(self.master, text=txt, font=("Arial", 16)).place(x=150, y=400)
+        txt= 'If internet time is very different than system time, GUI may restart.'
+        tk.Label(self.master, text=txt, font=("Arial", 15)).place(x=20, y=390)
 
+        txt= 'To change WiFi network, exit GUI and use WiFi dropdown.'
+        tk.Label(self.master, text=txt, font=("Arial", 15)).place(x=20, y=425)
 
         buttons = [
             {'text': self.wifi_button_var,  'callback': self.toggle_wifi}
