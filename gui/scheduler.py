@@ -114,6 +114,7 @@ class LightTimer():
         self.sunset_time = hhmmToTime(jData['sunset_hhmm'])
         self.light_mode_at_night = 'blue' if jData['blue_lights_at_night'] else 'off'
 
+        logger.debug(self.jData["lights"])
         for light in self.jData["lights"]:
             logger.info(f"Found light {light} ({lightKeys[light]})")
 
@@ -163,7 +164,7 @@ class LightTimer():
         newState : TimerState
             Timer state to change to
         '''
-
+        logger.debug(f"{self.name=}")
         if (new_state == TimerState.PINIT):
             pass
         elif (new_state == TimerState.DISABLED):
@@ -172,18 +173,25 @@ class LightTimer():
 
 
         elif (new_state == TimerState.DAY):
-            for light in self.jData["lights"]:
-                self.hwCntrl.setLightColor(lightKeys[light], 'white')
+            for light_name,color_masks in self.jData["lights"].items():
+                self.hwCntrl.setLightColor(lightKeys[light_name], 'white' if color_masks['white_enabled'] else 'off')
 
         elif (new_state == TimerState.NIGHT):
-            for light in self.jData["lights"]:
-                self.hwCntrl.setLightColor(lightKeys[light], self.light_mode_at_night)
+            for light_name, color_masks in self.jData["lights"].items():
+
+                if self.light_mode_at_night == 'off':
+                    self.hwCntrl.setLightColor(lightKeys[light_name], 'off')
+                elif self.light_mode_at_night == 'blue':
+                    self.hwCntrl.setLightColor(lightKeys[light_name], 'blue' if color_masks['blue_enabled'] else 'off')
+                else:
+                    logger.error(f"Unexpected value: {self.light_mode_at_night=}")
+                    self.hwCntrl.setLightColor(lightKeys[light_name], 'off') #Just turn it off in this case
+
 
         elif (new_state == TimerState.ECLIPSE):
             logger.info(f"Starting eclipse! Ends at {self.eclipseEndTime}")
-            for light in self.jData["lights"]:
-                self.hwCntrl.setLightColor(lightKeys[light], 'blue')
-
+            for light_name, color_masks in self.jData["lights"].items():
+                self.hwCntrl.setLightColor(lightKeys[light_name], 'blue' if color_masks['blue_enabled'] else 'off')
 
         else:
             logger.error(f"{self.name}: Unhandled state in changeStateTo():{new_state}")
@@ -251,7 +259,7 @@ class OutletTimer(LightTimer):
             hwCntrl stub
         '''
         jData['blue_lights_at_night'] = False
-        jData["lights"] = [name]
+        jData["lights"] = {name: {'white_enabled': True, 'blue_enabled': 'True'}} #This mask is meaningless in outlet mode
         jData["eclipse_enabled"] = False
         super().__init__(name, jData, hwCntrl)
 

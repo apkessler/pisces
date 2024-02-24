@@ -1,10 +1,16 @@
 {
     "light_schedules": {
         "tank_lights": {
-            "lights": [
-                "TankLight1",
-                "TankLight2"
-            ],
+            "lights": {
+                "TankLight1":{
+                    "white_enabled": true,
+                    "blue_enabled": true
+                },
+                "TankLight2":{
+                    "white_enabled": true,
+                    "blue_enabled": true
+                }
+            },
             "sunrise_hhmm": 830,
             "sunset_hhmm": 1730,
             "blue_lights_at_night": false,
