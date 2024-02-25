@@ -9,8 +9,9 @@ from typing import Tuple
 import calendar
 import shlex
 from loguru import logger
-
+from typing import Optional
 from windows import (fontTuple, activity_kick)
+import dataclasses
 
 SCHEDULE_CONFIG_FILE = os.path.join(os.path.dirname(__file__), '../data/schedule.json')
 SCHEDULE_CONFIG_DEFAULT_FILE = os.path.join(os.path.dirname(__file__), 'schedule.default.json')
@@ -71,6 +72,34 @@ def ph_to_color(ph:float) -> str:
             best_item  = item
 
     return best_item[1]
+
+
+class PhCalibrationHelper:
+    PH_CALIBRATION_PATH = os.path.join(os.path.dirname(__file__), '../data/ph_calibrations.json')
+
+    def get_latest_ph_calibration_date(self) -> Optional[datetime.datetime]:
+        """ Get the datetime of the latest calibration, if any
+        """
+        ts_list = self.get_ph_calibrations()
+        if len(ts_list) == 0:
+            return None
+
+        return max(ts_list)
+
+    def get_ph_calibrations(self) -> list[datetime.datetime]:
+        """ Get the history of ph calibrations"""
+
+        try:
+            with open(self.PH_CALIBRATION_PATH) as fp:
+                caldata = json.load(fp)
+        except FileNotFoundError:
+            logger.warning(f"No PH calibration data exists in {self.PH_CALIBRATION_PATH}!")
+            return []
+
+        logger.debug("Loaded ph calibration record")
+        return [datetime.datetime.strptime(ts_str, '%Y%d%m-%H%M%S') for ts_str in caldata.keys()]
+
+
 
 def timeToHhmm(time:datetime.time) -> int:
     ''' Convert a datetime._time object to a simple time integer in form hhmm
