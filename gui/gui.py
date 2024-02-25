@@ -38,7 +38,6 @@ import scheduler
 
 hwCntrl = None #Global stub, because its easiest
 jData = None #config data
-ICON_PATH = os.path.join(os.path.dirname(__file__), 'icons')
 MAX_VOLUME_ML = 15
 
 class MainWindow(Window):

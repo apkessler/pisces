@@ -21,14 +21,17 @@ class AquariumLightsSettingsPage(Subwindow):
 
         big_font = ('Arial', 20)
 
-        time_setting_frame = tk.LabelFrame(self.master, text="Day/Night Schedule", font=fontTuple)
-        eclipse_setting_frame = tk.LabelFrame(self.master, text="Periodic Blue Settings", font=fontTuple)
-        tk.Label(self.master, text="Changes will take effect on next GUI relaunch.", font=('Arial', 16)).grid(row=4, column=0)
+        time_setting_frame = tk.LabelFrame(self.master, text="Light Schedule", font=fontTuple)
+        eclipse_setting_frame = tk.LabelFrame(self.master, text="Blue Cycle Settings", font=fontTuple)
+        enabled_setting_frame = tk.LabelFrame(self.master, text="Lights Enabled", font=fontTuple)
+        tk.Label(self.master, text="Changes will take effect\non next GUI relaunch.", font=('Arial', 16)).grid(row=3, column=1)
 
         time_setting_frame.grid(row=1, column =0, sticky='ew', padx=10, pady=10)
         eclipse_setting_frame.grid(row=2, column =0, sticky='ew', padx=10, pady=10)
+        enabled_setting_frame.grid(row=3, column =0, sticky='ew', padx=10, pady=10)
 
 
+        ## Light Schedule Frame
         tk.Label(time_setting_frame, text="On Time:", font=big_font).grid(row=1, column=0)
         tk.Label(time_setting_frame, text="Off Time:", font=big_font).grid(row=2, column=0)
         tk.Label(time_setting_frame, text="Blue at night:", font=big_font).grid(row=3, column=0)
@@ -52,6 +55,7 @@ class AquariumLightsSettingsPage(Subwindow):
         self.blue_at_night_var.trace("w", self.widget_update)
 
 
+        ## Blue Cycle Settings Frame
         tk.Label(eclipse_setting_frame, text="Enabled:", font=big_font).grid(row=1, column=0)
         tk.Label(eclipse_setting_frame, text="Interval (min)", font=big_font).grid(row=2, column=0)
         tk.Label(eclipse_setting_frame, text="Duration (min)", font=big_font, justify=tk.CENTER).grid(row=3, column=0, sticky='w')
@@ -96,11 +100,45 @@ class AquariumLightsSettingsPage(Subwindow):
                         command=self.widget_update)
         self.blue_duration_select.grid(row=3, column=1)
 
+        ## Lights Enabled Frame
+        tk.Label(enabled_setting_frame, text="Light1", font=big_font).grid(row=1, column=0)
+        tk.Label(enabled_setting_frame, text="Light2", font=big_font).grid(row=2, column=0)
+        tk.Label(enabled_setting_frame, text="White", font=big_font).grid(row=0, column=1)
+        tk.Label(enabled_setting_frame, text="Blue", font=big_font).grid(row=0, column=2)
+        self.enable_vars = {i: {'white_enabled': tk.IntVar(), 'blue_enabled': tk.IntVar()} for i in [1,2]}
+
+
+        CHECKBOX_SIZE = 24 #This is ~ the size of the checkmark image /6
+        self.on_image =  tk.PhotoImage(file=os.path.join(ICON_PATH, "checkmark.png")).subsample(6,6)
+        self.off_image = tk.PhotoImage(width=CHECKBOX_SIZE, height=CHECKBOX_SIZE)
+        self.off_image.put(("white",), to=(0, 0, CHECKBOX_SIZE - 1, CHECKBOX_SIZE - 1))
+
+
+        for l_id in self.enable_vars:
+            for c_id, c_var in self.enable_vars[l_id].items():
+                tk.Checkbutton(
+                    enabled_setting_frame,
+                    variable= c_var,
+                    image=self.off_image,
+                    selectimage=self.on_image,
+                    indicatoron=False,
+                    onvalue=1,
+                    offvalue=0,
+                ).grid(row=l_id,column=1 if c_id == "white_enabled" else 2)
+
+                c_var.set(1 if self.tank_light_schedule['lights'][f"TankLight{l_id}"][c_id] else 0)
+
+        tk.Label(enabled_setting_frame,
+                 text="You can enable or disable\nspecific colors on specific\nlights. If it is unchecked\nhere, it will never turn on.",
+                 font=('Arial', 13)
+                 ).grid(row=1, rowspan=2, column=3, padx=10, pady=10)
+
+        ## Buttons
         btn = tk.Button(self.master, text="Cancel", font=fontTuple, width=12, height=4, bg='#ff5733', command=self.exit)
-        btn.grid(row=1, column=2, padx=10, pady=10)
+        btn.grid(row=1, column=1, padx=10, pady=10)
         btn = tk.Button(self.master, text="Save", font=fontTuple, width=12, height=4, bg='#00ff00', command=self.save_settings)
-        btn.grid(row=2, column=2, padx=10, pady=10)
-    
+        btn.grid(row=2, column=1, padx=10, pady=10)
+
     @activity_kick
     def widget_update(self, *args, **kwargs):
         #This just exists to call the activity kicker
@@ -118,6 +156,10 @@ class AquariumLightsSettingsPage(Subwindow):
 
         self.tank_light_schedule['eclipse_frequency_min'] = int(self.blue_interval_min_var.get())
         self.tank_light_schedule['eclipse_duration_min'] = int(self.blue_duration_min_var.get())
+
+        for l_id in self.enable_vars:
+            for c_id, c_var in self.enable_vars[l_id].items():
+                self.tank_light_schedule['lights'][f"TankLight{l_id}"][c_id] = bool(c_var.get())
 
         if (self.sunrise_selector.get_hhmm() >= self.sunset_selector.get_hhmm()):
             logger.warning("Bad timing config!")

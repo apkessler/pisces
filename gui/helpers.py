@@ -14,6 +14,7 @@ from windows import (fontTuple, activity_kick)
 
 SCHEDULE_CONFIG_FILE = os.path.join(os.path.dirname(__file__), '../data/schedule.json')
 SCHEDULE_CONFIG_DEFAULT_FILE = os.path.join(os.path.dirname(__file__), 'schedule.default.json')
+ICON_PATH = os.path.join(os.path.dirname(__file__), 'icons')
 
 try:
     import systemd.daemon
@@ -270,7 +271,7 @@ class DateSelector():
     @activity_kick
     def spinbox_update(self):
         pass
-    
+
     def get_date(self) -> datetime.date:
         return datetime.datetime(
             year=int(self.year.get()),
