@@ -105,12 +105,12 @@ class MainWindow(Window):
             self.the_scheduler.add_event(event["name"], event['trigger_time_hhmm'], lambda:DispensingCapturePage(volume_mL=event['volume_mL']))
 
         buttons = [
-            {'text':self.lightModeText, 'callback': self.toggle_lights,                     'image':self.light_timer},
-            {'text':self.temp_value,    'callback': lambda: GraphPage('Temperature (F)', jData),   'image':self.temperature_img_small},
+            {'text':self.lightModeText, 'callback': self.toggle_lights,                           'image':self.light_timer},
+            {'text':self.temp_value,    'callback': lambda: GraphPage('Temperature (F)', jData),  'image':self.temperature_img_small},
             {'text':self.ph_value,      'callback': lambda: GraphPage('pH',jData),                'image':self.ph_img_small},
-            {'text':"Fertilizer",       'callback': lambda: ManualFertilizerPage(),         'image':self.fert_img_small},
-            {'text':"Settings",         'callback': lambda: SettingsPage(),                 'image':self.settings_img_small}
-#            {'text': "",                'callback': self.activity_expiration,               'image':self.lock_img}
+            {'text':"Peristaltic Pump", 'callback': lambda: ManualDispensePage(),                 'image':self.fert_img_small},
+            {'text':"Settings",         'callback': lambda: SettingsPage(),                       'image':self.settings_img_small}
+#            {'text': "",                'callback': self.activity_expiration,                    'image':self.lock_img}
         ]
 
         self.drawButtonGrid(buttons)
@@ -284,17 +284,17 @@ class SettingsPage(Subwindow):
             {'text':"Reboot\nBox",      'callback': lambda:ConfirmPromptPage("Are you sure you want to reboot?", reboot_pi)},
             {'text':"Aquarium\nLights", 'callback': lambda: AquariumLightsSettingsPage()},
             {'text':"Outlet\nTimers",      'callback': lambda: OutletSettingsPage()},
-            {'text':"Fertilizer\nSettings", 'callback': lambda: FertilizerSettingsPage()},
+            {'text':"Peristaltic Pump\nSettings", 'callback': lambda: PeriPumpSettingsPage()},
             {'text':"Calibrate pH",     'callback': lambda: CalibratePhStartPage()},
             {'text':"System Settings",  'callback': lambda: SystemSettingsPage()}
         ]
 
         self.drawButtonGrid(buttons)
 
-class FertilizerSettingsPage(Subwindow):
-    ''' Page for adjusting Fertilizer Settings '''
+class PeriPumpSettingsPage(Subwindow):
+    ''' Page for adjusting PeriPump Settings '''
     def __init__(self):
-        super().__init__("Fertilizer Settings", draw_exit_button=False)
+        super().__init__("PeriPump Settings", draw_exit_button=False)
 
         #Load the scheduler json file
         this_dir = os.path.dirname(__file__)
@@ -306,11 +306,11 @@ class FertilizerSettingsPage(Subwindow):
 
         self.this_event = None
         for schedule in schedules:
-            if (schedule['name'] == 'DailyFertilizer'):
+            if (schedule['name'] == 'DailyDispense'):
                 self.this_event = schedule
 
         if (self.this_event == None):
-            logger.error("Unable to find DailyFertilizer object in scheduler.json")
+            logger.error("Unable to find DailyDispense object in scheduler.json")
 
         big_font = ('Arial', 20)
 
@@ -364,10 +364,10 @@ class FertilizerSettingsPage(Subwindow):
             # We enforce this constraint to avoid weird edge cases where the dispense's tasks messing with light settings
             # gets messed up by a night -> day or day -> night transition. We could try to fix this with a scope param,
             # then there's more weird edges cases if the lights are in a manual mode...
-            ErrorPromptPage(f"Fertilizer dispense time must be at least\n10min before tank light on time ({tank_on_time.time()})")
+            ErrorPromptPage(f"Daily dispense time must be at least\n10min before tank light on time ({tank_on_time.time()})")
         elif (self.this_event['volume_mL'] > MAX_VOLUME_ML):
             #We limit this because at longer dispenses seem to cause pump to start skipping?
-            ErrorPromptPage(f"Fertilizer dispense volume cannot exceed {MAX_VOLUME_ML}mL")
+            ErrorPromptPage(f"Daily dispense volume cannot exceed {MAX_VOLUME_ML}mL")
         else:
             logger.info("Writing new settings to file...")
             with open(SCHEDULE_CONFIG_FILE, 'w') as jsonfile:
@@ -377,17 +377,17 @@ class FertilizerSettingsPage(Subwindow):
             RelaunchPromptPage()
 
 
-class ManualFertilizerPage(Subwindow):
+class ManualDispensePage(Subwindow):
 
     def __init__(self):
-        super().__init__("Fertilizer Info")
+        super().__init__("PeriPump Info")
 
         buttons = [
             {'text': "Dispense\n1mL",   'callback': lambda: DispensingCapturePage(1, scheduled=False)},
             {'text': "Dispense\n3mL",   'callback': lambda: DispensingCapturePage(3, scheduled=False)},
             {'text': "Dispense\n10mL",  'callback': lambda: DispensingCapturePage(10, scheduled=False)},
             {'text': "Dispense\n15mL", 'callback': lambda: DispensingCapturePage(15, scheduled=False)},
-            {'text': "Fertilizer\nSettings", 'callback': lambda:FertilizerSettingsPage()}
+            {'text': "Peristaltic Pump\nSettings", 'callback': lambda:PeriPumpSettingsPage()}
         ]
         self.drawButtonGrid(buttons)
 
@@ -404,9 +404,9 @@ class DispensingCapturePage(Subwindow):
         self.drawButtonGrid(buttons)
 
         if (scheduled):
-            msg = f"Scheduled fertilizer dispense ({volume_mL}mL) in progress."
+            msg = f"Scheduled dispense ({volume_mL}mL) in progress."
         else:
-            msg = f"Fertilizer dispense ({volume_mL}mL) in progress."
+            msg = f"Dispense ({volume_mL}mL) in progress."
 
         tk.Label(self.master,
         text=msg,

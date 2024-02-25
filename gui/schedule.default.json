@@ -49,7 +49,7 @@
     },
     "events": [
         {
-            "name": "DailyFertilizer",
+            "name": "DailyDispense",
             "type": "dispense",
             "trigger_time_hhmm": 815,
             "volume_mL": 3
