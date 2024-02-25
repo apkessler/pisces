@@ -57,8 +57,8 @@ class AquariumLightsSettingsPage(Subwindow):
 
         ## Blue Cycle Settings Frame
         tk.Label(eclipse_setting_frame, text="Enabled:", font=big_font).grid(row=1, column=0)
-        tk.Label(eclipse_setting_frame, text="Interval (min)", font=big_font).grid(row=2, column=0)
-        tk.Label(eclipse_setting_frame, text="Duration (min)", font=big_font, justify=tk.CENTER).grid(row=3, column=0, sticky='w')
+        tk.Label(eclipse_setting_frame, text="Blue (min):", font=big_font).grid(row=2, column=0)
+        tk.Label(eclipse_setting_frame, text="White (min):", font=big_font, justify=tk.CENTER).grid(row=3, column=0, sticky='w')
 
 
         self.period_blue_lights_enabled = tk.StringVar()
@@ -71,34 +71,39 @@ class AquariumLightsSettingsPage(Subwindow):
         w.grid(row=1, column=1, sticky='w')
         self.period_blue_lights_enabled.trace("w", self.widget_update)
 
-        self.blue_interval_min_var = tk.IntVar()
-        self.blue_interval_min_var.set(self.tank_light_schedule['eclipse_frequency_min'])
+        self.blue_length_min_var = tk.IntVar()
 
-        self.blue_interval_select = tk.Spinbox(
+        total_period_m = self.tank_light_schedule['eclipse_frequency_min']
+        blue_period_m = self.tank_light_schedule['eclipse_duration_min']
+        white_period_m = total_period_m - blue_period_m
+        self.blue_length_min_var.set(blue_period_m)
+
+
+        self.blue_length_select = tk.Spinbox(
                         eclipse_setting_frame,
                         from_=0,
                         to=59,
                         wrap=True,
-                        textvariable=self.blue_interval_min_var,
+                        textvariable=self.blue_length_min_var,
                         width=4,
                         font=('Courier', 30),
                         justify=tk.CENTER,
                         command=self.widget_update)
-        self.blue_interval_select.grid(row=2, column=1)
+        self.blue_length_select.grid(row=2, column=1)
 
-        self.blue_duration_min_var = tk.IntVar()
-        self.blue_duration_min_var.set(self.tank_light_schedule['eclipse_duration_min'])
-        self.blue_duration_select = tk.Spinbox(
+        self.white_length_min_var = tk.IntVar()
+        self.white_length_min_var.set(white_period_m)
+        self.white_duration_select = tk.Spinbox(
                         eclipse_setting_frame,
                         from_=0,
                         to=59,
                         wrap=True,
-                        textvariable=self.blue_duration_min_var,
+                        textvariable=self.white_length_min_var,
                         width=4,
                         font=('Courier', 30),
                         justify=tk.CENTER,
                         command=self.widget_update)
-        self.blue_duration_select.grid(row=3, column=1)
+        self.white_duration_select.grid(row=3, column=1)
 
         ## Lights Enabled Frame
         tk.Label(enabled_setting_frame, text="Light1", font=big_font).grid(row=1, column=0)
@@ -154,8 +159,12 @@ class AquariumLightsSettingsPage(Subwindow):
 
         self.tank_light_schedule['eclipse_enabled'] = True if self.period_blue_lights_enabled.get() == "True" else False
 
-        self.tank_light_schedule['eclipse_frequency_min'] = int(self.blue_interval_min_var.get())
-        self.tank_light_schedule['eclipse_duration_min'] = int(self.blue_duration_min_var.get())
+
+        blue_period_m = int(self.blue_length_min_var.get())
+        white_period_m = int(self.white_length_min_var.get())
+
+        self.tank_light_schedule['eclipse_frequency_min'] = blue_period_m + white_period_m
+        self.tank_light_schedule['eclipse_duration_min'] = blue_period_m
 
         for l_id in self.enable_vars:
             for c_id, c_var in self.enable_vars[l_id].items():
