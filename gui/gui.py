@@ -284,7 +284,7 @@ class SettingsPage(Subwindow):
             {'text':"Aquarium\nLights", 'callback': lambda: AquariumLightsSettingsPage()},
             {'text':"Outlet\nTimers",      'callback': lambda: OutletSettingsPage()},
             {'text':"Peristaltic Pump\nSettings", 'callback': lambda: PeriPumpSettingsPage()},
-            {'text':"Calibrate pH",     'callback': lambda: CalibratePhStartPage()},
+            {'text':"pH Calibration",     'callback': lambda: CalibratePhStartPage()},
             {'text':"System Settings",  'callback': lambda: SystemSettingsPage()}
         ]
 
