@@ -307,12 +307,13 @@ class SettingsPage(Subwindow):
     def __init__(self):
         super().__init__("Settings")
 
+        last_ph_cal_date = PhCalibrationHelper().get_latest_ph_calibration_date().strftime("%Y-%b-%d")
         buttons = [
             {'text':"Reboot\nBox",      'callback': lambda:ConfirmPromptPage("Are you sure you want to reboot?", reboot_pi)},
             {'text':"Aquarium\nLights", 'callback': lambda: AquariumLightsSettingsPage()},
             {'text':"Outlet\nTimers",      'callback': lambda: OutletSettingsPage()},
             {'text':"Peristaltic Pump\nSettings", 'callback': lambda: PeriPumpSettingsPage()},
-            {'text':"pH Calibration",     'callback': lambda: CalibratePhStartPage()},
+            {'text':f"pH Calibration\n\nLast Calibration:\n{last_ph_cal_date}",     'callback': lambda: CalibratePhStartPage()},
             {'text':"System Settings",  'callback': lambda: SystemSettingsPage()}
         ]
 
