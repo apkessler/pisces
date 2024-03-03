@@ -9,10 +9,11 @@ import threading
 from collections import deque
 import logging
 import datetime as dt
-#logger = logging.getLogger(__name__)
+
+# logger = logging.getLogger(__name__)
+
 
 def thread_poll(theDeque, phDev, period_s):
-
     while True:
         phDev.write("R")
         time.sleep(period_s)
@@ -30,18 +31,18 @@ def main():
 
     name = tmpDevice.query("name,?").split(",")[1]
 
-    phSensor = Atlas.AtlasI2C(address = 99, moduletype = moduletype, name = name)
+    phSensor = Atlas.AtlasI2C(address=99, moduletype=moduletype, name=name)
 
     print(f"Setup: {phSensor.get_device_info()}", flush=True)
 
     theDeque = deque(maxlen=1)
-    t = threading.Thread(target=thread_poll, args=(theDeque,  phSensor, 3), daemon=True)
+    t = threading.Thread(target=thread_poll, args=(theDeque, phSensor, 3), daemon=True)
     t.start()
-    while (True):
+    while True:
         try:
-            while (True):
+            while True:
                 s = theDeque.popleft()
-                print(f"Got {s} --> {s[1]}", flush=True, end='')
+                print(f"Got {s} --> {s[1]}", flush=True, end="")
         except IndexError:
             pass
             print("{}", flush=True)
@@ -49,12 +50,7 @@ def main():
         time.sleep(1)
 
 
-
-
-
-
-if (__name__ == '__main__'):
-
+if __name__ == "__main__":
     # # create logger
     # logger.setLevel(logging.DEBUG)
 
@@ -71,7 +67,5 @@ if (__name__ == '__main__'):
     # # add ch to logger
     # logger.addHandler(ch)
 
-
     # logger.info("Test!")
     main()
-
