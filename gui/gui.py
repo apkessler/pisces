@@ -112,7 +112,7 @@ class MainWindow(Window):
             {'text':self.ph_value,      'callback': lambda: GraphPage('pH',jData),                'image':self.ph_img_small},
             {'text':"Peristaltic Pump", 'callback': lambda: ManualDispensePage(),                 'image':self.fert_img_small},
             {'text':"Settings",         'callback': lambda: SettingsPage(),                       'image':self.settings_img_small},
-            {'text': self.warning_text, 'callback': lambda: (),                    'image':None}
+            {'text': self.warning_text, 'callback': None, 'disable':True, 'text_color':'#f00'}
         ]
 
         self.drawButtonGrid(buttons)
@@ -213,13 +213,6 @@ class MainWindow(Window):
 
         self.updateTimestamp()
 
-        #By doing this in this function, it is tied to the systemd watchdog. And if the displayed time is
-        #updating, then the scheduler is alive!
-        self.scheduler_count +=1
-        if (self.scheduler_count >= 30):
-            self.update_scheduler()
-            self.scheduler_count = 0
-
         #Update the temperature reading
         temp_degC = hwCntrl.getTemperature_degC()
         temp_degF = (temp_degC * 9.0) / 5.0 + 32.0
@@ -232,9 +225,18 @@ class MainWindow(Window):
         #Uncomment next line to make pH button change color based on pH
         #self.buttons[2].configure(bg=ph_to_color(ph))
 
+        #By doing this in this function, it is tied to the systemd watchdog. And if the displayed time is
+        #updating, then the scheduler is alive!
+        self.scheduler_count +=1
+        if (self.scheduler_count >= 30):
+            self.update_scheduler()
+            self.update_ph_calibration_info(ph)
+            self.scheduler_count = 0
+
         self.master.after(1000, self.refresh_data)
 
-        #Check calibration age
+    def update_ph_calibration_info(self, ph:float):
+        #Check calibration age, and update relevant fields
         pch = PhCalibrationHelper()
 
         lock_screen_msg, main_window_msg = get_ph_warning_message(
@@ -242,12 +244,15 @@ class MainWindow(Window):
                 last_cal_date=pch.get_latest_ph_calibration_date(),
                 time_now = datetime.datetime.now(),
             )
-        self.warning_text.set("Warning!\n" + "\n".join(textwrap.wrap(main_window_msg, width=20)))
+
+        prefix = "WARNING!\n" if main_window_msg != "" else ""
+        self.warning_text.set(
+            prefix +"\n".join(textwrap.wrap(main_window_msg, width=20))
+            )
 
         if lock_screen_msg == PhMessages.MSG_RECALIBRATION_REQUIRED:
             self.ph_value_for_lock_screen.set("") #Don't show a pH value
 
-        print(f"{lock_screen_msg=}")
         self.lock_screen_ph_text.set("\n".join(textwrap.wrap(lock_screen_msg, width=20)))
 
 
@@ -280,7 +285,7 @@ class LockScreen(Subwindow):
         tk.Label(frame, textvariable=main_window.temp_value, font=('Arial',35)).grid(row=2,column=1, padx=50)
         tk.Label(frame, textvariable=main_window.ph_value_for_lock_screen, font=('Arial',35)).grid(row=2,column=2, padx=50)
 
-        tk.Label(self.master, textvariable=main_window.lock_screen_ph_text, fg='#f00', font=('Arial',25)).place(x=370, y=380)
+        tk.Label(self.master, textvariable=main_window.lock_screen_ph_text, fg='#f00', font=('Arial',25, 'italic')).place(x=340, y=380)
 
     @classmethod
     def is_locked(cls) -> bool:

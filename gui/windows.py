@@ -147,17 +147,25 @@ class Window(object):
             else:
                 param_dict['textvariable'] = bInfo['text']
 
+
             if 'image' in bInfo:
                 param_dict['image'] = bInfo['image']
                 param_dict['compound'] = tk.TOP
 
-            b = tk.Button(f, **param_dict)
-
-            if 'color' in bInfo:
-                b.configure(bg=bInfo['color'])
+            if 'disable' in bInfo:
+                #Don't make a button
+                del param_dict['command']
+                if 'text_color' in bInfo:
+                    param_dict['fg'] = bInfo['text_color']
+                b = tk.Label(f, **param_dict)
             else:
-                b.configure(bg='#BBBBBB')
-                pass
+                b = tk.Button(f, **param_dict)
+
+                if 'color' in bInfo:
+                    b.configure(bg=bInfo['color'])
+                else:
+                    b.configure(bg='#BBBBBB')
+
 
 
             f.rowconfigure(0, weight=1)

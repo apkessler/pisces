@@ -96,8 +96,6 @@ class PhCalibrationHelper:
             logger.warning(f"No PH calibration data exists in {self.PH_CALIBRATION_PATH}!")
             return []
 
-        logger.debug("Loaded ph calibration record")
-        print(f"{caldata.keys()=}")
         return [datetime.datetime.strptime(ts_str, '%Y%d%m-%H%M%S') for ts_str in caldata.keys()]
 
     def record_calibration(self, dt:datetime.datetime, data:dict):
@@ -140,8 +138,7 @@ def get_ph_warning_message(
     if last_cal_date is None:
         return PhMessages.MSG_RECALIBRATION_REQUIRED, PhMessages.MSG_PH_CAL_NOT_FOUND
 
-    dt_delta=  time_now - last_cal_date     #See how much time has passed
-
+    dt_delta = time_now - last_cal_date     #See how much time has passed
 
     if dt_delta.days >= 365:
         return PhMessages.MSG_RECALIBRATION_REQUIRED, PhMessages.MSG_PH_ONE_YEAR_OLD
