@@ -43,8 +43,8 @@ def write_dict(fp:str, data:dict):
 
 
 def test_wrap():
-    assert "" == wrap("", 20)
-    assert "This is\na test" == wrap("This is a test", width=7)
+    assert "" == wrap_text("", 20)
+    assert "This is\na test" == wrap_text("This is a test", width=7)
 
 def test_get_ph_warning_message():
 

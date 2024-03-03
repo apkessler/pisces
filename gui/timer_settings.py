@@ -22,7 +22,7 @@ class AquariumLightsSettingsPage(Subwindow):
         time_setting_frame = tk.LabelFrame(self.master, text="Light Schedule", font=fontTuple)
         eclipse_setting_frame = tk.LabelFrame(self.master, text="Blue Cycle Settings", font=fontTuple)
         enabled_setting_frame = tk.LabelFrame(self.master, text="Lights Enabled", font=fontTuple)
-        tk.Label(self.master, text=wrap("Some changes may not take effect until the next GUI relaunch.", width=25), font=('Arial', 16)).grid(row=3, column=1)
+        tk.Label(self.master, text=wrap_text("Some changes may not take effect until the next GUI relaunch.", width=25), font=('Arial', 16)).grid(row=3, column=1)
 
         time_setting_frame.grid(row=1, column =0, sticky='ew', padx=10, pady=10)
         eclipse_setting_frame.grid(row=2, column =0, sticky='ew', padx=10, pady=10)
@@ -132,7 +132,7 @@ class AquariumLightsSettingsPage(Subwindow):
                 c_var.set(1 if self.tank_light_schedule['lights'][f"TankLight{l_id}"][c_id] else 0)
 
         tk.Label(enabled_setting_frame,
-                 text=wrap("You can enable or disable specific colors on each light. If it is unchecked here, it will not turn on as part of the schedule.", width=25),
+                 text=wrap_text("You can enable or disable specific colors on each light. If it is unchecked here, it will not turn on as part of the schedule.", width=25),
                  font=('Arial', 13)
                  ).grid(row=1, rowspan=2, column=3, padx=10, pady=10)
 

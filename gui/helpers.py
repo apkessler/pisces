@@ -445,7 +445,7 @@ class TimeSelector():
         mm = hhmm - hh*100
         return hh,mm
 
-def wrap(text:str, width:int)-> str:
+def wrap_text(text:str, width:int)-> str:
     """ Wrap a string to fixed width and return single
         string new line.
     """

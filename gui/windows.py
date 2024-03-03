@@ -4,6 +4,7 @@ import weakref
 from loguru import logger
 import threading
 import os
+import dataclasses
 fontTuple = ('Arial', 15)
 
 def activity_kick(func):
@@ -15,7 +16,6 @@ def activity_kick(func):
         return result
 
     return wrap
-
 
 
 class Window(object):

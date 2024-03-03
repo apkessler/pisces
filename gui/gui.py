@@ -249,13 +249,13 @@ class MainWindow(Window):
 
         prefix = "WARNING!\n" if main_window_msg != "" else ""
         self.warning_text.set(
-            prefix +"\n".join(textwrap.wrap(main_window_msg, width=20))
+            prefix +wrap_text(main_window_msg, width=20)
             )
 
         if lock_screen_msg == PhMessages.MSG_RECALIBRATION_REQUIRED:
             self.ph_value_for_lock_screen.set("") #Don't show a pH value
 
-        self.lock_screen_ph_text.set("\n".join(textwrap.wrap(lock_screen_msg, width=20)))
+        self.lock_screen_ph_text.set(wrap_text(lock_screen_msg, width=20))
 
 
     def quit(self):
