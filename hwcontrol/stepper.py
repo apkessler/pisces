@@ -6,7 +6,8 @@
 #
 
 import time
-import threading, queue
+import threading
+import queue
 from enum import Enum
 from loguru import logger
 
@@ -117,7 +118,7 @@ class StepperMotor(object):
         over the message queue, then executes them.
         """
 
-        logger.info(f"Running pump cmd handler thread")
+        logger.info("Running pump cmd handler thread")
 
         while 1:
             cmd = self.queue.get()  # Blocking wait for new command
@@ -137,7 +138,7 @@ class StepperMotor(object):
             for i in range(cmd["steps"]):
                 self.takeStep()
                 if self.stop_event.is_set():
-                    logger.info(f"Stepper thread got STOP command")
+                    logger.info("Stepper thread got STOP command")
                     break
 
             time.sleep(0.1)
@@ -145,6 +146,6 @@ class StepperMotor(object):
             self.disableDriver()
 
             self.is_active_flag.clear()
-            logger.info(f"Done with stepper cmd")
+            logger.info("Done with stepper cmd")
 
-        logger.error(f"Stepper run thread exiting (uh-oh)")
+        logger.error("Stepper run thread exiting (uh-oh)")

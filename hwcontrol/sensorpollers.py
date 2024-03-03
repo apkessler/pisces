@@ -56,7 +56,7 @@ class ThermometerPoller(object):
         This method should run as in its own thread.
         """
 
-        logger.info(f"Starting thermometer polling thread")
+        logger.info("Starting thermometer polling thread")
 
         def read_temp_raw():
             f = open(self.device_file, "r")
@@ -104,7 +104,7 @@ class PhSensorPoller(object):
         try:
             self.phSensor = Atlas.AtlasI2C(address=99, moduletype="pH")
 
-            logger.info(f"Found ph sensor!")
+            logger.info("Found ph sensor!")
 
             self.thread = threading.Thread(target=self._poll, args=(), daemon=True)
             self.thread.start()
@@ -127,7 +127,7 @@ class PhSensorPoller(object):
         This method should run as in its own thread.
         """
 
-        logger.info(f"Starting PH polling thread")
+        logger.info("Starting PH polling thread")
 
         while True:
             self.lock.acquire(blocking=True)
@@ -188,7 +188,7 @@ class SimulatedPoller(object):
         This method should run as in its own thread.
         """
 
-        logger.info(f"Starting fake polling thread")
+        logger.info("Starting fake polling thread")
 
         while True:
             self.lock.acquire(blocking=True)  # block until lock available
