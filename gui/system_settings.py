@@ -1,7 +1,25 @@
 """System Settings GUI Elements    """
 
 import shutil
-from helpers import *
+import tkinter as tk
+import datetime
+import sys
+import time
+from loguru import logger
+
+from helpers import (
+    get_git_version,
+    SCHEDULE_CONFIG_DEFAULT_FILE,
+    SCHEDULE_CONFIG_FILE,
+    set_datetime,
+    DateSelector,
+    TimeSelector,
+    timeToHhmm,
+    shutdown_pi,
+    get_ip,
+    is_wifi_on,
+    set_wifi_state,
+)
 from windows import (
     Subwindow,
     fontTuple,
@@ -9,8 +27,7 @@ from windows import (
     ConfirmPromptPage,
     activity_kick,
 )
-import sys
-import time
+
 
 
 class SystemSettingsPage(Subwindow):
@@ -128,7 +145,7 @@ class NetworkSettingsPage(Subwindow):
 
         f = tk.Frame(self.master)
         f.place(x=50, y=80)
-        tk.Label(f, text=f"IP Address:", font=("Arial", 24)).grid(
+        tk.Label(f, text="IP Address:", font=("Arial", 24)).grid(
             row=1, column=0, padx=5, pady=2
         )
         self.ip_addr_var = tk.StringVar()
@@ -136,7 +153,7 @@ class NetworkSettingsPage(Subwindow):
             row=1, column=1, padx=5, pady=2
         )
 
-        tk.Label(f, text=f"WiFi status: ", font=("Arial", 24)).grid(
+        tk.Label(f, text="WiFi status: ", font=("Arial", 24)).grid(
             row=2, column=0, padx=5, pady=2
         )
         self.wifi_status_var = tk.StringVar()

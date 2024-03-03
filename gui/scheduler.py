@@ -14,7 +14,6 @@ from loguru import logger
 
 # Custom imports
 from hwcontrol_client import HardwareControlClient
-from dispense_client import dispense
 
 
 class TimerState(Enum):
@@ -71,11 +70,6 @@ def timeToHhmm(time: dt.time) -> int:
     return (time.hour * 100) + time.minute
 
 
-def fake_dispense(*args):
-    logger.info("Fake dispense called")
-    time.sleep(5)
-    logger.info("Fake dispense done")
-
 
 class GenericEvent:
     """An Simple state machine for running the dispense task and waiting for it to complete.
@@ -96,12 +90,12 @@ class GenericEvent:
 
     def update(self, dt_now: dt.datetime) -> None:
         time_now = dt_now.time()
-        if self.last_time == None:
+        if self.last_time is None:
             self.last_time = time_now
 
         if self.last_time < self.trigger_time and time_now >= self.trigger_time:
             logger.info(f"Running cmd {self.name}")
-            if self.callback != None:
+            if self.callback is not None:
                 self.callback()
 
         self.last_time = time_now
@@ -395,4 +389,4 @@ if __name__ == "__main__":
     except Exception as e:
         logger.error(f"{e}")
 
-    logger.info(f"Stopping SCHEDULER")
+    logger.info("Stopping SCHEDULER")

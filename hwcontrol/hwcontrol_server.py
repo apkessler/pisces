@@ -6,7 +6,8 @@
 #
 
 from concurrent import futures
-import grpc, json
+import grpc
+import json
 from collections import namedtuple
 import os
 import argparse
@@ -103,7 +104,7 @@ class HardwareMap:
 
         RelayObj = namedtuple("RelayObj", ["name", "gpioObj"])
 
-        logger.info(f"Creating relay objects...")
+        logger.info("Creating relay objects...")
 
         self.relayObjs = []
         for r in self.jData["relays"]:
@@ -115,14 +116,14 @@ class HardwareMap:
             )
             self.relayObjs.append(obj)
 
-        logger.info(f"Creating light objects...")
+        logger.info("Creating light objects...")
 
         def lookupRly(name):
             """
             Find first relay in list with given name
             If input is None, return None
             """
-            if name == None:
+            if name is None:
                 return None
 
             for r in self.relayObjs:
@@ -333,7 +334,7 @@ class HardwareControl(hardwareControl_pb2_grpc.HardwareControlServicer):
             # Is the new scope empty?
             if request.scope == "":
                 # Yes, this is a clearing of scope!
-                logger.info(f"Scope reset!")
+                logger.info("Scope reset!")
                 logger.info(f"Buffered cmds: {hwMap.bufferedLightCmdList}")
                 hwMap.applyBufferedLightCmds()
                 hwMap.scope = ""

@@ -305,7 +305,7 @@ def set_wifi_state(state: bool) -> bool:
         True if successful
     """
     cmd = "unblock" if state else "block"
-    return sys_call(f"sudo rfkill {cmd} wlan") != None
+    return sys_call(f"sudo rfkill {cmd} wlan") is not None
 
 
 def set_local_ap_mode(mode: bool) -> bool:

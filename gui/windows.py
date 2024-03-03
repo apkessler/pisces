@@ -3,7 +3,7 @@ import weakref
 from loguru import logger
 import threading
 import os
-import dataclasses
+
 
 fontTuple = ("Arial", 15)
 
@@ -33,9 +33,9 @@ class Window(object):
     main_window = None
     activity_timer = None
     activity_timeout_sec = 5.0
-    activity_expiration_callback = lambda: logger.debug("Default expiration callback")
-    wifi_callback = lambda: logger.debug("Default wifi callback")
-    get_wifi_state_func = lambda: None
+    activity_expiration_callback = lambda: logger.debug("Default expiration callback") # noqa: E731
+    wifi_callback = lambda: logger.debug("Default wifi callback") # noqa: E731
+    get_wifi_state_func = lambda: None # noqa: E731
     lock_img = None
     wifi_on_img = None
     wifi_off_img = None
@@ -45,12 +45,12 @@ class Window(object):
         self.master.wm_geometry("640x480")
         self.master.title(title)
         # Only store this the first time. Probably a better pattern for this.
-        if Window.is_fullscreen == None:
+        if Window.is_fullscreen is None:
             Window.is_fullscreen = fullscreen
         if Window.is_fullscreen:
             self.master.attributes("-fullscreen", True)
 
-        if Window.main_window == None:
+        if Window.main_window is None:
             logger.debug("Storing reference to main window")
             Window.main_window = self  # Store reference to main window
 
@@ -64,7 +64,7 @@ class Window(object):
         """
 
         # Only load the lock image once per class
-        if Window.lock_img == None:
+        if Window.lock_img is None:
             Window.lock_img = tk.PhotoImage(
                 file=os.path.join(os.path.dirname(__file__), "icons", "unlock_icon.png")
             ).subsample(10, 10)
@@ -90,14 +90,14 @@ class Window(object):
         wifi_state = Window.get_wifi_state_func()
 
         # Only load the image once per class
-        if Window.wifi_on_img == None:
+        if Window.wifi_on_img is None:
             Window.wifi_on_img = tk.PhotoImage(
                 file=os.path.join(
                     os.path.dirname(__file__), "icons", "wifi_on_icon.png"
                 )
             ).subsample(10, 10)
 
-        if Window.wifi_off_img == None:
+        if Window.wifi_off_img is None:
             Window.wifi_off_img = tk.PhotoImage(
                 file=os.path.join(
                     os.path.dirname(__file__), "icons", "wifi_off_icon.png"
@@ -161,7 +161,7 @@ class Window(object):
             param_dict["font"] = fontTuple
             param_dict["command"] = callback
 
-            if type(bInfo["text"]) is str:
+            if isinstance(bInfo["text"], str):
                 param_dict["text"] = bInfo["text"]
             else:
                 param_dict["textvariable"] = bInfo["text"]
@@ -195,7 +195,7 @@ class Window(object):
     @classmethod
     def kick_activity_watchdog(cls, source=None):
         logger.debug(f"kicking watchdog from {source}")
-        if Window.activity_timer != None:
+        if Window.activity_timer is not None:
             Window.activity_timer.cancel()
         Window.activity_timer = threading.Timer(
             Window.activity_timeout_sec, Window.activity_expiration_callback

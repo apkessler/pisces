@@ -1,9 +1,17 @@
 """Timer Settings GUI Elements    """
 
-from helpers import *
+import tkinter as tk
+from loguru import logger
+from helpers import (
+    SCHEDULE_CONFIG_FILE,
+    TimeSelector,
+    wrap_text,
+    ICON_PATH,
+)
 from windows import Subwindow, fontTuple, ErrorPromptPage, activity_kick
 from system_settings import RelaunchPromptPage
 import os
+import json
 
 
 class AquariumLightsSettingsPage(Subwindow):
@@ -260,7 +268,6 @@ class OutletSettingsPage(Subwindow):
         super().__init__("Outlet Settings", draw_exit_button=False)
 
         # Load the scheduler json file
-        this_dir = os.path.dirname(__file__)
         with open(SCHEDULE_CONFIG_FILE, "r") as jsonfile:
             self.config_data = json.load(jsonfile)
 

@@ -25,7 +25,7 @@ import matplotlib.dates as mdates
 
 
 # Custom imports
-from helpers import *
+from helpers import get_end_of_month, get_start_of_month, get_end_of_year, get_start_of_year
 from windows import Subwindow, ErrorPromptPage, fontTuple, activity_kick
 
 
@@ -216,7 +216,7 @@ class GraphPage(Subwindow):
         )  # Rather than use actual "now" timestamp, use the last piece of data in log
         if tentative_new_min >= now:
             logger.info(
-                f"Cannot go forward further -- LHS of plot would be after any data."
+                "Cannot go forward further -- LHS of plot would be after any data."
             )
         else:
             self.max_time_to_plot = tentative_new_max
@@ -257,7 +257,7 @@ class GraphPage(Subwindow):
         )  # Rather than use actual "now" timestamp, use the last piece of data in lpg
         if tentative_new_min >= now:
             logger.info(
-                f"Cannot go forward further -- LHS of plot would be after any data."
+                "Cannot go forward further -- LHS of plot would be after any data."
             )
         else:
             self.max_time_to_plot = tentative_new_max
@@ -298,7 +298,7 @@ class GraphPage(Subwindow):
         )  # Rather than use actual "now" timestamp, use the last piece of data in lpg
         if tentative_new_min >= now:
             logger.info(
-                f"Cannot go forward further -- LHS of plot would be after any data."
+                "Cannot go forward further -- LHS of plot would be after any data."
             )
         else:
             self.max_time_to_plot = tentative_new_max
@@ -372,7 +372,7 @@ class GraphPage(Subwindow):
             self.exit()
             return
 
-        if self.settings["yaxis_warnings"] != None:
+        if self.settings["yaxis_warnings"] is not None:
             # If there are warning lines, draw them
             self.ax.hlines(
                 y=self.settings["yaxis_warnings"],
@@ -432,7 +432,7 @@ class GraphPage(Subwindow):
             self.ax.xaxis.set_major_formatter(FuncFormatter(m_fmt))
             self.ax.set_title(start_time.strftime("%Y"))
 
-        if title != None:
+        if title is not None:
             self.ax.set_title(title)
 
         self.ax.grid(which="both")
