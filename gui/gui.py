@@ -300,22 +300,22 @@ class LockScreen(Subwindow):
         super().exit()
 
 
-
-
-
-
 class SettingsPage(Subwindow):
 
     def __init__(self):
         super().__init__("Settings")
 
-        last_ph_cal_date = PhCalibrationHelper().get_latest_ph_calibration_date().strftime("%Y-%b-%d")
+        last_cal_date = PhCalibrationHelper().get_latest_ph_calibration_date()
+        if last_cal_date is not None:
+            last_ph_cal_date_str = last_cal_date.strftime('%Y-%b-%m')
+        else:
+            last_ph_cal_date_str = "Never!"
         buttons = [
             {'text':"Reboot\nBox",      'callback': lambda:ConfirmPromptPage("Are you sure you want to reboot?", reboot_pi)},
             {'text':"Aquarium\nLights", 'callback': lambda: AquariumLightsSettingsPage()},
             {'text':"Outlet\nTimers",      'callback': lambda: OutletSettingsPage()},
             {'text':"Peristaltic Pump\nSettings", 'callback': lambda: PeriPumpSettingsPage()},
-            {'text':f"pH Calibration\n\nLast Calibration:\n{last_ph_cal_date}",     'callback': lambda: CalibratePhStartPage()},
+            {'text':f"pH Calibration\n\nLast Calibration:\n{last_ph_cal_date_str}",     'callback': lambda: CalibratePhStartPage()},
             {'text':"System Settings",  'callback': lambda: SystemSettingsPage()}
         ]
 
@@ -479,24 +479,38 @@ class CalibratePhStartPage(Subwindow):
     def __init__(self):
         super().__init__("pH Sensor Calibration")
 
-        msg = "To calibrate the pH sensor, you will need all three\nof the calibration solutions (pH=7.0, 4.0, 10.0)." + \
-               "\n\nIf you've got those ready, go ahead\nand hit the START button!" + \
-                "\n\nWARNING: Starting this process will erase any existing\ncalibration," + \
-                " and disable the screen from locking."
+        msg = ("To calibrate the pH sensor, you will need all three\n"
+               "of the calibration solutions (pH=7.0, 4.0, 10.0).\n"
+               "\n"
+               "If you've got those ready, go ahead\n"
+               "and hit the START button!\n"
+               "\n"
+                "WARNING: Starting this process will erase any existing\n"
+                "calibration, and disable the screen from locking."
+                )
 
         tk.Label(self.master, text=msg, font=('Arial',18), justify=tk.LEFT).place(x=25, y=100)
 
         btn = tk.Button(self.master, text="Start!", font=fontTuple, width=15, height=4, bg='#00ff00', command=self.run_sequence)
         btn.place(x=400, y=330)
 
-        tk.Label(self.master, text="Previous Calibrations:", font=('Arial',15), justify=tk.LEFT).place(x=50, y=280)
+        pch = PhCalibrationHelper()
 
+        last_cal_date = pch.get_latest_ph_calibration_date()
+        if last_cal_date is not None:
+            next_cal_due = last_cal_date + datetime.timedelta(days=365)
+            next_cal_due_str = next_cal_due.strftime('%Y-%b-%m')
+        else:
+            next_cal_due_str = "Now!"
+
+        tk.Label(self.master, text=f"Next calibration due: {next_cal_due_str}", font=('Arial',15), justify=tk.LEFT).place(x=50, y=310)
+        tk.Label(self.master, text="Previous Calibrations:", font=('Arial',15), justify=tk.LEFT).place(x=50, y=330)
         text_area = st.ScrolledText(self.master,
                             width = 30,
-                            height = 8,
+                            height = 4,
                             font = ("Arial", 15))
 
-        text_area.place(x=50, y=300)
+        text_area.place(x=50, y=350)
         # Inserting list of previous calibrations
         callist = PhCalibrationHelper().get_ph_calibrations()
         calstrs = [c.strftime('%Y-%b-%m %H:%M:%S') for c in callist]
