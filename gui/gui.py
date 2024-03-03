@@ -19,6 +19,7 @@ import textwrap
 
 # 3rd party imports
 import tkinter as tk
+import tkinter.scrolledtext as st
 import grpc
 import json
 from loguru import logger
@@ -209,7 +210,6 @@ class MainWindow(Window):
         #Kick the systemd watchdog. This is to catch the tkinter timers getting messed up due to a system time change,
         #likely triggered by an NTP sync
         notify_systemd_watchdog()
-
 
         self.updateTimestamp()
 
@@ -478,13 +478,28 @@ class CalibratePhStartPage(Subwindow):
 
         msg = "To calibrate the pH sensor, you will need all three\nof the calibration solutions (pH=7.0, 4.0, 10.0)." + \
                "\n\nIf you've got those ready, go ahead\nand hit the START button!" + \
-                "\n\nWARNING: Starting this process will erase any existing\ncalibration," +\
-                "and disable the screen from locking."
+                "\n\nWARNING: Starting this process will erase any existing\ncalibration," + \
+                " and disable the screen from locking."
 
         tk.Label(self.master, text=msg, font=('Arial',18), justify=tk.LEFT).place(x=25, y=100)
 
         btn = tk.Button(self.master, text="Start!", font=fontTuple, width=15, height=4, bg='#00ff00', command=self.run_sequence)
-        btn.place(x=250, y=330)
+        btn.place(x=400, y=330)
+
+        tk.Label(self.master, text="Previous Calibrations:", font=('Arial',15), justify=tk.LEFT).place(x=50, y=280)
+
+        text_area = st.ScrolledText(self.master,
+                            width = 30,
+                            height = 8,
+                            font = ("Arial", 15))
+
+        text_area.place(x=50, y=300)
+        # Inserting list of previous calibrations
+        callist = PhCalibrationHelper().get_ph_calibrations()
+        calstrs = [c.strftime('%Y-%b-%m %H:%M:%S') for c in callist]
+        text_area.insert(tk.INSERT, "\n".join(calstrs))
+
+        text_area.configure(state ='disabled') #make read only
 
         #Start this now to give the default sleep period time to end (up to 1min)
         hwCntrl.setPhSensorSampleTime(1000) #Speed up ph sensor sample time
