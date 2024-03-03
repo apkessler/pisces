@@ -7,7 +7,6 @@ import AtlasI2C as Atlas
 import time
 import threading
 from collections import deque
-import logging
 import datetime as dt
 
 # logger = logging.getLogger(__name__)

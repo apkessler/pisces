@@ -1,4 +1,3 @@
-import pytest
 from helpers import PhCalibrationHelper, get_ph_warning_message, PhMessages, wrap_text
 import datetime as dt
 import os

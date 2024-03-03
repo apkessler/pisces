@@ -25,7 +25,12 @@ import matplotlib.dates as mdates
 
 
 # Custom imports
-from helpers import get_end_of_month, get_start_of_month, get_end_of_year, get_start_of_year
+from helpers import (
+    get_end_of_month,
+    get_start_of_month,
+    get_end_of_year,
+    get_start_of_year,
+)
 from windows import Subwindow, ErrorPromptPage, fontTuple, activity_kick
 
 

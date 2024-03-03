@@ -70,7 +70,6 @@ def timeToHhmm(time: dt.time) -> int:
     return (time.hour * 100) + time.minute
 
 
-
 class GenericEvent:
     """An Simple state machine for running the dispense task and waiting for it to complete.
     Would be nice to eventually generalize this."""

@@ -67,7 +67,7 @@ class HardwareControlClient:
         """
         Set state on given channel to given state
         """
-        response = self.stub.SetRelayState(
+        _ = self.stub.SetRelayState(
             hardwareControl_pb2.RelayState(channel=chn, isEngaged=isEngaged)
         )
 
@@ -92,7 +92,7 @@ class HardwareControlClient:
             Command scope, by default ""
         """
 
-        response = self.stub.SetLightColor(
+        _ = self.stub.SetLightColor(
             hardwareControl_pb2.LightColor(
                 lightId=lightId, color_enum=color_name_to_enum(color_name), scope=scope
             )
@@ -114,13 +114,13 @@ class HardwareControlClient:
         """
         Move stepper motor specified number of steps
         """
-        response = self.stub.MoveStepper(
+        _ = self.stub.MoveStepper(
             hardwareControl_pb2.StepperCommand(numSteps=numSteps, isReverse=isReverse)
         )
 
     def stopStepper(self) -> None:
         """Stop the stepper motor from doing any motion"""
-        response = self.stub.StopStepper(hardwareControl_pb2.Empty())
+        _ = self.stub.StopStepper(hardwareControl_pb2.Empty())
 
     def getIsStepperActive(self) -> bool:
         """Get true/false if stepper is active right now"""
@@ -129,11 +129,11 @@ class HardwareControlClient:
 
     def setScope(self, scope="") -> None:
         """Set the Light Control scope."""
-        response = self.stub.SetScope(hardwareControl_pb2.Scope(scope=scope))
+        _ = self.stub.SetScope(hardwareControl_pb2.Scope(scope=scope))
 
     def setPhSensorSampleTime(self, time_msec: int) -> None:
         """time of 0 = return to default"""
-        response = self.stub.SetPHSampleTime(
+        _ = self.stub.SetPHSampleTime(
             hardwareControl_pb2.SampleTime(sample_time_msec=time_msec)
         )
 

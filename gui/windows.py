@@ -33,9 +33,11 @@ class Window(object):
     main_window = None
     activity_timer = None
     activity_timeout_sec = 5.0
-    activity_expiration_callback = lambda: logger.debug("Default expiration callback") # noqa: E731
-    wifi_callback = lambda: logger.debug("Default wifi callback") # noqa: E731
-    get_wifi_state_func = lambda: None # noqa: E731
+    activity_expiration_callback = lambda: logger.debug(
+        "Default expiration callback"
+    )  # noqa: E731
+    wifi_callback = lambda: logger.debug("Default wifi callback")  # noqa: E731
+    get_wifi_state_func = lambda: None  # noqa: E731
     lock_img = None
     wifi_on_img = None
     wifi_off_img = None

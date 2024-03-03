@@ -9,8 +9,6 @@ import grpc
 import time
 import argparse
 import threading
-import json
-import os
 
 from loguru import logger
 
@@ -66,7 +64,7 @@ def dispense(hwCntrl, volume_ml: int, stop_event: threading.Event):
 
     while hwCntrl.getIsStepperActive():
         if stop_event.is_set():
-            logger.info(f"Dispense got stop flag early!")
+            logger.info("Dispense got stop flag early!")
             hwCntrl.stopStepper()
             stop_event.clear()  # So this doesn't keep retriggering, but we'll wait in this loop until stepper actually says it has stopped
 

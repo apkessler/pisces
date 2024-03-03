@@ -6,7 +6,6 @@
 #
 
 import gpiozero as gz
-import time
 
 
 # Pinout - TODO, move to config?
@@ -30,18 +29,18 @@ def main():
     for r in relay_gpio_objs:
         print(r, flush=True)
 
-    c = input("\nPress any key to continue...")
+    _ = input("\nPress any key to continue...")
 
     for inx, relay in enumerate(relay_gpio_objs):
         print(f"Turning on Relay[{inx}]", flush=True)
         relay.on()
         print(f"\t{relay.is_active}", flush=True)
-        c = input("\n Press any key to continue...")
+        _ = input("\n Press any key to continue...")
 
         print(f"Turning off Relay[{inx}]", flush=True)
         relay.off()
         print(f"\t{relay.is_active}", flush=True)
-        c = input("\nPress any key to continue...")
+        _ = input("\nPress any key to continue...")
 
     while 1:
         pass

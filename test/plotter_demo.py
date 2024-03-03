@@ -7,7 +7,6 @@ import datetime
 import random
 import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
 
 
 def generate_data():

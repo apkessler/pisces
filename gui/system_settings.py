@@ -29,7 +29,6 @@ from windows import (
 )
 
 
-
 class SystemSettingsPage(Subwindow):
     def __init__(self):
         super().__init__("System Settings")
