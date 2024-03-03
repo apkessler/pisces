@@ -5,11 +5,12 @@
 #
 #
 
-LOG_FILE = 'gpiostate.txt' #This is where state of GPIO regsiters are written to
+LOG_FILE = "gpiostate.txt"  # This is where state of GPIO regsiters are written to
 
-class DigitalOutputDevice():
 
+class DigitalOutputDevice:
     instances = []
+
     def __init__(self, pin="", active_high=""):
         self.pin = pin
         self.active_high = active_high
@@ -28,8 +29,7 @@ class DigitalOutputDevice():
     def is_active(self):
         return self.state
 
-
     @classmethod
     def printGpios(cls):
-        with open(LOG_FILE, mode='a') as f:
-            f.write(' '.join([str(x.is_active) for x in cls.instances]) + '\n')
+        with open(LOG_FILE, mode="a") as f:
+            f.write(" ".join([str(x.is_active) for x in cls.instances]) + "\n")

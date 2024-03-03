@@ -1,4 +1,3 @@
-
 import datetime
 import socket
 import subprocess
@@ -10,30 +9,34 @@ import calendar
 import shlex
 from loguru import logger
 
-from windows import (fontTuple, activity_kick)
+from windows import fontTuple, activity_kick
 
-SCHEDULE_CONFIG_FILE = os.path.join(os.path.dirname(__file__), '../data/schedule.json')
-SCHEDULE_CONFIG_DEFAULT_FILE = os.path.join(os.path.dirname(__file__), 'schedule.default.json')
+SCHEDULE_CONFIG_FILE = os.path.join(os.path.dirname(__file__), "../data/schedule.json")
+SCHEDULE_CONFIG_DEFAULT_FILE = os.path.join(
+    os.path.dirname(__file__), "schedule.default.json"
+)
 
 try:
     import systemd.daemon
+
     has_systemd = True
 except ModuleNotFoundError:
-    print('Cannot find systemd module')
+    print("Cannot find systemd module")
     has_systemd = False
 
-def notify_systemd_watchdog():
-    ''' Send systemd the watchdog kick notification.'''
 
-    #logger.debug('systemd watchdog kick')
-    if (has_systemd):
-        systemd.daemon.notify('WATCHDOG=1')
+def notify_systemd_watchdog():
+    """Send systemd the watchdog kick notification."""
+
+    # logger.debug('systemd watchdog kick')
+    if has_systemd:
+        systemd.daemon.notify("WATCHDOG=1")
     else:
         pass
 
 
-def ph_to_color(ph:float) -> str:
-    '''Convert a pH value to color based on API Freshwater test kit color map
+def ph_to_color(ph: float) -> str:
+    """Convert a pH value to color based on API Freshwater test kit color map
 
     Parameters
     ----------
@@ -45,21 +48,21 @@ def ph_to_color(ph:float) -> str:
     str
         Closest Hex RGB color code
 
-    '''
+    """
     color_map = [
-    [6.0,'#FCF090'],
-    [6.4,'#F4F3BC'],
-    [6.6,'#CADDA7'],
-    [6.8,'#B3D2B7'],
-    [7.0,'#98C6B2'],
-    [7.2,'#82BBB7'],
-    [7.4,'#C9A443'],
-    [7.8,'#DE9D57'],
-    [8.0,'#BF815B'],
-    [8.2,'#985854'],
-    [8.4,'#714275'],
-    [8.8,'#52366D'],
-        ]
+        [6.0, "#FCF090"],
+        [6.4, "#F4F3BC"],
+        [6.6, "#CADDA7"],
+        [6.8, "#B3D2B7"],
+        [7.0, "#98C6B2"],
+        [7.2, "#82BBB7"],
+        [7.4, "#C9A443"],
+        [7.8, "#DE9D57"],
+        [8.0, "#BF815B"],
+        [8.2, "#985854"],
+        [8.4, "#714275"],
+        [8.8, "#52366D"],
+    ]
 
     best_score = 100
     best_item = None
@@ -67,12 +70,13 @@ def ph_to_color(ph:float) -> str:
         score = abs(item[0] - ph)
         if score < best_score:
             best_score = score
-            best_item  = item
+            best_item = item
 
     return best_item[1]
 
-def timeToHhmm(time:datetime.time) -> int:
-    ''' Convert a datetime._time object to a simple time integer in form hhmm
+
+def timeToHhmm(time: datetime.time) -> int:
+    """Convert a datetime._time object to a simple time integer in form hhmm
 
     Parameters
     ----------
@@ -83,28 +87,32 @@ def timeToHhmm(time:datetime.time) -> int:
     -------
     int
         Equivalent hhmm int
-    '''
+    """
     return (time.hour * 100) + time.minute
+
 
 def get_ip() -> str:
     """
-        Get IP address of this device, return as string.
+    Get IP address of this device, return as string.
     """
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         # doesn't even have to be reachable
-        s.connect(('10.255.255.255', 1))
+        s.connect(("10.255.255.255", 1))
         IP = s.getsockname()[0]
     except Exception:
-        IP = '127.0.0.1'
+        IP = "127.0.0.1"
     finally:
         s.close()
     return IP
 
-def sys_call(cmd:str) -> str:
+
+def sys_call(cmd: str) -> str:
     output = ""
     try:
-        tokens = shlex.split(cmd) #Use shlex.split so quoted spaces are treated as a single token
+        tokens = shlex.split(
+            cmd
+        )  # Use shlex.split so quoted spaces are treated as a single token
         logger.debug(tokens)
         process = subprocess.Popen(tokens, stdout=subprocess.PIPE)
         output = process.communicate()[0]
@@ -114,67 +122,81 @@ def sys_call(cmd:str) -> str:
     finally:
         return output
 
-def set_datetime(the_datetime:datetime.datetime):
-    ''' Set the system date time to provided value.
-        Return success/fail
-    '''
-    #Turn NTP off so we can change the time
+
+def set_datetime(the_datetime: datetime.datetime):
+    """Set the system date time to provided value.
+    Return success/fail
+    """
+    # Turn NTP off so we can change the time
     sys_call("/usr/bin/sudo /usr/bin/timedatectl set-ntp 0")
 
     time = the_datetime.strftime("%Y-%m-%d %H:%M:%S")
     logger.info(f"Setting time to {time}")
     sys_call(f'/usr/bin/sudo /usr/bin/timedatectl set-time "{time}"')
 
-    #Turn NTP back on (note this may override the change we just tried to make)
+    # Turn NTP back on (note this may override the change we just tried to make)
     sys_call("/usr/bin/sudo /usr/bin/timedatectl set-ntp 1")
 
-    #Look at what the time is now
+    # Look at what the time is now
     new_now = datetime.datetime.now()
     time_error = new_now - the_datetime
-    logger.debug(f'Err={time_error}')
-    return (time_error.total_seconds() > 1.5)
+    logger.debug(f"Err={time_error}")
+    return time_error.total_seconds() > 1.5
 
 
 def reboot_pi():
     logger.info("restarting the Pi")
     sys_call("/usr/bin/sudo /sbin/shutdown -r now")
 
+
 # modular function to shutdown Pi
 def shutdown_pi():
     logger.info("shutting down the Pi")
     sys_call("/usr/bin/sudo /sbin/shutdown -h now")
 
+
 def get_git_version() -> str:
-    '''Get the git latest git hash. Only works if code is actually cloned
+    """Get the git latest git hash. Only works if code is actually cloned
 
     Returns
     -------
     str
         Latest git hash
-    '''
-    return subprocess.check_output(["git", "describe", "--always"],
-        cwd=os.path.dirname(os.path.abspath(__file__))).strip().decode()
+    """
+    return (
+        subprocess.check_output(
+            ["git", "describe", "--always"],
+            cwd=os.path.dirname(os.path.abspath(__file__)),
+        )
+        .strip()
+        .decode()
+    )
+
 
 def is_wifi_on() -> bool:
-    '''Get WiFi radio status via `rfkill`.
+    """Get WiFi radio status via `rfkill`.
 
     Returns
     -------
     bool
         True if WiFi is on, False if Wifi is off or unable to determine
-    '''
-    resp = sys_call('rfkill -J')
+    """
+    resp = sys_call("rfkill -J")
     try:
         jData = json.loads(resp)
         for interface in jData[""]:
-            if (interface['type'] == 'wlan'):
-                return (interface['soft'] == 'unblocked' and interface['hard'] == 'unblocked')
+            if interface["type"] == "wlan":
+                return (
+                    interface["soft"] == "unblocked"
+                    and interface["hard"] == "unblocked"
+                )
     except TypeError:
-        logger.error('Could not get wlan radio status')
+        logger.error("Could not get wlan radio status")
     return False
 
-def set_wifi_state(state:bool) -> bool:
-    '''Set WiFi radio is given state (on/off)
+
+def set_wifi_state(state: bool) -> bool:
+    """Set WiFi radio is given state (on/off)
 
     Parameters
     ----------
@@ -185,32 +207,36 @@ def set_wifi_state(state:bool) -> bool:
     -------
     bool
         True if successful
-    '''
-    cmd = 'unblock' if state else 'block'
-    return (sys_call(f'sudo rfkill {cmd} wlan') != None)
+    """
+    cmd = "unblock" if state else "block"
+    return sys_call(f"sudo rfkill {cmd} wlan") != None
 
 
-def set_local_ap_mode(mode:bool) -> bool:
+def set_local_ap_mode(mode: bool) -> bool:
     logger.info(f"Setting local AP mode to {mode}")
 
 
-def get_start_of_year(dt:datetime.datetime) -> datetime.datetime:
+def get_start_of_year(dt: datetime.datetime) -> datetime.datetime:
     return datetime.datetime(dt.year, 1, 1)
 
-def get_end_of_year(dt:datetime.datetime) -> datetime.datetime:
+
+def get_end_of_year(dt: datetime.datetime) -> datetime.datetime:
     return datetime.datetime(dt.year, 12, 31, 23, 59)
 
-def get_start_of_month(dt:datetime.datetime) -> datetime.datetime:
+
+def get_start_of_month(dt: datetime.datetime) -> datetime.datetime:
     return datetime.datetime(dt.year, dt.month, 1)
 
-def get_end_of_month(dt:datetime.datetime) -> datetime.datetime:
+
+def get_end_of_month(dt: datetime.datetime) -> datetime.datetime:
     days_in_month = calendar.monthrange(dt.year, dt.month)[1]
     return datetime.datetime(dt.year, dt.month, days_in_month, 23, 59)
 
-class DateSelector():
-    ''' Helper Class for drawing date selector GUI elements'''
-    def __init__(self, master, default_date:datetime.date):
 
+class DateSelector:
+    """Helper Class for drawing date selector GUI elements"""
+
+    def __init__(self, master, default_date: datetime.date):
         # self.style = ttk.Style()
         # self.style.theme_use("clam")
         # self.style.configure("TSpinbox", arrowsize=30, arrowcolor="green")
@@ -224,103 +250,98 @@ class DateSelector():
         self.month.set(default_date.month)
         self.day.set(default_date.day)
 
-
         s = tk.Spinbox(
-                        self.frame,
-                        from_=2022,
-                        to=2100,
-                        wrap=True,
-                        textvariable=self.year,
-                        width=4,
-                        font=('Courier', 30),
-                        justify=tk.CENTER,
-                        command=self.spinbox_update
-
+            self.frame,
+            from_=2022,
+            to=2100,
+            wrap=True,
+            textvariable=self.year,
+            width=4,
+            font=("Courier", 30),
+            justify=tk.CENTER,
+            command=self.spinbox_update,
         )
         s.pack(side=tk.LEFT)
 
         s = tk.Spinbox(
-                        self.frame,
-                        from_=1,
-                        to=12,
-                        wrap=True,
-                        textvariable=self.month,
-                        width=4,
-                        font=('Courier', 30),
-                        justify=tk.CENTER,
-                        command=self.spinbox_update
+            self.frame,
+            from_=1,
+            to=12,
+            wrap=True,
+            textvariable=self.month,
+            width=4,
+            font=("Courier", 30),
+            justify=tk.CENTER,
+            command=self.spinbox_update,
         )
         s.pack(side=tk.LEFT)
 
-
-
         s = tk.Spinbox(
-                        self.frame,
-                        from_=1,
-                        to=31,
-                        wrap=True,
-                        textvariable=self.day,
-                        width=4,
-                        font=('Courier', 30),
-                        justify=tk.CENTER,
-                        command=self.spinbox_update
+            self.frame,
+            from_=1,
+            to=31,
+            wrap=True,
+            textvariable=self.day,
+            width=4,
+            font=("Courier", 30),
+            justify=tk.CENTER,
+            command=self.spinbox_update,
         )
         s.pack(side=tk.LEFT)
 
     @activity_kick
     def spinbox_update(self):
         pass
-    
+
     def get_date(self) -> datetime.date:
         return datetime.datetime(
             year=int(self.year.get()),
             month=int(self.month.get()),
-            day=int(self.day.get())
-            ).date()
+            day=int(self.day.get()),
+        ).date()
 
     def grid(self, *args, **kwargs):
         self.frame.grid(*args, **kwargs)
 
-class TimeSelector():
-    ''' Helper Class for drawing time selector GUI elements'''
-    def __init__(self, master, default_hhmm:int):
 
+class TimeSelector:
+    """Helper Class for drawing time selector GUI elements"""
+
+    def __init__(self, master, default_hhmm: int):
         # self.style = ttk.Style()
         # self.style.theme_use("clam")
         # self.style.configure("TSpinbox", arrowsize=30, arrowcolor="green")
 
         self.frame = tk.Frame(master)
         self.hh_var = tk.StringVar()
-        hh,mm = self.split_hhmm(default_hhmm)
+        hh, mm = self.split_hhmm(default_hhmm)
         self.hh_var.set(str(hh))
         self.hh_select = tk.Spinbox(
-                        self.frame,
-                        from_=0,
-                        to=23,
-                        wrap=True,
-                        textvariable=self.hh_var,
-                        width=4,
-                        font=('Courier', 30),
-#                        style='TSpinbox',
-                        justify=tk.CENTER,
-                        command= self.spinbox_update
-
+            self.frame,
+            from_=0,
+            to=23,
+            wrap=True,
+            textvariable=self.hh_var,
+            width=4,
+            font=("Courier", 30),
+            #                        style='TSpinbox',
+            justify=tk.CENTER,
+            command=self.spinbox_update,
         )
 
         self.mm_var = tk.StringVar()
         self.mm_var.set(str(mm))
         self.mm_select = tk.Spinbox(
-                        self.frame,
-                        from_=0,
-                        to=59,
-                        wrap=True,
-                        textvariable=self.mm_var,
-                        width=4,
-                        font=('Courier', 30),
-                        justify=tk.CENTER,
-                        command=self.spinbox_update
+            self.frame,
+            from_=0,
+            to=59,
+            wrap=True,
+            textvariable=self.mm_var,
+            width=4,
+            font=("Courier", 30),
+            justify=tk.CENTER,
+            command=self.spinbox_update,
         )
-
 
         self.hh_select.pack(side=tk.LEFT)
         tk.Label(self.frame, text=":", font=fontTuple).pack(side=tk.LEFT)
@@ -333,13 +354,13 @@ class TimeSelector():
     def get_hhmm(self) -> int:
         hh_str = self.hh_var.get()
         mm_str = self.mm_var.get()
-        return (int(hh_str)*100 + int(mm_str))
+        return int(hh_str) * 100 + int(mm_str)
 
     def get_time(self) -> datetime.time:
         return datetime.time(hour=int(self.hh_var.get()), minute=int(self.mm_var.get()))
 
-    def set_time(self, hhmm:int):
-        hh,mm =self.split_hhmm(hhmm)
+    def set_time(self, hhmm: int):
+        hh, mm = self.split_hhmm(hhmm)
         self.hh_var.set(hh)
         self.mm_var.set(mm)
 
@@ -355,12 +376,12 @@ class TimeSelector():
         self.frame.grid(*args, **kwargs)
 
     @staticmethod
-    def split_hhmm(hhmm:int) -> Tuple[int, int]:
-        hh = int(hhmm/100)
-        mm = hhmm - hh*100
-        return hh,mm
+    def split_hhmm(hhmm: int) -> Tuple[int, int]:
+        hh = int(hhmm / 100)
+        mm = hhmm - hh * 100
+        return hh, mm
 
-if __name__ == '__main__':
 
+if __name__ == "__main__":
     ph_to_color(1.0)
     ph_to_color(7.0)
