@@ -144,7 +144,7 @@ def test_get_ph_warning_message():
         time_now =  dt.datetime(2024, 1, 1),
         lower_ph = 6,
         upper_ph = 8,
-    ) == (PhMessages.MSG_RECALIBRATION_MAYBE_NEEDED, PhMessages.MSG_PH_ONE_YEAR_OLD)
+    ) == (PhMessages.MSG_RECALIBRATION_REQUIRED, PhMessages.MSG_PH_ONE_YEAR_OLD)
 
     #reading low,  - over  1 year old
     assert get_ph_warning_message(
