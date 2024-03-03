@@ -23,7 +23,7 @@ import tkinter.scrolledtext as st
 import grpc
 import json
 from loguru import logger
-
+import enum
 # Custom imports
 from hwcontrol_client import HardwareControlClient
 from dispense_client import dispense
@@ -53,7 +53,7 @@ class MainWindow(Window):
     def __init__(self, root, fullscreen):
         super().__init__("Main Window", root, fullscreen)
         hwCntrl.setScope() #Reset scope to make sure schedule is running
-        self.lightToggleModes = ['Schedule', 'All On', 'All Blue', 'All Off']
+        self.lightToggleModes = ['Schedule', 'Lights On', 'Blue Only', 'Lights Off']
         self.currentLightToggleModeInx = 0
 
         self.lightModeText = tk.StringVar()
@@ -175,24 +175,26 @@ class MainWindow(Window):
             self.the_scheduler.resume_timers(['tank_lights', 'outlet1'])
             self.buttons[0].configure(image=self.light_timer)
 
-        elif (newMode == 'All On'):
+        elif (newMode == 'Lights On'):
             self.buttons[0].configure(image=self.light_white)
             self.the_scheduler.disable_timers(['tank_lights', 'outlet1'])
             for lightId in [1,2,3]:
                 hwCntrl.setLightColor(lightId, 'white')
 
-        elif (newMode == 'All Blue'):
+        elif (newMode == 'Blue Only'):
             self.buttons[0].configure(image=self.light_blue)
             self.the_scheduler.disable_timers(['tank_lights', 'outlet1'])
             for lightId in [1,2]:
                 hwCntrl.setLightColor(lightId, 'blue')
             hwCntrl.setLightColor(3, 'white') #Keep gro lights on
 
-        elif (newMode == 'All Off'):
+        elif (newMode == 'Lights Off'):
             self.buttons[0].configure(image=self.light_off)
             self.the_scheduler.disable_timers(['tank_lights', 'outlet1'])
             for lightId in [1,2,3]:
                 hwCntrl.setLightColor(lightId, 'off')
+        else:
+            raise ValueError(f"Unhandled lightToggleMode [{self.currentLightToggleModeInx}]: {newMode}")
 
     def update_scheduler(self):
         ''' Called every 30sec. Makes decisions about what should happen at this time, etc.

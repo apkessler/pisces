@@ -11,7 +11,7 @@ import shlex
 from loguru import logger
 from typing import Optional
 from windows import (fontTuple, activity_kick)
-import dataclasses
+import textwrap
 
 SCHEDULE_CONFIG_FILE = os.path.join(os.path.dirname(__file__), '../data/schedule.json')
 SCHEDULE_CONFIG_DEFAULT_FILE = os.path.join(os.path.dirname(__file__), 'schedule.default.json')
@@ -444,6 +444,12 @@ class TimeSelector():
         hh = int(hhmm/100)
         mm = hhmm - hh*100
         return hh,mm
+
+def wrap(text:str, width:int)-> str:
+    """ Wrap a string to fixed width and return single
+        string new line.
+    """
+    return "\n".join(textwrap.wrap(text, width))
 
 if __name__ == '__main__':
 

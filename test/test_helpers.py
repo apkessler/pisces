@@ -1,5 +1,5 @@
 import pytest
-from helpers import PhCalibrationHelper, get_ph_warning_message, PhMessages
+from helpers import PhCalibrationHelper, get_ph_warning_message, PhMessages, wrap
 import datetime as dt
 import os
 import json
@@ -42,6 +42,9 @@ def write_dict(fp:str, data:dict):
         json.dump(data, fp)
 
 
+def test_wrap():
+    assert "" == wrap("", 20)
+    assert "This is\na test" == wrap("This is a test", width=7)
 
 def test_get_ph_warning_message():
 
