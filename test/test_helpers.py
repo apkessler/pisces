@@ -8,7 +8,10 @@ def test_get_ph_calibrations():
     pch = PhCalibrationHelper()
     pch.PH_CALIBRATION_PATH = os.path.join(os.path.dirname(__file__), 'test_cal1.json')
 
-    os.remove(pch.PH_CALIBRATION_PATH)
+    try:
+        os.remove(pch.PH_CALIBRATION_PATH)
+    except FileNotFoundError: #may not exist yet
+        pass
     assert pch.get_ph_calibrations() == []
 
     write_dict(pch.PH_CALIBRATION_PATH, {})
@@ -19,6 +22,17 @@ def test_get_ph_calibrations():
     }
     write_dict(pch.PH_CALIBRATION_PATH, data1)
     assert pch.get_ph_calibrations() == [dt.datetime(year=2023, month=1, day=1, hour=12, minute=0, second=0)]
+
+    pch.record_calibration(dt.datetime(year=2023, month=2, day=2), {'field':1})
+    cals = pch.get_ph_calibrations()
+    assert len(cals) == 2
+    assert cals[1] == dt.datetime(year=2023, month=2, day=2)
+
+    os.remove(pch.PH_CALIBRATION_PATH)
+    pch.record_calibration(dt.datetime(year=2023, month=2, day=2), {'field':1})
+    assert len(cals) == 1
+
+
 
 
 

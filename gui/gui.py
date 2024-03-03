@@ -15,7 +15,7 @@ import datetime
 import threading
 import shutil
 import time
-
+import textwrap
 
 # 3rd party imports
 import tkinter as tk
@@ -66,6 +66,8 @@ class MainWindow(Window):
         self.temp_value = tk.StringVar()
         self.ph_value = tk.StringVar()
         self.warning_text = tk.StringVar()
+        self.ph_value_for_lock_screen = tk.StringVar()
+        self.lock_screen_ph_text = tk.StringVar()
 
         self.the_scheduler = scheduler.Scheduler(hwCntrl)
 
@@ -226,6 +228,7 @@ class MainWindow(Window):
         #Update the pH Reading
         ph = hwCntrl.getPH()
         self.ph_value.set(f"{ph:0.1f}")
+        self.ph_value_for_lock_screen.set(f"{ph:0.1f}")
         #Uncomment next line to make pH button change color based on pH
         #self.buttons[2].configure(bg=ph_to_color(ph))
 
@@ -234,12 +237,17 @@ class MainWindow(Window):
         #Check calibration age
         pch = PhCalibrationHelper()
 
-        _, msg = get_ph_warning_message(
+        lock_screen_msg, main_window_msg = get_ph_warning_message(
                 ph,
                 last_cal_date=pch.get_latest_ph_calibration_date(),
                 time_now = datetime.datetime.now(),
             )
-        self.warning_text.set(msg)
+        self.warning_text.set("Warning!\n" + "\n".join(textwrap.wrap(main_window_msg, width=20)))
+
+        if lock_screen_msg == PhMessages.MSG_RECALIBRATION_REQUIRED:
+            self.ph_value_for_lock_screen.set("") #Don't show a pH value
+
+        self.lock_screen_ph_text.set("\n".join(textwrap.wrap(lock_screen_msg, width=20)))
 
 
     def quit(self):
@@ -269,7 +277,9 @@ class LockScreen(Subwindow):
         tk.Label(frame, image=main_window.temperature_img).grid(row=1,column=1, padx=50)
 
         tk.Label(frame, textvariable=main_window.temp_value, font=('Arial',35)).grid(row=2,column=1, padx=50)
-        tk.Label(frame, textvariable=main_window.ph_value, font=('Arial',35)).grid(row=2,column=2, padx=50)
+        tk.Label(frame, textvariable=main_window.ph_value_for_lock_screen, font=('Arial',35)).grid(row=2,column=2, padx=50)
+
+        tk.Label(self.master, textvariable=main_window.lock_screen_ph_text, fg='#f00', font=('Arial',25)).place(x=370, y=380)
 
     @classmethod
     def is_locked(cls) -> bool:
@@ -497,6 +507,9 @@ class CalibratePhDonePage(Subwindow):
 
         btn = tk.Button(self.master, text="Done", font=fontTuple, width=15, height=6, bg='#00ff00', command=self.exit)
         btn.place(x=250, y=250)
+
+        pch = PhCalibrationHelper()
+        pch.record_calibration(datetime.datetime.now(), {})
 
 
 

@@ -99,6 +99,26 @@ class PhCalibrationHelper:
         logger.debug("Loaded ph calibration record")
         return [datetime.datetime.strptime(ts_str, '%Y%d%m-%H%M%S') for ts_str in caldata.keys()]
 
+    def record_calibration(self, dt:datetime.datetime, data:dict):
+        """ Make a record of a calibration"""
+
+        #Calibraton file is a json, where each key/value pair is "YYYYMMDD-HHMMSS":dict
+        #right now dicts are empty
+        ts = dt.strftime('%Y%d%m-%H%M%S')
+        try:
+            logger.debug("cal file exists")
+            with open(self.PH_CALIBRATION_PATH,"r") as fp:
+                    caldata = json.load(fp)
+        except FileNotFoundError:
+            logger.debug("cal file does NOT exist")
+            caldata = {}
+
+        caldata[ts] = data
+
+        with open(self.PH_CALIBRATION_PATH,"w") as fp:
+                json.dump(caldata, fp)
+
+        logger.info(f"Saved a calibration {ts=}")
 
 class PhMessages:
     MSG_PH_OUTSIDE_OF_RANGE = "pH outside of expected range! Calibration may be needed."
