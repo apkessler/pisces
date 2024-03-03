@@ -408,7 +408,7 @@ class SettingsPage(Subwindow):
                 "callback": lambda: PeriPumpSettingsPage(),
             },
             {
-                "text": f"pH Calibration\n\nLast Calibration:\n{last_ph_cal_date_str}",
+                "text": f"\n\n\n\npH Calibration\n\n\nLast Calibration:\n{last_ph_cal_date_str}",
                 "callback": lambda: CalibratePhStartPage(),
             },
             {"text": "System Settings", "callback": lambda: SystemSettingsPage()},
