@@ -30,6 +30,7 @@ def test_get_ph_calibrations():
 
     os.remove(pch.PH_CALIBRATION_PATH)
     pch.record_calibration(dt.datetime(year=2023, month=2, day=2), {'field':1})
+    cals = pch.get_ph_calibrations()
     assert len(cals) == 1
 
 
@@ -152,7 +153,7 @@ def test_get_ph_warning_message():
         time_now =  dt.datetime(2024, 2, 1),
         lower_ph = 6,
         upper_ph = 8,
-    ) == (PhMessages.MSG_RECALIBRATION_MAYBE_NEEDED, PhMessages.MSG_PH_ONE_YEAR_OLD)
+    ) == (PhMessages.MSG_RECALIBRATION_REQUIRED, PhMessages.MSG_PH_ONE_YEAR_OLD)
 
     #reading high,  - over  1 year old
     assert get_ph_warning_message(
@@ -161,7 +162,7 @@ def test_get_ph_warning_message():
         time_now =  dt.datetime(2024, 2, 1),
         lower_ph = 6,
         upper_ph = 8,
-    ) == (PhMessages.MSG_RECALIBRATION_MAYBE_NEEDED, PhMessages.MSG_PH_ONE_YEAR_OLD)
+    ) == (PhMessages.MSG_RECALIBRATION_REQUIRED, PhMessages.MSG_PH_ONE_YEAR_OLD)
 
 
     #Check no calibrations

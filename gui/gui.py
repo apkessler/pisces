@@ -247,6 +247,7 @@ class MainWindow(Window):
         if lock_screen_msg == PhMessages.MSG_RECALIBRATION_REQUIRED:
             self.ph_value_for_lock_screen.set("") #Don't show a pH value
 
+        print(f"{lock_screen_msg=}")
         self.lock_screen_ph_text.set("\n".join(textwrap.wrap(lock_screen_msg, width=20)))
 
 

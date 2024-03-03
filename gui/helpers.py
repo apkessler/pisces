@@ -97,6 +97,7 @@ class PhCalibrationHelper:
             return []
 
         logger.debug("Loaded ph calibration record")
+        print(f"{caldata.keys()=}")
         return [datetime.datetime.strptime(ts_str, '%Y%d%m-%H%M%S') for ts_str in caldata.keys()]
 
     def record_calibration(self, dt:datetime.datetime, data:dict):
@@ -143,7 +144,7 @@ def get_ph_warning_message(
 
 
     if dt_delta.days >= 365:
-        return PhMessages.MSG_RECALIBRATION_MAYBE_NEEDED, PhMessages.MSG_PH_ONE_YEAR_OLD
+        return PhMessages.MSG_RECALIBRATION_REQUIRED, PhMessages.MSG_PH_ONE_YEAR_OLD
 
     if dt_delta.days >= 180:
         return PhMessages.MSG_RECALIBRATION_MAYBE_NEEDED, PhMessages.MSG_PH_SIX_MONTHS_OLD
