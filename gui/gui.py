@@ -78,7 +78,7 @@ class MainWindow(Window):
         self.ph_img_small = tk.PhotoImage(file=os.path.join(ICON_PATH, "ph_icon.png")).subsample(SCALE,SCALE)
         self.temperature_img_small = tk.PhotoImage(file=os.path.join(ICON_PATH, "temperature_icon.png")).subsample(SCALE,SCALE)
         self.settings_img_small = tk.PhotoImage(file=os.path.join(ICON_PATH, "settings_icon.png")).subsample(SCALE,SCALE)
-        self.fert_img_small = tk.PhotoImage(file=os.path.join(ICON_PATH, "peristaltic-pump-2.png")).subsample(2*SCALE,2*SCALE)
+        self.fert_img_small = tk.PhotoImage(file=os.path.join(ICON_PATH, "peristaltic-pump-2.png")).subsample(9,9)
 
         #self.light_img_small = tk.PhotoImage(file=os.path.join(ICON_PATH, "light_icon.png")).subsample(SCALE,SCALE)
 
