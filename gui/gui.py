@@ -38,6 +38,7 @@ from helpers import (
     wrap_text,
     reboot_pi,
     TimeSelector,
+    PhMessages,
 )
 from windows import (
     Window,
@@ -207,7 +208,7 @@ class MainWindow(Window):
         """This is the function what will be called when the activity watchdog expires.
         If LockWindow is not already in existence, close all subwindows (return to home screen) and lock the screen.
         Otherwise, just kill the timer."""
-        if Window.activity_timer != None:
+        if Window.activity_timer is not None:
             # In case this was called manually, stop the timer
             Window.activity_timer.cancel()
 
@@ -265,7 +266,7 @@ class MainWindow(Window):
     def update_scheduler(self):
         """Called every 30sec. Makes decisions about what should happen at this time, etc."""
         self.last_scheduler_update_mono_sec = time.monotonic()
-        logger.debug(f"Scheduler update")
+        logger.debug("Scheduler update")
         self.the_scheduler.update(datetime.datetime.now())
 
     def refresh_data(self):
@@ -423,7 +424,6 @@ class PeriPumpSettingsPage(Subwindow):
         super().__init__("PeriPump Settings", draw_exit_button=False)
 
         # Load the scheduler json file
-        this_dir = os.path.dirname(__file__)
         with open(SCHEDULE_CONFIG_FILE, "r") as jsonfile:
             self.config_data = json.load(jsonfile)
 
@@ -434,7 +434,7 @@ class PeriPumpSettingsPage(Subwindow):
             if schedule["name"] == "DailyDispense":
                 self.this_event = schedule
 
-        if self.this_event == None:
+        if self.this_event is None:
             logger.error("Unable to find DailyDispense object in scheduler.json")
 
         big_font = ("Arial", 20)
@@ -722,7 +722,9 @@ class CalibratePhDonePage(Subwindow):
 class CalibratePhProcessPage(Subwindow):
     def __init__(self):
         super().__init__(
-            f"pH Sensor Calibration", exit_button_text="Abort", draw_lock_button=False
+            "pH Sensor Calibration",
+            exit_button_text="Abort",
+            draw_lock_button=False,
         )
 
         self.index = 0
@@ -758,10 +760,12 @@ class CalibratePhProcessPage(Subwindow):
         )
 
         self.phText = tk.StringVar()
-        self.phText.set(f"pH\n???")
-        tk.Label(self.master, textvariable=self.phText, font=("Arial", 22)).place(
-            x=100, y=300
-        )
+        self.phText.set("pH\n???")
+        tk.Label(
+            self.master,
+            textvariable=self.phText,
+            font=("Arial", 22),
+        ).place(x=100, y=300)
 
         self.errorText = tk.StringVar()
         tk.Label(
@@ -803,7 +807,7 @@ class CalibratePhProcessPage(Subwindow):
 
         result = hwCntrl.sendPhSensorCommand(cmd)
         if result == "1" or result == "":
-            logger.info(f"calibration command success!")
+            logger.info("calibration command success!")
         else:
             logger.error(f"calibration command failed ({result})")
             self.errorText.set("Error! Please retry.")
