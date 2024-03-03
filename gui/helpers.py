@@ -100,6 +100,43 @@ class PhCalibrationHelper:
         return [datetime.datetime.strptime(ts_str, '%Y%d%m-%H%M%S') for ts_str in caldata.keys()]
 
 
+class PhMessages:
+    MSG_PH_OUTSIDE_OF_RANGE = "pH outside of expected range! Calibration may be needed."
+    MSG_PH_SIX_MONTHS_OLD = "Last pH calibration >6mo ago. pH readings may be inaccurate."
+    MSG_PH_ONE_YEAR_OLD = "Last pH calibration >1yr ago. Calibration required."
+    MSG_PH_CAL_NOT_FOUND =  "No pH calibration found! Calibration required."
+    MSG_RECALIBRATION_REQUIRED = "Re-calibration required"
+    MSG_RECALIBRATION_MAYBE_NEEDED= "Re-calibration may be needed!"
+
+def get_ph_warning_message(
+        ph_now:float,
+        last_cal_date:Optional[datetime.datetime],
+        time_now=datetime.datetime,
+        lower_ph:float=6,
+        upper_ph:float=10,
+        ) -> tuple[str,str]:
+
+    if last_cal_date is None:
+        return PhMessages.MSG_RECALIBRATION_REQUIRED, PhMessages.MSG_PH_CAL_NOT_FOUND
+
+    dt_delta=  time_now - last_cal_date     #See how much time has passed
+
+
+    if dt_delta.days >= 365:
+        return PhMessages.MSG_RECALIBRATION_MAYBE_NEEDED, PhMessages.MSG_PH_ONE_YEAR_OLD
+
+    if dt_delta.days >= 180:
+        return PhMessages.MSG_RECALIBRATION_MAYBE_NEEDED, PhMessages.MSG_PH_SIX_MONTHS_OLD
+
+    #We're ok with the date range. Now, check the ph
+    if ph_now < lower_ph or ph_now > upper_ph:
+        return PhMessages.MSG_RECALIBRATION_MAYBE_NEEDED, PhMessages.MSG_PH_OUTSIDE_OF_RANGE
+
+    return "", ""
+
+
+
+
 
 def timeToHhmm(time:datetime.time) -> int:
     ''' Convert a datetime._time object to a simple time integer in form hhmm

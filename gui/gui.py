@@ -65,6 +65,7 @@ class MainWindow(Window):
 
         self.temp_value = tk.StringVar()
         self.ph_value = tk.StringVar()
+        self.warning_text = tk.StringVar()
 
         self.the_scheduler = scheduler.Scheduler(hwCntrl)
 
@@ -108,8 +109,8 @@ class MainWindow(Window):
             {'text':self.temp_value,    'callback': lambda: GraphPage('Temperature (F)', jData),  'image':self.temperature_img_small},
             {'text':self.ph_value,      'callback': lambda: GraphPage('pH',jData),                'image':self.ph_img_small},
             {'text':"Peristaltic Pump", 'callback': lambda: ManualDispensePage(),                 'image':self.fert_img_small},
-            {'text':"Settings",         'callback': lambda: SettingsPage(),                       'image':self.settings_img_small}
-#            {'text': "",                'callback': self.activity_expiration,                    'image':self.lock_img}
+            {'text':"Settings",         'callback': lambda: SettingsPage(),                       'image':self.settings_img_small},
+            {'text': self.warning_text, 'callback': lambda: (),                    'image':None}
         ]
 
         self.drawButtonGrid(buttons)
@@ -229,6 +230,17 @@ class MainWindow(Window):
         #self.buttons[2].configure(bg=ph_to_color(ph))
 
         self.master.after(1000, self.refresh_data)
+
+        #Check calibration age
+        pch = PhCalibrationHelper()
+
+        _, msg = get_ph_warning_message(
+                ph,
+                last_cal_date=pch.get_latest_ph_calibration_date(),
+                time_now = datetime.datetime.now(),
+            )
+        self.warning_text.set(msg)
+
 
     def quit(self):
         self.root.quit()
