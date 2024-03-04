@@ -136,8 +136,8 @@ class PhMessages:
     )
     MSG_PH_ONE_YEAR_OLD = "Last pH calibration >1yr ago. Calibration required."
     MSG_PH_CAL_NOT_FOUND = "No pH calibration found! Calibration required."
-    MSG_RECALIBRATION_REQUIRED = "Re-calibration required"
-    MSG_RECALIBRATION_MAYBE_NEEDED = "Re-calibration may be needed!"
+    MSG_RECALIBRATION_REQUIRED = "Calibration required"
+    MSG_RECALIBRATION_MAYBE_NEEDED = "Calibration may be needed!"
 
 
 def get_ph_warning_message(
