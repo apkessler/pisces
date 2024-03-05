@@ -103,7 +103,7 @@ class PhCalibrationHelper:
             return []
 
         return [
-            datetime.datetime.strptime(ts_str, "%Y%d%m-%H%M%S")
+            datetime.datetime.strptime(ts_str, "%Y-%m-%dT%H:%M:%S")
             for ts_str in caldata.keys()
         ]
 
@@ -112,7 +112,7 @@ class PhCalibrationHelper:
 
         # Calibraton file is a json, where each key/value pair is "YYYYMMDD-HHMMSS":dict
         # right now dicts are empty
-        ts = dt.strftime("%Y%d%m-%H%M%S")
+        ts = dt.strftime("%Y-%m-%dT%H:%M:%S")
         try:
             logger.debug("cal file exists")
             with open(self.PH_CALIBRATION_PATH, "r") as fp:
@@ -136,7 +136,7 @@ class PhMessages:
     )
     MSG_PH_ONE_YEAR_OLD = "Last pH calibration >1yr ago. Calibration required."
     MSG_PH_CAL_NOT_FOUND = "No pH calibration found! Calibration required."
-    MSG_RECALIBRATION_REQUIRED = "Calibration required"
+    MSG_RECALIBRATION_REQUIRED = "Calibration required!"
     MSG_RECALIBRATION_MAYBE_NEEDED = "Calibration may be needed!"
 
 

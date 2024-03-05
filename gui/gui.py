@@ -288,23 +288,24 @@ class MainWindow(Window):
         # Update the pH Reading
         ph = hwCntrl.getPH()
         self.ph_value.set(f"{ph:0.1f}")
-        self.ph_value_for_lock_screen.set(f"{ph:0.1f}")
         # Uncomment next line to make pH button change color based on pH
         # self.buttons[2].configure(bg=ph_to_color(ph))
+        self.update_ph_for_lock_screen(ph)
 
         # By doing this in this function, it is tied to the systemd watchdog. And if the displayed time is
         # updating, then the scheduler is alive!
         self.scheduler_count += 1
         if self.scheduler_count >= 30:
             self.update_scheduler()
-            self.update_ph_calibration_info(ph)
             self.scheduler_count = 0
 
         self.master.after(1000, self.refresh_data)
 
-    def update_ph_calibration_info(self, ph: float):
+    def update_ph_for_lock_screen(self, ph: float):
         # Check calibration age, and update relevant fields
         pch = PhCalibrationHelper()
+
+        self.ph_value_for_lock_screen.set(f"{ph:0.1f}")  # This may get updated below
 
         lock_screen_msg, main_window_msg = get_ph_warning_message(
             ph,
@@ -318,7 +319,7 @@ class MainWindow(Window):
         if lock_screen_msg == PhMessages.MSG_RECALIBRATION_REQUIRED:
             self.ph_value_for_lock_screen.set("")  # Don't show a pH value
 
-        self.lock_screen_ph_text.set(wrap_text(lock_screen_msg, width=20))
+        self.lock_screen_ph_text.set(wrap_text(lock_screen_msg, width=25))
 
     def quit(self):
         self.root.quit()
@@ -388,7 +389,7 @@ class SettingsPage(Subwindow):
 
         last_cal_date = PhCalibrationHelper().get_latest_ph_calibration_date()
         if last_cal_date is not None:
-            last_ph_cal_date_str = last_cal_date.strftime("%Y-%b-%m")
+            last_ph_cal_date_str = last_cal_date.strftime("%Y-%b-%d")
         else:
             last_ph_cal_date_str = "Never!"
         buttons = [
@@ -653,7 +654,7 @@ class CalibratePhStartPage(Subwindow):
         last_cal_date = pch.get_latest_ph_calibration_date()
         if last_cal_date is not None:
             next_cal_due = last_cal_date + datetime.timedelta(days=365)
-            next_cal_due_str = next_cal_due.strftime("%Y-%b-%m")
+            next_cal_due_str = next_cal_due.strftime("%Y-%b-%d")
         else:
             next_cal_due_str = "Now!"
 
@@ -674,7 +675,7 @@ class CalibratePhStartPage(Subwindow):
         text_area.place(x=50, y=350)
         # Inserting list of previous calibrations
         callist = PhCalibrationHelper().get_ph_calibrations()
-        calstrs = [c.strftime("%Y-%b-%m %H:%M:%S") for c in callist]
+        calstrs = [c.strftime("%Y-%b-%d %H:%M:%S") for c in callist]
         text_area.insert(tk.INSERT, "\n".join(calstrs))
 
         text_area.configure(state="disabled")  # make read only
@@ -699,7 +700,8 @@ class CalibratePhDonePage(Subwindow):
     def __init__(self):
         super().__init__("pH Sensor Calibration")
 
-        msg = "pH Sensor calibration complete! Woohoo!"
+        msg = "pH Sensor calibration complete! Woohoo!\nIt may take a minute for any warning messages to clear."
+
         tk.Label(self.master, text=msg, font=("Arial", 18), justify=tk.LEFT).place(
             x=50, y=100
         )

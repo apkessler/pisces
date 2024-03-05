@@ -17,19 +17,19 @@ def test_get_ph_calibrations():
     write_dict(pch.PH_CALIBRATION_PATH, {})
     assert pch.get_ph_calibrations() == []
 
-    data1 = {"20230101-120000": {}}
+    data1 = {"2023-01-05T12:00:00": {}}
     write_dict(pch.PH_CALIBRATION_PATH, data1)
     assert pch.get_ph_calibrations() == [
-        dt.datetime(year=2023, month=1, day=1, hour=12, minute=0, second=0)
+        dt.datetime(year=2023, month=1, day=5, hour=12, minute=0, second=0)
     ]
 
-    pch.record_calibration(dt.datetime(year=2023, month=2, day=2), {"field": 1})
+    pch.record_calibration(dt.datetime(year=2023, month=2, day=3), {"field": 1})
     cals = pch.get_ph_calibrations()
     assert len(cals) == 2
-    assert cals[1] == dt.datetime(year=2023, month=2, day=2)
+    assert cals[1] == dt.datetime(year=2023, month=2, day=3)
 
     os.remove(pch.PH_CALIBRATION_PATH)
-    pch.record_calibration(dt.datetime(year=2023, month=2, day=2), {"field": 1})
+    pch.record_calibration(dt.datetime(year=2023, month=2, day=3), {"field": 1})
     cals = pch.get_ph_calibrations()
     assert len(cals) == 1
 

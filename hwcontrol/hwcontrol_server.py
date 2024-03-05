@@ -167,7 +167,7 @@ class HardwareMap:
                 interval_s=self.jData["ph_sensor"]["poll_interval_sec"],
                 minV=7,
                 maxV=8,
-                stepV=0.5,
+                stepV=0.2,
             )
 
     def bufferLightCmd(self, lightInx, state):
