@@ -31,5 +31,5 @@ class DigitalOutputDevice:
 
     @classmethod
     def printGpios(cls):
-        with open(LOG_FILE, mode="a") as f:
+        with open(LOG_FILE, mode="w") as f:
             f.write(" ".join([str(x.is_active) for x in cls.instances]) + "\n")
