@@ -123,7 +123,8 @@ class LightTimer:
         self.lastTime = time_now
         if self.presentState == TimerState.PINIT:
             self.changeStateTo(
-                self.timeOfDayToState(time_now, self.sunrise_time, self.sunset_time)
+                self.timeOfDayToState(time_now, self.sunrise_time, self.sunset_time),
+                dt_now,
             )
 
         elif self.presentState == TimerState.DISABLED:
@@ -131,35 +132,31 @@ class LightTimer:
 
         elif self.presentState == TimerState.DAY:
             if time_now >= self.sunset_time:
-                self.changeStateTo(TimerState.NIGHT)
-            elif (
-                self.jData["eclipse_enabled"]
-                and time_now.minute % self.jData["eclipse_frequency_min"] == 0
-            ):
-                if timeToHhmm(time_now) == timeToHhmm(self.sunrise_time):
-                    print("Skipping eclipse because DAY just started...")
-                else:
-                    self.eclipseEndTime = dt_now + dt.timedelta(
-                        minutes=self.jData["eclipse_duration_min"]
-                    )
-                    self.changeStateTo(TimerState.ECLIPSE)
+                self.changeStateTo(TimerState.NIGHT, dt_now)
+
+            elif self.jData["eclipse_enabled"] and dt_now >= self.eclipseStartTime:
+                self.changeStateTo(TimerState.ECLIPSE, dt_now)
 
         elif self.presentState == TimerState.NIGHT:
             if time_now > self.sunrise_time and time_now < self.sunset_time:
-                self.changeStateTo(TimerState.DAY)
+                self.changeStateTo(TimerState.DAY, dt_now)
 
         elif self.presentState == TimerState.ECLIPSE:
-            if dt_now >= self.eclipseEndTime:
+            if time_now >= self.sunset_time:
+                logger.info("Sunset occured before eclipse end -- ending early.")
+                self.changeStateTo(TimerState.NIGHT, dt_now)
+            elif dt_now >= self.eclipseEndTime:
                 # Make sure we go to the correct state coming out of eclipse
                 self.changeStateTo(
-                    self.timeOfDayToState(time_now, self.sunrise_time, self.sunset_time)
+                    self.timeOfDayToState(time_now, self.sunrise_time, self.sunset_time),
+                    dt_now,
                 )
 
         else:
             print(f"ERROR: Unhandled state in update():{self.presentState}")
             # Raise exception?
 
-    def changeStateTo(self, new_state: TimerState) -> None:
+    def changeStateTo(self, new_state: TimerState, dt_now:dt.datetime) -> None:
         """Change the timer state to new value
 
         Parameters
@@ -175,6 +172,15 @@ class LightTimer:
             # just leave the lights where they are?
 
         elif new_state == TimerState.DAY:
+            #Calculate the next eclipse start time
+            try:
+                self.eclipseStartTime = dt_now + dt.timedelta(
+                            minutes=self.jData["eclipse_white_duration_min"]
+                        )
+                logger.info(f"Next eclipse starts at {self.eclipseStartTime}")
+            except KeyError:
+                pass
+
             for light_name, color_masks in self.jData["lights"].items():
                 self.hwCntrl.setLightColor(
                     lightKeys[light_name],
@@ -197,6 +203,10 @@ class LightTimer:
                     )  # Just turn it off in this case
 
         elif new_state == TimerState.ECLIPSE:
+            #This key better exist if we're in this state!
+            self.eclipseEndTime = dt_now + dt.timedelta(
+                        minutes=self.jData["eclipse_blue_duration_min"]
+                    )
             logger.info(f"Starting eclipse! Ends at {self.eclipseEndTime}")
             for light_name, color_masks in self.jData["lights"].items():
                 self.hwCntrl.setLightColor(
@@ -248,13 +258,14 @@ class LightTimer:
         """
         logger.info(f"Resuming schedule on {self.name}")
         self.changeStateTo(
-            self.timeOfDayToState(dt_now.time(), self.sunrise_time, self.sunset_time)
+            self.timeOfDayToState(dt_now.time(), self.sunrise_time, self.sunset_time),
+            dt_now,
         )
 
     def disable_schedule(self) -> None:
         """[summary]"""
         logger.info(f"Disabling schedule on {self.name}")
-        self.changeStateTo(TimerState.DISABLED)
+        self.changeStateTo(TimerState.DISABLED, dt.datetime.now())
 
 
 class OutletTimer(LightTimer):
@@ -279,7 +290,7 @@ class OutletTimer(LightTimer):
 
         # Disable the timer if this isn't in timer mode...
         if jData["mode"] in ["off", "on"]:
-            self.changeStateTo(TimerState.DISABLED)
+            self.changeStateTo(TimerState.DISABLED, dt.datetime.now())
             self.hwCntrl.setLightColor(
                 lightKeys[name], "white" if jData["mode"] == "on" else "off"
             )  # Manually set the outlet state

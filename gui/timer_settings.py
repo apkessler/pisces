@@ -108,11 +108,10 @@ class AquariumLightsSettingsPage(Subwindow):
         w.grid(row=1, column=1, sticky="w")
         self.period_blue_lights_enabled.trace("w", self.widget_update)
 
-        self.blue_length_min_var = tk.IntVar()
+        blue_period_m = self.tank_light_schedule["eclipse_blue_duration_min"]
+        white_period_m = self.tank_light_schedule["eclipse_white_duration_min"]
 
-        total_period_m = self.tank_light_schedule["eclipse_frequency_min"]
-        blue_period_m = self.tank_light_schedule["eclipse_duration_min"]
-        white_period_m = total_period_m - blue_period_m
+        self.blue_length_min_var = tk.IntVar()
         self.blue_length_min_var.set(blue_period_m)
 
         self.blue_length_select = tk.Spinbox(
@@ -238,10 +237,8 @@ class AquariumLightsSettingsPage(Subwindow):
         blue_period_m = int(self.blue_length_min_var.get())
         white_period_m = int(self.white_length_min_var.get())
 
-        self.tank_light_schedule["eclipse_frequency_min"] = (
-            blue_period_m + white_period_m
-        )
-        self.tank_light_schedule["eclipse_duration_min"] = blue_period_m
+        self.tank_light_schedule["eclipse_white_duration_min"] = white_period_m
+        self.tank_light_schedule["eclipse_blue_duration_min"] = blue_period_m
 
         for l_id in self.enable_vars:
             for c_id, c_var in self.enable_vars[l_id].items():
