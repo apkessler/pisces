@@ -2,17 +2,17 @@ import pytest
 from scheduler import hhmmToTime, timeToHhmm, Scheduler
 import datetime as dt
 from loguru import logger
+
+
 class MockHardwareControlClient:
     def __init__(self, channel):
-
         NUM_RELAYS = 8
         NUM_LIGHTS = 3
         self.temperature_degC = 0
         self.pH = 7
-        self.relays = [False]*NUM_RELAYS
-        self.light_colors = ['off']*NUM_LIGHTS
+        self.relays = [False] * NUM_RELAYS
+        self.light_colors = ["off"] * NUM_LIGHTS
         self.phSensorSampleTime_ms = 1
-
 
     def getTemperature_degC(self) -> float:
         """
@@ -63,9 +63,9 @@ class MockHardwareControlClient:
         scope : str, optional
             Command scope, by default ""
         """
-        assert color_name in ['off', 'white', 'blue']
+        assert color_name in ["off", "white", "blue"]
         logger.debug(f"Set {lightId=} to {color_name=}")
-        self.light_colors[lightId - 1 ] = color_name
+        self.light_colors[lightId - 1] = color_name
 
     def getLightColors(self) -> list[str]:
         """Get all light colors and return as list of strings.
@@ -136,46 +136,67 @@ def test_timeToHhmm():
 
 @pytest.fixture
 def jData():
-
     _jData = {
         "light_schedules": {
             "tank_lights": {
-            "lights": {
-                "TankLight1": {
-                    "white_enabled": True,
-                    "blue_enabled": True
+                "lights": {
+                    "TankLight1": {"white_enabled": True, "blue_enabled": True},
+                    "TankLight2": {"white_enabled": True, "blue_enabled": True},
                 },
-                "TankLight2": {
-                    "white_enabled": True,
-                    "blue_enabled": True
-                }
+                "sunrise_hhmm": 830,
+                "sunset_hhmm": 1730,
+                "blue_lights_at_night": False,
+                "eclipse_enabled": False,
+                "eclipse_white_duration_min": 6,
+                "eclipse_blue_duration_min": 4,
+                "manual_eclipse_enabled": False,
+                "manual_eclipse_duration_sec": 5,
+            }
+        },
+        "outlet_schedules": {
+            "outlet1": {
+                "mode": "timer",
+                "sunrise_hhmm": 830,
+                "sunset_hhmm": 1730,
+                "description": "Grow Lights",
             },
-            "sunrise_hhmm": 830,
-            "sunset_hhmm": 1730,
-            "blue_lights_at_night": False,
-            "eclipse_enabled": False,
-            "eclipse_white_duration_min": 6,
-            "eclipse_blue_duration_min": 4,
-            "manual_eclipse_enabled": False,
-            "manual_eclipse_duration_sec": 5
-        }
-    },
-    "outlet_schedules": {
-        "outlet1": {
-            "mode": "timer",
-            "sunrise_hhmm": 830,
-            "sunset_hhmm": 1730,
-            "description": "Grow Lights"
         },
     }
-    }
-
 
     yield _jData
 
+
+def test_event(jData):
+    class test_event:
+        count = 0
+
+        def __init__(self):
+            test_event.count += 1
+            print(f"called test event! {test_event.count}")
+
+    hwCntrl = MockHardwareControlClient(0)
+    sch = Scheduler(hwCntrl)
+    sch.build_light_timers(jData["light_schedules"])
+    sch.build_outlet_timers(jData["outlet_schedules"])
+    sch.add_event("dispense", 500, test_event)
+
+    TEST_YEAR = 2024
+    TEST_MONTH = 1
+    TEST_DAY = 1
+    now = dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY, 0, 0)
+
+    while now < dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY, 5, 0):
+        sch.update(now)
+        assert test_event.count == 0
+        now = now + dt.timedelta(seconds=30)
+
+    while now <= dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY + 1, 0, 0):
+        sch.update(now)
+        assert test_event.count == 1
+        now = now + dt.timedelta(seconds=30)
+
+
 def test_scheduler_off_at_night(jData):
-
-
     hwCntrl = MockHardwareControlClient(0)
     sch = Scheduler(hwCntrl)
     sch.build_light_timers(jData["light_schedules"])
@@ -188,27 +209,27 @@ def test_scheduler_off_at_night(jData):
     now = dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY, 0, 0)
 
     sch.update(now)
-    assert hwCntrl.getLightColors() == ['off', 'off', 'off']
+    assert hwCntrl.getLightColors() == ["off", "off", "off"]
 
     while now <= dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY, 8, 30):
         sch.update(now)
-        assert hwCntrl.getLightColors() == ['off', 'off', 'off']
+        assert hwCntrl.getLightColors() == ["off", "off", "off"]
         now = now + dt.timedelta(seconds=30)
 
     while now < dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY, 17, 30):
         sch.update(now)
-        assert hwCntrl.getLightColors() == ['white', 'white', 'white']
+        assert hwCntrl.getLightColors() == ["white", "white", "white"]
         now = now + dt.timedelta(seconds=30)
 
     while now <= dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY + 1):
         sch.update(now)
-        assert hwCntrl.getLightColors() == ['off', 'off', 'off']
+        assert hwCntrl.getLightColors() == ["off", "off", "off"]
         now = now + dt.timedelta(seconds=30)
 
-def test_scheduler_blue_at_night(jData):
 
+def test_scheduler_blue_at_night(jData):
     hwCntrl = MockHardwareControlClient(0)
-    jData['light_schedules']['tank_lights']['blue_lights_at_night'] = True
+    jData["light_schedules"]["tank_lights"]["blue_lights_at_night"] = True
     sch = Scheduler(hwCntrl)
     sch.build_light_timers(jData["light_schedules"])
     sch.build_outlet_timers(jData["outlet_schedules"])
@@ -221,25 +242,22 @@ def test_scheduler_blue_at_night(jData):
     now = dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY, 0, 0)
     while now <= dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY, 8, 30):
         sch.update(now)
-        assert hwCntrl.getLightColors() == ['blue', 'blue', 'off']
+        assert hwCntrl.getLightColors() == ["blue", "blue", "off"]
         now = now + dt.timedelta(seconds=30)
 
     while now < dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY, 17, 30):
         sch.update(now)
-        assert hwCntrl.getLightColors() == ['white', 'white', 'white']
+        assert hwCntrl.getLightColors() == ["white", "white", "white"]
         now = now + dt.timedelta(seconds=30)
 
     while now <= dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY + 1):
         sch.update(now)
-        assert hwCntrl.getLightColors() == ['blue', 'blue', 'off']
+        assert hwCntrl.getLightColors() == ["blue", "blue", "off"]
         now = now + dt.timedelta(seconds=30)
-
-
 
 
 def test_scheduler_eclipse(jData):
-
-    jData['light_schedules']['tank_lights']['eclipse_enabled'] = True
+    jData["light_schedules"]["tank_lights"]["eclipse_enabled"] = True
 
     hwCntrl = MockHardwareControlClient(0)
     sch = Scheduler(hwCntrl)
@@ -254,29 +272,244 @@ def test_scheduler_eclipse(jData):
     now = dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY, 0, 0)
     while now <= dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY, 8, 30):
         sch.update(now)
-        assert hwCntrl.getLightColors() == ['off', 'off', 'off']
+        assert hwCntrl.getLightColors() == ["off", "off", "off"]
         now = now + dt.timedelta(seconds=30)
 
-    #Now its past 8:30!
+    # Now its past 8:30!
 
-    sunset_time  = dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY, 17, 30)
+    sunset_time = dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY, 17, 30)
     while now < sunset_time:
-
         next_eclipse_start = now + dt.timedelta(minutes=6)
         while now < next_eclipse_start:
             sch.update(now)
-            assert hwCntrl.getLightColors() == ['white', 'white', 'white']
+            assert hwCntrl.getLightColors() == ["white", "white", "white"]
             now = now + dt.timedelta(seconds=30)
 
         next_eclipse_end = now + dt.timedelta(minutes=4)
         while now < min(next_eclipse_end, sunset_time):
             sch.update(now)
-            assert hwCntrl.getLightColors() == ['blue', 'blue', 'white']
+            assert hwCntrl.getLightColors() == ["blue", "blue", "white"]
             now = now + dt.timedelta(seconds=30)
 
     while now <= dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY + 1):
         sch.update(now)
-        assert hwCntrl.getLightColors() == ['off', 'off', 'off']
+        assert hwCntrl.getLightColors() == ["off", "off", "off"]
         now = now + dt.timedelta(seconds=30)
 
 
+@pytest.mark.parametrize("white1", [False, True])
+@pytest.mark.parametrize("blue1", [False, True])
+@pytest.mark.parametrize("white2", [False, True])
+@pytest.mark.parametrize("blue2", [False, True])
+@pytest.mark.parametrize("blue_at_night", [False, True])
+def test_scheduler_eclipse_lights_disabled(
+    jData, white1, blue1, white2, blue2, blue_at_night
+):
+    jTankLights = jData["light_schedules"]["tank_lights"]
+    jTankLights["eclipse_enabled"] = True
+    jTankLights["eclipse_blue_duration_min"] = 2
+    jTankLights["eclipse_white_duration_min"] = 3
+    jTankLights["blue_lights_at_night"] = blue_at_night
+
+    jTankLights["lights"]["TankLight1"]["white_enabled"] = white1
+    jTankLights["lights"]["TankLight1"]["blue_enabled"] = blue1
+
+    jTankLights["lights"]["TankLight2"]["white_enabled"] = white2
+    jTankLights["lights"]["TankLight2"]["blue_enabled"] = blue2
+
+    hwCntrl = MockHardwareControlClient(0)
+    sch = Scheduler(hwCntrl)
+    sch.build_light_timers(jData["light_schedules"])
+    sch.build_outlet_timers(jData["outlet_schedules"])
+
+    TEST_YEAR = 2024
+    TEST_MONTH = 10
+    TEST_DAY = 1
+
+    now = dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY, 0, 0)
+
+    # Do a day with blue on at night
+    for day_offset in range(2):
+        while now <= dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY + day_offset, 8, 30):
+            sch.update(now)
+            assert hwCntrl.getLightColors() == [
+                "blue" if (blue1 and blue_at_night) else "off",
+                "blue" if (blue2 and blue_at_night) else "off",
+                "off",
+            ]
+            now = now + dt.timedelta(seconds=30)
+
+        # Now its past 8:30!
+
+        sunset_time = dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY + day_offset, 17, 30)
+        while now < sunset_time:
+            next_eclipse_start = now + dt.timedelta(minutes=3)
+            while now < next_eclipse_start:
+                sch.update(now)
+                assert hwCntrl.getLightColors() == [
+                    "white" if white1 else "off",
+                    "white" if white2 else "off",
+                    "white",
+                ]
+                now = now + dt.timedelta(seconds=30)
+
+            next_eclipse_end = now + dt.timedelta(minutes=2)
+            while now < min(next_eclipse_end, sunset_time):
+                sch.update(now)
+                assert hwCntrl.getLightColors() == [
+                    "blue" if blue1 else "off",
+                    "blue" if blue2 else "off",
+                    "white",
+                ]
+                now = now + dt.timedelta(seconds=30)
+
+        while now <= dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY + day_offset + 1):
+            sch.update(now)
+            assert hwCntrl.getLightColors() == [
+                "blue" if (blue1 and blue_at_night) else "off",
+                "blue" if (blue2 and blue_at_night) else "off",
+                "off",
+            ]
+            now = now + dt.timedelta(seconds=30)
+
+
+@pytest.mark.parametrize("white1", [False, True])
+@pytest.mark.parametrize("blue1", [False, True])
+@pytest.mark.parametrize("white2", [False, True])
+@pytest.mark.parametrize("blue2", [False, True])
+@pytest.mark.parametrize("blue_at_night", [False, True])
+def test_scheduler_eclipse_pause_resume(
+    jData, white1, blue1, white2, blue2, blue_at_night
+):
+    jTankLights = jData["light_schedules"]["tank_lights"]
+    jTankLights["eclipse_enabled"] = True
+    jTankLights["eclipse_blue_duration_min"] = 4
+    jTankLights["eclipse_white_duration_min"] = 6
+    jTankLights["blue_lights_at_night"] = blue_at_night
+
+    jTankLights["lights"]["TankLight1"]["white_enabled"] = white1
+    jTankLights["lights"]["TankLight1"]["blue_enabled"] = blue1
+
+    jTankLights["lights"]["TankLight2"]["white_enabled"] = white2
+    jTankLights["lights"]["TankLight2"]["blue_enabled"] = blue2
+
+    hwCntrl = MockHardwareControlClient(0)
+    sch = Scheduler(hwCntrl)
+    sch.build_light_timers(jData["light_schedules"])
+    sch.build_outlet_timers(jData["outlet_schedules"])
+
+    TEST_YEAR = 2024
+    TEST_MONTH = 1
+    TEST_DAY = 1
+
+    now = dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY, 0, 0)
+    while now <= dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY, 6, 30):
+        sch.update(now)
+        assert hwCntrl.getLightColors() == [
+            "blue" if (blue1 and blue_at_night) else "off",
+            "blue" if (blue2 and blue_at_night) else "off",
+            "off",
+        ]
+        now = now + dt.timedelta(seconds=30)
+
+    sch.disable_timers(["tank_lights", "outlet1"])
+
+    # Lights should still be  off
+    next_checkpoint = now + dt.timedelta(minutes=80)
+    while now < next_checkpoint:
+        sch.update(now)
+        assert hwCntrl.getLightColors() == [
+            "blue" if (blue1 and blue_at_night) else "off",
+            "blue" if (blue2 and blue_at_night) else "off",
+            "off",
+        ]
+        now = now + dt.timedelta(seconds=30)
+
+    sch.resume_timers(["tank_lights", "outlet1"])
+
+    while now <= dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY, 8, 30):
+        sch.update(now)
+        assert hwCntrl.getLightColors() == [
+            "blue" if (blue1 and blue_at_night) else "off",
+            "blue" if (blue2 and blue_at_night) else "off",
+            "off",
+        ]
+        now = now + dt.timedelta(seconds=30)
+
+    # Now its past 8:30!
+    sch.update(now)
+    assert hwCntrl.getLightColors() == [
+        "white" if white1 else "off",
+        "white" if white2 else "off",
+        "white",
+    ]
+
+    sch.disable_timers(["tank_lights", "outlet1"])
+
+    # Lights should still be on, through the eclipse
+    next_checkpoint = now + dt.timedelta(minutes=80)
+    while now < next_checkpoint:
+        sch.update(now)
+        assert hwCntrl.getLightColors() == [
+            "white" if white1 else "off",
+            "white" if white2 else "off",
+            "white",
+        ]
+        now = now + dt.timedelta(seconds=30)
+
+    sch.resume_timers(["tank_lights", "outlet1"])
+
+    sunset_time = dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY, 17, 30)
+    while now < sunset_time:
+        next_eclipse_start = now + dt.timedelta(minutes=6)
+        while now < next_eclipse_start:
+            sch.update(now)
+            assert hwCntrl.getLightColors() == [
+                "white" if white1 else "off",
+                "white" if white2 else "off",
+                "white",
+            ]
+            now = now + dt.timedelta(seconds=30)
+
+        next_eclipse_end = now + dt.timedelta(minutes=4)
+        while now < min(next_eclipse_end, sunset_time):
+            sch.update(now)
+            assert hwCntrl.getLightColors() == [
+                "blue" if blue1 else "off",
+                "blue" if blue2 else "off",
+                "white",
+            ]
+            now = now + dt.timedelta(seconds=30)
+
+    ## SUNSET
+    next_checkpoint = now + dt.timedelta(minutes=120)
+    while now <= next_checkpoint:
+        sch.update(now)
+        assert hwCntrl.getLightColors() == [
+            "blue" if (blue1 and blue_at_night) else "off",
+            "blue" if (blue2 and blue_at_night) else "off",
+            "off",
+        ]
+        now = now + dt.timedelta(seconds=30)
+
+    sch.disable_timers(["tank_lights", "outlet1"])
+    next_checkpoint = now + dt.timedelta(minutes=120)
+    while now <= next_checkpoint:
+        sch.update(now)
+        assert hwCntrl.getLightColors() == [
+            "blue" if (blue1 and blue_at_night) else "off",
+            "blue" if (blue2 and blue_at_night) else "off",
+            "off",
+        ]
+        now = now + dt.timedelta(seconds=30)
+
+    sch.resume_timers(["tank_lights", "outlet1"])
+
+    while now <= dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY + 1):
+        sch.update(now)
+        assert hwCntrl.getLightColors() == [
+            "blue" if (blue1 and blue_at_night) else "off",
+            "blue" if (blue2 and blue_at_night) else "off",
+            "off",
+        ]
+        now = now + dt.timedelta(seconds=30)
