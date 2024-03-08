@@ -7,17 +7,23 @@ def read_gpios():
             lines = file.readlines()
             if lines:
                 bits = lines[-1].strip().split()
-                return list(map(int, bits))
+                the_list = list(map(int, bits))
+                if len(the_list) != 11:
+                    return None
+                return the_list
     except FileNotFoundError:
         print("File 'gpios.txt' not found.")
     except Exception as e:
         print(f"Error reading 'gpios.txt': {e}")
-    return [0] * 8
+    return None
 
 
 def update_circle_colors():
     bits = read_gpios()
-    print(bits)
+    if bits is None:
+        print("Bad read")
+        return
+
     for i, bit in enumerate(bits):
         if bit == 1:
             gpio_indicator[i].config(bg="yellow")
@@ -33,7 +39,7 @@ def update_circle_colors():
 
 def update_gpios(event=None):
     update_circle_colors()
-    root.after(500, update_gpios)  # Update every 1000 milliseconds (1 second)
+    root.after(300, update_gpios)  # Update every 1000 milliseconds (1 second)
 
 
 # Create the main window
