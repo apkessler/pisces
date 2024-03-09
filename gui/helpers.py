@@ -110,7 +110,7 @@ class PhCalibrationHelper:
     def record_calibration(self, dt: datetime.datetime, data: dict):
         """Make a record of a calibration"""
 
-        # Calibraton file is a json, where each key/value pair is "YYYYMMDD-HHMMSS":dict
+        # Calibraton file is a json, where each key/value pair is "YYYY-MM-DDThh:mm:ss":dict
         # right now dicts are empty
         ts = dt.strftime("%Y-%m-%dT%H:%M:%S")
         try:

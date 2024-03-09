@@ -802,7 +802,7 @@ class CalibratePhProcessPage(Subwindow):
     @activity_kick
     def save_calibration(self):
         """
-        TODO: Send the save calibration command to sensor...
+        Finish off the calibration (which is just sending the last command)
         """
         cmd = self.sequence[self.index][1]
         logger.info(f"Sending save cal command: {cmd}")

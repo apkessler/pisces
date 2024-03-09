@@ -77,7 +77,6 @@ class GenericEvent:
     def __init__(self, name, time_hhmm, callback, hwCntrl: HardwareControlClient):
         self.name = name
         self.trigger_time = hhmmToTime(time_hhmm)
-        # self.jData = jData
         self.is_active = False
         self.hwCntrl = hwCntrl
         logger.debug(
@@ -85,7 +84,6 @@ class GenericEvent:
         )
         self.last_time = None
         self.callback = callback
-        # self.stop_callback = None
 
     def update(self, dt_now: dt.datetime) -> None:
         time_now = dt_now.time()
