@@ -409,8 +409,8 @@ class SettingsPage(Subwindow):
                 "callback": lambda: PeriPumpSettingsPage(),
             },
             {
-                "text": f"\n\n\n\npH Calibration\n\n\nLast Calibration:\n{last_ph_cal_date_str}",
-                "callback": lambda: CalibratePhStartPage(),
+                "text": f"\n\n\n\npH Sensor\n\n\nLast Calibration:\n{last_ph_cal_date_str}",
+                "callback": lambda: PhSensorInfoPage(),
             },
             {"text": "System Settings", "callback": lambda: SystemSettingsPage()},
         ]
@@ -619,27 +619,104 @@ class DispensingCapturePage(Subwindow):
         Subwindow.destroy_all()
 
 
+class ConfigurePhLimitsPage(Subwindow):
+    def __init__(self):
+        super().__init__("Configure pH Limits")
+
+        msg = "If the measured pH goes outside of these bounds, a warning will appear on the lock/home screens."
+
+        frame = tk.Frame(self.master)
+        frame.place(x=10, y=80)
+        tk.Label(
+            frame,
+            text=wrap_text(msg, 35),
+            font=("Arial", 18),
+            justify=tk.LEFT,
+        ).grid(row=1, column=2, rowspan=3, padx=30, pady=20)
+        self.upper_limit = tk.IntVar()
+        self.upper_limit.set(10)  # TODO: Pull from real value
+        tk.Label(frame, text="Upper Limit:", font=("Arial", 18)).grid(row=2, column=0)
+        tk.Spinbox(
+            frame,
+            from_=0,
+            to=14,
+            format="%0.1f",
+            increment=0.1,
+            wrap=True,
+            textvariable=self.upper_limit,
+            width=4,
+            font=("Courier", 30),
+            justify=tk.CENTER,
+        ).grid(row=2, column=1)
+
+        self.lower_limit = tk.IntVar()
+        self.lower_limit.set(6)  # TODO: Pull from real value
+        tk.Label(frame, text="Lower Limit:", font=("Arial", 18)).grid(row=3, column=0)
+        tk.Spinbox(
+            frame,
+            from_=0,
+            to=14,
+            format="%0.1f",
+            increment=0.1,
+            wrap=True,
+            textvariable=self.lower_limit,
+            width=4,
+            font=("Courier", 30),
+            justify=tk.CENTER,
+        ).grid(row=3, column=1)
+
+        btn = tk.Button(
+            frame,
+            text="Save",
+            font=fontTuple,
+            width=12,
+            height=4,
+            bg="#ff5733",
+            command=self.exit,
+        )
+        btn.grid(row=4, column=1, padx=10, pady=10)
+
+
 class CalibratePhStartPage(Subwindow):
     def __init__(self):
-        super().__init__("pH Sensor Calibration")
+        super().__init__("pH Sensor Info")
 
-        msg = (
-            "To calibrate the pH sensor, you will need all three\n"
-            "of the calibration solutions (pH=7.0, 4.0, 10.0).\n"
-            "\n"
-            "If you've got those ready, go ahead\n"
-            "and hit the START button!\n"
-            "\n"
-            "WARNING: Starting this process will erase any existing\n"
+        msg1 = (
+            "To calibrate the pH sensor, you will need all three "
+            "of the calibration solutions (pH=7.0, 4.0, 10.0)."
+        )
+
+        msg2 = "If you've got those ready, go ahead and hit the START button!"
+        msg3 = (
+            "WARNING: Starting this process will erase any existing "
             "calibration, and disable the screen from locking."
         )
 
-        tk.Label(self.master, text=msg, font=("Arial", 18), justify=tk.LEFT).place(
-            x=25, y=100
-        )
+        frame = tk.Frame(self.master)
+        frame.place(x=30, y=80)
+
+        tk.Label(
+            frame,
+            text=wrap_text(msg1, 60),
+            font=("Arial", 18),
+            justify=tk.LEFT,
+        ).grid(row=1, column=0, padx=10, pady=10)
+        tk.Label(
+            frame,
+            text=wrap_text(msg2, 60),
+            font=("Arial", 18),
+            justify=tk.LEFT,
+        ).grid(row=2, column=0, padx=10, pady=10)
+        tk.Label(
+            frame,
+            text=wrap_text(msg3, 60),
+            font=("Arial", 18),
+            fg="red",
+            justify=tk.LEFT,
+        ).grid(row=3, column=0, padx=10, pady=10)
 
         btn = tk.Button(
-            self.master,
+            frame,
             text="Start!",
             font=fontTuple,
             width=15,
@@ -647,38 +724,7 @@ class CalibratePhStartPage(Subwindow):
             bg="#00ff00",
             command=self.run_sequence,
         )
-        btn.place(x=400, y=330)
-
-        pch = PhCalibrationHelper()
-
-        last_cal_date = pch.get_latest_ph_calibration_date()
-        if last_cal_date is not None:
-            next_cal_due = last_cal_date + datetime.timedelta(days=365)
-            next_cal_due_str = next_cal_due.strftime("%Y-%b-%d")
-        else:
-            next_cal_due_str = "Now!"
-
-        tk.Label(
-            self.master,
-            text=f"Next calibration due: {next_cal_due_str}",
-            font=("Arial", 15),
-            justify=tk.LEFT,
-        ).place(x=50, y=310)
-        tk.Label(
-            self.master,
-            text="Previous Calibrations:",
-            font=("Arial", 15),
-            justify=tk.LEFT,
-        ).place(x=50, y=330)
-        text_area = st.ScrolledText(self.master, width=30, height=4, font=("Arial", 15))
-
-        text_area.place(x=50, y=350)
-        # Inserting list of previous calibrations
-        callist = PhCalibrationHelper().get_ph_calibrations()
-        calstrs = [c.strftime("%Y-%b-%d %H:%M:%S") for c in callist]
-        text_area.insert(tk.INSERT, "\n".join(calstrs))
-
-        text_area.configure(state="disabled")  # make read only
+        btn.grid(row=4, column=0, padx=(400, 20), pady=20)
 
         # Start this now to give the default sleep period time to end (up to 1min)
         hwCntrl.setPhSensorSampleTime(1000)  # Speed up ph sensor sample time
@@ -694,6 +740,142 @@ class CalibratePhStartPage(Subwindow):
     def run_sequence(self):
         CalibratePhProcessPage()
         super().exit()  # Don't call the local version to avoid resetting sample time
+
+
+class PhSensorInfoPage(Subwindow):
+    def __init__(self):
+        super().__init__("pH Sensor Info")
+
+        msg = "To calibrate the pH sensor, you will need all three of the calibration solutions (pH=7.0, 4.0, 10.0).\n"
+
+        calframe = tk.LabelFrame(
+            self.master,
+            text="Sensor Calibration",
+            font=fontTuple,
+        )
+
+        calframe.grid(
+            row=1,
+            column=0,
+            sticky="ew",
+            padx=10,
+            pady=(80, 10),
+            columnspan=1,
+            rowspan=1,
+        )
+
+        tk.Label(
+            calframe,
+            text=wrap_text(msg, 55),
+            font=("Arial", 15),
+            justify=tk.LEFT,
+        ).grid(row=1, column=0)
+
+        btn = tk.Button(
+            calframe,
+            text="Calibrate Sensor",
+            font=fontTuple,
+            width=15,
+            height=4,
+            bg="#00ff00",
+            command=lambda: CalibratePhStartPage(),
+        )
+        btn.grid(row=1, column=1, padx=20, rowspan=4)
+
+        pch = PhCalibrationHelper()
+
+        last_cal_date = pch.get_latest_ph_calibration_date()
+        if last_cal_date is not None:
+            next_cal_due = last_cal_date + datetime.timedelta(days=365)
+            next_cal_due_str = next_cal_due.strftime("%Y-%b-%d")
+        else:
+            next_cal_due_str = "Now!"
+
+        tk.Label(
+            calframe,
+            text=f"Next calibration due: {next_cal_due_str}",
+            font=("Arial", 15),
+            justify=tk.LEFT,
+        ).grid(row=2, column=0, sticky="w")
+        tk.Label(
+            calframe,
+            text="Previous Calibrations:",
+            font=("Arial", 15),
+            justify=tk.LEFT,
+        ).grid(row=3, column=0, sticky="w")
+        text_area = st.ScrolledText(calframe, width=30, height=4, font=("Arial", 15))
+
+        text_area.grid(row=4, column=0, pady=(0, 10), padx=0)
+        # Inserting list of previous calibrations
+        callist = PhCalibrationHelper().get_ph_calibrations()
+        calstrs = [c.strftime("%Y-%b-%d %H:%M:%S") for c in callist]
+        text_area.insert(tk.INSERT, "\n".join(calstrs))
+
+        text_area.configure(state="disabled")  # make read only
+
+        ## limit frame
+
+        limitframe = tk.LabelFrame(
+            self.master,
+            text="Sensor Warnings",
+            font=fontTuple,
+        )
+        limitframe.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
+
+        msg = "If the measured pH goes outside of these bounds, a warning will appear on the lock/home screens."
+
+        tk.Label(
+            limitframe,
+            text=wrap_text(msg, 25),
+            font=("Arial", 15),
+            justify=tk.LEFT,
+        ).grid(row=0, column=0, rowspan=2, padx=10, pady=10)
+        self.upper_limit = tk.IntVar()
+        self.upper_limit.set(10)  # TODO: Pull from real value
+        tk.Label(limitframe, text="Upper Limit:", font=("Arial", 18)).grid(
+            row=0, column=1
+        )
+        tk.Spinbox(
+            limitframe,
+            from_=0,
+            to=14,
+            format="%0.1f",
+            increment=0.1,
+            wrap=True,
+            textvariable=self.upper_limit,
+            width=4,
+            font=("Courier", 30),
+            justify=tk.CENTER,
+        ).grid(row=0, column=2)
+
+        self.lower_limit = tk.IntVar()
+        self.lower_limit.set(6)  # TODO: Pull from real value
+        tk.Label(limitframe, text="Lower Limit:", font=("Arial", 18)).grid(
+            row=1, column=1
+        )
+        tk.Spinbox(
+            limitframe,
+            from_=0,
+            to=14,
+            format="%0.1f",
+            increment=0.1,
+            wrap=True,
+            textvariable=self.lower_limit,
+            width=4,
+            font=("Courier", 30),
+            justify=tk.CENTER,
+        ).grid(row=1, column=2)
+
+        btn = tk.Button(
+            limitframe,
+            text="Save",
+            font=fontTuple,
+            width=12,
+            height=4,
+            bg="#ff5733",
+            command=self.exit,
+        )
+        btn.grid(row=0, column=3, padx=10, pady=10, rowspan=2)
 
 
 class CalibratePhDonePage(Subwindow):
