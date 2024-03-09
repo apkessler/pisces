@@ -34,7 +34,7 @@ from helpers import (
     SCHEDULE_CONFIG_DEFAULT_FILE,
     is_wifi_on,
     notify_systemd_watchdog,
-    get_ph_warning_message,
+    PhWarningHelper,
     wrap_text,
     reboot_pi,
     TimeSelector,
@@ -307,7 +307,7 @@ class MainWindow(Window):
 
         self.ph_value_for_lock_screen.set(f"{ph:0.1f}")  # This may get updated below
 
-        lock_screen_msg, main_window_msg = get_ph_warning_message(
+        lock_screen_msg, main_window_msg = PhWarningHelper().get_ph_warning_message(
             ph,
             last_cal_date=pch.get_latest_ph_calibration_date(),
             time_now=datetime.datetime.now(),
@@ -823,15 +823,15 @@ class PhSensorInfoPage(Subwindow):
         limitframe.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
 
         msg = "If the measured pH goes outside of these bounds, a warning will appear on the lock/home screens."
-
+        pwh = PhWarningHelper()
         tk.Label(
             limitframe,
             text=wrap_text(msg, 25),
             font=("Arial", 15),
             justify=tk.LEFT,
         ).grid(row=0, column=0, rowspan=2, padx=10, pady=10)
-        self.upper_limit = tk.IntVar()
-        self.upper_limit.set(10)  # TODO: Pull from real value
+        self.upper_bound = tk.DoubleVar()
+        self.upper_bound.set(pwh.get_upper_bound())
         tk.Label(limitframe, text="Upper Limit:", font=("Arial", 18)).grid(
             row=0, column=1
         )
@@ -842,14 +842,14 @@ class PhSensorInfoPage(Subwindow):
             format="%0.1f",
             increment=0.1,
             wrap=True,
-            textvariable=self.upper_limit,
+            textvariable=self.upper_bound,
             width=4,
             font=("Courier", 30),
             justify=tk.CENTER,
         ).grid(row=0, column=2)
 
-        self.lower_limit = tk.IntVar()
-        self.lower_limit.set(6)  # TODO: Pull from real value
+        self.lower_bound = tk.DoubleVar()
+        self.lower_bound.set(pwh.get_lower_bound())
         tk.Label(limitframe, text="Lower Limit:", font=("Arial", 18)).grid(
             row=1, column=1
         )
@@ -860,7 +860,7 @@ class PhSensorInfoPage(Subwindow):
             format="%0.1f",
             increment=0.1,
             wrap=True,
-            textvariable=self.lower_limit,
+            textvariable=self.lower_bound,
             width=4,
             font=("Courier", 30),
             justify=tk.CENTER,
@@ -873,9 +873,21 @@ class PhSensorInfoPage(Subwindow):
             width=12,
             height=4,
             bg="#ff5733",
-            command=self.exit,
+            command=self.save,
         )
         btn.grid(row=0, column=3, padx=10, pady=10, rowspan=2)
+
+    def save(self):
+        ll = self.lower_bound.get()
+        ul = self.upper_bound.get()
+
+        if ll >= ul:
+            ErrorPromptPage("Lower limit must be < upper limit.")
+            return
+
+        # Otherwise...
+        PhWarningHelper().save_new_settings(ll, ul)
+        self.exit()
 
 
 class CalibratePhDonePage(Subwindow):

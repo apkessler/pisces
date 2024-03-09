@@ -5,9 +5,6 @@
 #
 #
 
-import logging
-import grpc
-import time
 from typing import List
 import hardwareControl_pb2
 import hardwareControl_pb2_grpc
@@ -144,5 +141,3 @@ class HardwareControlClient:
     def sendPhSensorCommand(self, cmd: str) -> str:
         response = self.stub.SendPHCommand(hardwareControl_pb2.PHCommand(cmd=cmd))
         return response.response
-
-

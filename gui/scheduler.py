@@ -146,7 +146,9 @@ class LightTimer:
             elif dt_now >= self.eclipseEndTime:
                 # Make sure we go to the correct state coming out of eclipse
                 self.changeStateTo(
-                    self.timeOfDayToState(time_now, self.sunrise_time, self.sunset_time),
+                    self.timeOfDayToState(
+                        time_now, self.sunrise_time, self.sunset_time
+                    ),
                     dt_now,
                 )
 
@@ -154,7 +156,7 @@ class LightTimer:
             print(f"ERROR: Unhandled state in update():{self.presentState}")
             # Raise exception?
 
-    def changeStateTo(self, new_state: TimerState, dt_now:dt.datetime) -> None:
+    def changeStateTo(self, new_state: TimerState, dt_now: dt.datetime) -> None:
         """Change the timer state to new value
 
         Parameters
@@ -170,11 +172,11 @@ class LightTimer:
             # just leave the lights where they are?
 
         elif new_state == TimerState.DAY:
-            #Calculate the next eclipse start time
+            # Calculate the next eclipse start time
             try:
                 self.eclipseStartTime = dt_now + dt.timedelta(
-                            minutes=self.jData["eclipse_white_duration_min"]
-                        )
+                    minutes=self.jData["eclipse_white_duration_min"]
+                )
                 logger.info(f"Next eclipse starts at {self.eclipseStartTime}")
             except KeyError:
                 pass
@@ -201,10 +203,10 @@ class LightTimer:
                     )  # Just turn it off in this case
 
         elif new_state == TimerState.ECLIPSE:
-            #This key better exist if we're in this state!
+            # This key better exist if we're in this state!
             self.eclipseEndTime = dt_now + dt.timedelta(
-                        minutes=self.jData["eclipse_blue_duration_min"]
-                    )
+                minutes=self.jData["eclipse_blue_duration_min"]
+            )
             logger.info(f"Starting eclipse! Ends at {self.eclipseEndTime}")
             for light_name, color_masks in self.jData["lights"].items():
                 self.hwCntrl.setLightColor(

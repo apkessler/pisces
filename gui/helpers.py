@@ -11,12 +11,14 @@ from loguru import logger
 from typing import Optional
 from windows import fontTuple, activity_kick
 import textwrap
+import shutil
 
 SCHEDULE_CONFIG_FILE = os.path.join(os.path.dirname(__file__), "../data/schedule.json")
 SCHEDULE_CONFIG_DEFAULT_FILE = os.path.join(
     os.path.dirname(__file__), "schedule.default.json"
 )
 ICON_PATH = os.path.join(os.path.dirname(__file__), "icons")
+
 
 try:
     import systemd.daemon
@@ -140,35 +142,76 @@ class PhMessages:
     MSG_RECALIBRATION_MAYBE_NEEDED = "Calibration may be needed!"
 
 
-def get_ph_warning_message(
-    ph_now: float,
-    last_cal_date: Optional[datetime.datetime],
-    time_now=datetime.datetime,
-    lower_ph: float = 6,
-    upper_ph: float = 10,
-) -> tuple[str, str]:
-    if last_cal_date is None:
-        return PhMessages.MSG_RECALIBRATION_REQUIRED, PhMessages.MSG_PH_CAL_NOT_FOUND
+class PhWarningHelper:
+    PHWARNINGS_CONFIG_FILE = os.path.join(
+        os.path.dirname(__file__), "../data/ph_warnings.json"
+    )
+    PHWARNINGS_CONFIG_DEFAULT_FILE = os.path.join(
+        os.path.dirname(__file__), "ph_warnings.default.json"
+    )
 
-    dt_delta = time_now - last_cal_date  # See how much time has passed
+    def __init__(self):
+        if not os.path.exists(self.PHWARNINGS_CONFIG_FILE):
+            # Copy the default config file!
+            logger.info("No PhWarnings json file found - copying default file.")
+            shutil.copyfile(
+                self.PHWARNINGS_CONFIG_DEFAULT_FILE, self.PHWARNINGS_CONFIG_FILE
+            )
 
-    if dt_delta.days >= 365:
-        return PhMessages.MSG_RECALIBRATION_REQUIRED, PhMessages.MSG_PH_ONE_YEAR_OLD
+        with open(self.PHWARNINGS_CONFIG_FILE, "r") as configfile:
+            self.jData = json.load(configfile)
 
-    if dt_delta.days >= 180:
-        return (
-            PhMessages.MSG_RECALIBRATION_MAYBE_NEEDED,
-            PhMessages.MSG_PH_SIX_MONTHS_OLD,
+    def get_ph_warning_message(
+        self,
+        ph_now: float,
+        last_cal_date: Optional[datetime.datetime],
+        time_now=datetime.datetime,
+    ) -> tuple[str, str]:
+        if last_cal_date is None:
+            return (
+                PhMessages.MSG_RECALIBRATION_REQUIRED,
+                PhMessages.MSG_PH_CAL_NOT_FOUND,
+            )
+
+        dt_delta = time_now - last_cal_date  # See how much time has passed
+
+        if dt_delta.days >= 365:
+            return PhMessages.MSG_RECALIBRATION_REQUIRED, PhMessages.MSG_PH_ONE_YEAR_OLD
+
+        if dt_delta.days >= 180:
+            return (
+                PhMessages.MSG_RECALIBRATION_MAYBE_NEEDED,
+                PhMessages.MSG_PH_SIX_MONTHS_OLD,
+            )
+
+        # We're ok with the date range. Now, check the ph
+        if ph_now < self.get_lower_bound() or ph_now > self.get_upper_bound():
+            return (
+                PhMessages.MSG_RECALIBRATION_MAYBE_NEEDED,
+                PhMessages.MSG_PH_OUTSIDE_OF_RANGE,
+            )
+
+        return "", ""
+
+    def get_lower_bound(self) -> float:
+        return self.jData["lower_bound"]
+
+    def get_upper_bound(self) -> float:
+        return self.jData["upper_bound"]
+
+    def save_new_settings(self, lower_bound: float, upper_bound: float):
+        if lower_bound >= upper_bound:
+            raise ValueError("Lower bound must be < upper bound")
+
+        self.jData["lower_bound"] = lower_bound
+        self.jData["upper_bound"] = upper_bound
+
+        with open(self.PHWARNINGS_CONFIG_FILE, "w") as configfile:
+            json.dump(self.jData, configfile, indent=4)
+
+        logger.info(
+            f"Wrote new pH warning limits to file ({lower_bound},{upper_bound})"
         )
-
-    # We're ok with the date range. Now, check the ph
-    if ph_now < lower_ph or ph_now > upper_ph:
-        return (
-            PhMessages.MSG_RECALIBRATION_MAYBE_NEEDED,
-            PhMessages.MSG_PH_OUTSIDE_OF_RANGE,
-        )
-
-    return "", ""
 
 
 def timeToHhmm(time: datetime.time) -> int:
