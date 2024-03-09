@@ -424,8 +424,9 @@ def test_scheduler_eclipse_pause_resume(
             "off",
         ]
         now = now + dt.timedelta(seconds=30)
+    logger.debug(f"At checkpoint: {next_checkpoint}")
 
-    sch.resume_timers(["tank_lights", "outlet1"])
+    sch.resume_timers(["tank_lights", "outlet1"], now)
 
     while now <= dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY, 8, 30):
         sch.update(now)
@@ -457,7 +458,7 @@ def test_scheduler_eclipse_pause_resume(
         ]
         now = now + dt.timedelta(seconds=30)
 
-    sch.resume_timers(["tank_lights", "outlet1"])
+    sch.resume_timers(["tank_lights", "outlet1"], now)
 
     sunset_time = dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY, 17, 30)
     while now < sunset_time:
@@ -503,7 +504,7 @@ def test_scheduler_eclipse_pause_resume(
         ]
         now = now + dt.timedelta(seconds=30)
 
-    sch.resume_timers(["tank_lights", "outlet1"])
+    sch.resume_timers(["tank_lights", "outlet1"], now)
 
     while now <= dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY + 1):
         sch.update(now)

@@ -237,7 +237,7 @@ class MainWindow(Window):
         logger.info(f"Toggled to mode {newMode}")
 
         if newMode == "Schedule":
-            self.the_scheduler.resume_timers(["tank_lights", "outlet1"])
+            self.the_scheduler.resume_timers(["tank_lights", "outlet1"], datetime.datetime.now())
             self.buttons[0].configure(image=self.light_timer)
 
         elif newMode == "Lights On":
