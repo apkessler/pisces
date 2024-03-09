@@ -4,7 +4,7 @@ import subprocess
 import tkinter as tk
 import json
 import os
-from typing import Tuple
+from typing import Tuple, List
 import calendar
 import shlex
 from loguru import logger
@@ -92,7 +92,7 @@ class PhCalibrationHelper:
 
         return max(ts_list)
 
-    def get_ph_calibrations(self) -> list[datetime.datetime]:
+    def get_ph_calibrations(self) -> List[datetime.datetime]:
         """Get the history of ph calibrations"""
 
         try:

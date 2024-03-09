@@ -2,7 +2,7 @@ import pytest
 from scheduler import hhmmToTime, timeToHhmm, Scheduler
 import datetime as dt
 from loguru import logger
-
+from typing import List
 
 class MockHardwareControlClient:
     def __init__(self, channel):
@@ -44,7 +44,7 @@ class MockHardwareControlClient:
         """
         self.relays[chn - 1] = isEngaged
 
-    def getRelayStates(self) -> list[bool]:
+    def getRelayStates(self) -> List[bool]:
         """
         Get all relay states as list.
         Unpack from GRPC object and return as native Python list.
@@ -67,7 +67,7 @@ class MockHardwareControlClient:
         logger.debug(f"Set {lightId} to {color_name}")
         self.light_colors[lightId - 1] = color_name
 
-    def getLightColors(self) -> list[str]:
+    def getLightColors(self) -> List[str]:
         """Get all light colors and return as list of strings.
             Unpack from GRPC object and return as native Python list.
 
