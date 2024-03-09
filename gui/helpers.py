@@ -166,7 +166,7 @@ class PhWarningHelper:
         ph_now: float,
         last_cal_date: Optional[datetime.datetime],
         time_now=datetime.datetime,
-    ) -> tuple[str, str]:
+    ) -> Tuple[str, str]:
         if last_cal_date is None:
             return (
                 PhMessages.MSG_RECALIBRATION_REQUIRED,
