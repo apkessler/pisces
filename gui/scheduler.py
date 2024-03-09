@@ -362,7 +362,7 @@ class Scheduler(object):
             if not found:
                 logger.error(f"No Timer named {name} found!")
 
-    def resume_timers(self, timer_list: list, now:dt.datetime):
+    def resume_timers(self, timer_list: list, now: dt.datetime):
         """Resume matching timers by name
 
         Parameters

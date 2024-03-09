@@ -1,8 +1,9 @@
 import pytest
-from scheduler import hhmmToTime, timeToHhmm, Scheduler
+from scheduler import hhmmToTime, timeToHhmm, Scheduler, TimerState, LightTimer
 import datetime as dt
 from loguru import logger
 from typing import List
+
 
 class MockHardwareControlClient:
     def __init__(self, channel):
@@ -514,3 +515,56 @@ def test_scheduler_eclipse_pause_resume(
             "off",
         ]
         now = now + dt.timedelta(seconds=30)
+
+
+def test_time_of_day_to_state():
+    assert (
+        LightTimer.timeOfDayToState(dt.time(0, 0), dt.time(8, 0), dt.time(15, 0))
+        == TimerState.NIGHT
+    )
+    assert (
+        LightTimer.timeOfDayToState(dt.time(7, 59), dt.time(8, 0), dt.time(15, 0))
+        == TimerState.NIGHT
+    )
+
+    assert (
+        LightTimer.timeOfDayToState(dt.time(8, 0), dt.time(8, 0), dt.time(15, 0))
+        == TimerState.DAY
+    )
+    assert (
+        LightTimer.timeOfDayToState(dt.time(8, 0, 1), dt.time(8, 0), dt.time(15, 0))
+        == TimerState.DAY
+    )
+    assert (
+        LightTimer.timeOfDayToState(dt.time(11, 0, 1), dt.time(8, 0), dt.time(15, 0))
+        == TimerState.DAY
+    )
+    assert (
+        LightTimer.timeOfDayToState(dt.time(14, 0, 0), dt.time(8, 0), dt.time(15, 0))
+        == TimerState.DAY
+    )
+    assert (
+        LightTimer.timeOfDayToState(dt.time(14, 59, 59), dt.time(8, 0), dt.time(15, 0))
+        == TimerState.DAY
+    )
+
+    assert (
+        LightTimer.timeOfDayToState(dt.time(15, 00, 00), dt.time(8, 0), dt.time(15, 0))
+        == TimerState.NIGHT
+    )
+    assert (
+        LightTimer.timeOfDayToState(dt.time(15, 00, 1), dt.time(8, 0), dt.time(15, 0))
+        == TimerState.NIGHT
+    )
+    assert (
+        LightTimer.timeOfDayToState(dt.time(15, 1, 0), dt.time(8, 0), dt.time(15, 0))
+        == TimerState.NIGHT
+    )
+    assert (
+        LightTimer.timeOfDayToState(dt.time(18, 0, 0), dt.time(8, 0), dt.time(15, 0))
+        == TimerState.NIGHT
+    )
+    assert (
+        LightTimer.timeOfDayToState(dt.time(23, 59, 59), dt.time(8, 0), dt.time(15, 0))
+        == TimerState.NIGHT
+    )
