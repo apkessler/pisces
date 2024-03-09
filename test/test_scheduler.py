@@ -64,7 +64,7 @@ class MockHardwareControlClient:
             Command scope, by default ""
         """
         assert color_name in ["off", "white", "blue"]
-        logger.debug(f"Set {lightId=} to {color_name=}")
+        logger.debug(f"Set {lightId} to {color_name}")
         self.light_colors[lightId - 1] = color_name
 
     def getLightColors(self) -> list[str]:

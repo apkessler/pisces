@@ -128,7 +128,7 @@ class PhCalibrationHelper:
         with open(self.PH_CALIBRATION_PATH, "w") as fp:
             json.dump(caldata, fp)
 
-        logger.info(f"Saved a calibration {ts=}")
+        logger.info(f"Saved a calibration {ts}")
 
 
 class PhMessages:

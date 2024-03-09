@@ -164,7 +164,7 @@ class LightTimer:
         newState : TimerState
             Timer state to change to
         """
-        logger.debug(f"{self.name=}")
+        logger.debug(f"{self.name}")
         if new_state == TimerState.PINIT:
             pass
         elif new_state == TimerState.DISABLED:
@@ -197,7 +197,7 @@ class LightTimer:
                         "blue" if color_masks["blue_enabled"] else "off",
                     )
                 else:
-                    logger.error(f"Unexpected value: {self.light_mode_at_night=}")
+                    logger.error(f"Unexpected value: {self.light_mode_at_night}")
                     self.hwCntrl.setLightColor(
                         lightKeys[light_name], "off"
                     )  # Just turn it off in this case
