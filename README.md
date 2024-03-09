@@ -1,6 +1,6 @@
 # RaspberryPisces
-Aquarium automation via Raspberry Pi 🐟 🐠 
- 
+Aquarium automation via Raspberry Pi 🐟 🐠
+
 # Installation
 
 Clone repository on target.
@@ -62,6 +62,16 @@ cd pisces
 PYTHONPATH=shared/ python hwcontrol/hwcontrol.py -m
 PYTHONPATH=shared/ python gui/gui.py
 ```
+
+### Developing on MacOS
+Running the GUI on MacOS, you may get the error:
+```
+    import _tkinter # If this fails your Python may not be configured for Tk
+ModuleNotFoundError: No module named '_tkinter'
+```
+Install python-tk by doing:
+```brew install python-tk```
+(you will need to have homebrew installed first).
 
 ## Local AP Mode
 

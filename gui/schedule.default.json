@@ -1,16 +1,22 @@
 {
     "light_schedules": {
         "tank_lights": {
-            "lights": [
-                "TankLight1",
-                "TankLight2"
-            ],
+            "lights": {
+                "TankLight1":{
+                    "white_enabled": true,
+                    "blue_enabled": true
+                },
+                "TankLight2":{
+                    "white_enabled": true,
+                    "blue_enabled": true
+                }
+            },
             "sunrise_hhmm": 830,
             "sunset_hhmm": 1730,
             "blue_lights_at_night": false,
             "eclipse_enabled": true,
-            "eclipse_frequency_min": 10,
-            "eclipse_duration_min": 2,
+            "eclipse_white_duration_min": 10,
+            "eclipse_blue_duration_min": 2,
             "manual_eclipse_enabled": false,
             "manual_eclipse_duration_sec": 5
         }
@@ -43,7 +49,7 @@
     },
     "events": [
         {
-            "name": "DailyFertilizer",
+            "name": "DailyDispense",
             "type": "dispense",
             "trigger_time_hhmm": 815,
             "volume_mL": 3

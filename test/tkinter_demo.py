@@ -14,52 +14,61 @@ import socket
 
 ### Helper functions
 
+
 def get_ip():
     """
-        Get IP address of this device, return as string.
+    Get IP address of this device, return as string.
     """
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         # doesn't even have to be reachable
-        s.connect(('10.255.255.255', 1))
+        s.connect(("10.255.255.255", 1))
         IP = s.getsockname()[0]
     except Exception:
-        IP = '127.0.0.1'
+        IP = "127.0.0.1"
     finally:
         s.close()
     return IP
 
+
 ### TKinter Stuff
+
 
 class Page(tk.Frame):
     def __init__(self, *args, **kwargs):
         tk.Frame.__init__(self, *args, **kwargs)
+
     def show(self):
         self.lift()
 
+
 class OverviewPage(Page):
-   def __init__(self, *args, **kwargs):
-       Page.__init__(self, *args, **kwargs)
-       label = tk.Label(self, text="This is the high level overview page.")
-       label.pack(side="top", fill="both", expand=True)
+    def __init__(self, *args, **kwargs):
+        Page.__init__(self, *args, **kwargs)
+        label = tk.Label(self, text="This is the high level overview page.")
+        label.pack(side="top", fill="both", expand=True)
+
 
 class LightPage(Page):
-   def __init__(self, *args, **kwargs):
-       Page.__init__(self, *args, **kwargs)
-       label = tk.Label(self, text="This is the light management page.")
-       label.pack(side="top", fill="both", expand=True)
+    def __init__(self, *args, **kwargs):
+        Page.__init__(self, *args, **kwargs)
+        label = tk.Label(self, text="This is the light management page.")
+        label.pack(side="top", fill="both", expand=True)
+
 
 class TemperaturePage(Page):
-   def __init__(self, *args, **kwargs):
-       Page.__init__(self, *args, **kwargs)
-       label = tk.Label(self, text="This is the temperature management page.")
-       label.pack(side="top", fill="both", expand=True)
+    def __init__(self, *args, **kwargs):
+        Page.__init__(self, *args, **kwargs)
+        label = tk.Label(self, text="This is the temperature management page.")
+        label.pack(side="top", fill="both", expand=True)
+
 
 class SettingsPage(Page):
-   def __init__(self, *args, **kwargs):
-       Page.__init__(self, *args, **kwargs)
-       label = tk.Label(self, text=f"My IP address = {get_ip()}")
-       label.pack(side="top", fill="both", expand=True)
+    def __init__(self, *args, **kwargs):
+        Page.__init__(self, *args, **kwargs)
+        label = tk.Label(self, text=f"My IP address = {get_ip()}")
+        label.pack(side="top", fill="both", expand=True)
+
 
 class MainView(tk.Frame):
     def __init__(self, *args, **kwargs):
@@ -91,6 +100,7 @@ class MainView(tk.Frame):
         b4.pack(side="left")
 
         p1.show()
+
 
 if __name__ == "__main__":
     root = tk.Tk()
