@@ -31,18 +31,16 @@ class AquariumLightsSettingsPage(Subwindow):
         tab_parent = ttk.Notebook(self.master)
         tab1 = ttk.Frame(tab_parent)
         tab2 = ttk.Frame(tab_parent)
-        tab_parent.add(tab1,text="Schedule")
+        tab_parent.add(tab1, text="Schedule")
         tab_parent.add(tab2, text="Lights Enabled")
         tab_parent.pack()
-        tab_parent.grid(row=0, column=0, padx=(10, 10), pady=(10, 10),rowspan=2)
-        time_setting_frame = tk.LabelFrame(
-            tab1, text="Light Schedule", font=fontTuple
-        )
+        tab_parent.grid(row=0, column=0, padx=(10, 10), pady=(10, 10), rowspan=2)
+        time_setting_frame = tk.LabelFrame(tab1, text="Light Schedule", font=fontTuple)
         eclipse_setting_frame = tk.LabelFrame(
             tab1, text="Blue Cycle Settings", font=fontTuple
         )
         enabled_setting_frame = tk.Frame(
-            tab2, 
+            tab2,
         )
         tk.Label(
             self.master,
