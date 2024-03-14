@@ -621,64 +621,6 @@ class DispensingCapturePage(Subwindow):
         Subwindow.destroy_all()
 
 
-class ConfigurePhLimitsPage(Subwindow):
-    def __init__(self):
-        super().__init__("Configure pH Limits")
-
-        msg = "If the measured pH goes outside of these bounds, a warning will appear on the lock/home screens."
-
-        frame = tk.Frame(self.master)
-        frame.place(x=10, y=80)
-        tk.Label(
-            frame,
-            text=wrap_text(msg, 35),
-            font=("Arial", 18),
-            justify=tk.LEFT,
-        ).grid(row=1, column=2, rowspan=3, padx=30, pady=20)
-        self.upper_limit = tk.IntVar()
-        self.upper_limit.set(10)  # TODO: Pull from real value
-        tk.Label(frame, text="Upper Limit:", font=("Arial", 18)).grid(row=2, column=0)
-        tk.Spinbox(
-            frame,
-            from_=0,
-            to=14,
-            format="%0.1f",
-            increment=0.1,
-            wrap=True,
-            textvariable=self.upper_limit,
-            width=4,
-            font=("Courier", 30),
-            justify=tk.CENTER,
-        ).grid(row=2, column=1)
-
-        self.lower_limit = tk.IntVar()
-        self.lower_limit.set(6)  # TODO: Pull from real value
-        tk.Label(frame, text="Lower Limit:", font=("Arial", 18)).grid(row=3, column=0)
-        tk.Spinbox(
-            frame,
-            from_=0,
-            to=14,
-            format="%0.1f",
-            increment=0.1,
-            wrap=True,
-            textvariable=self.lower_limit,
-            width=4,
-            font=("Courier", 30),
-            justify=tk.CENTER,
-        ).grid(row=3, column=1)
-
-        btn = tk.Button(
-            frame,
-            text="Save",
-            font=fontTuple,
-            width=12,
-            height=4,
-            bg="#ff5733",
-            command=self.exit,
-        )
-        btn.grid(row=4, column=1, padx=10, pady=10)
-
-
 class CalibratePhStartPage(Subwindow):
     def __init__(self):
         super().__init__("pH Sensor Info")
@@ -768,21 +710,21 @@ class PhSensorInfoPage(Subwindow):
 
         tk.Label(
             calframe,
-            text=wrap_text(msg, 55),
+            text=wrap_text(msg, 53),
             font=("Arial", 15),
             justify=tk.LEFT,
         ).grid(row=1, column=0)
 
         btn = tk.Button(
             calframe,
-            text="Calibrate Sensor",
+            text="Calibrate\nSensor",
             font=fontTuple,
-            width=15,
+            width=10,
             height=4,
             bg="#00ff00",
             command=lambda: CalibratePhStartPage(),
         )
-        btn.grid(row=1, column=1, padx=20, rowspan=4)
+        btn.grid(row=1, column=1, padx=5, rowspan=4)
 
         pch = PhCalibrationHelper()
 
@@ -805,7 +747,7 @@ class PhSensorInfoPage(Subwindow):
             font=("Arial", 15),
             justify=tk.LEFT,
         ).grid(row=3, column=0, sticky="w")
-        text_area = st.ScrolledText(calframe, width=30, height=4, font=("Arial", 15))
+        text_area = st.ScrolledText(calframe, width=30, height=3, font=("Arial", 14))
 
         text_area.grid(row=4, column=0, pady=(0, 10), padx=0)
         # Inserting list of previous calibrations
@@ -822,7 +764,7 @@ class PhSensorInfoPage(Subwindow):
             text="Sensor Warnings",
             font=fontTuple,
         )
-        limitframe.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
+        limitframe.grid(row=2, column=0, sticky="ew", padx=10, pady=5)
 
         msg = "If the measured pH goes outside of these bounds, a warning will appear on the lock/home screens."
         pwh = PhWarningHelper()
@@ -831,10 +773,10 @@ class PhSensorInfoPage(Subwindow):
             text=wrap_text(msg, 25),
             font=("Arial", 15),
             justify=tk.LEFT,
-        ).grid(row=0, column=0, rowspan=2, padx=10, pady=10)
+        ).grid(row=0, column=0, rowspan=2, padx=10, pady=5)
         self.upper_bound = tk.DoubleVar()
         self.upper_bound.set(pwh.get_upper_bound())
-        tk.Label(limitframe, text="Upper Limit:", font=("Arial", 18)).grid(
+        tk.Label(limitframe, text="Upper Limit:", font=("Arial", 15)).grid(
             row=0, column=1
         )
         tk.Spinbox(
@@ -852,7 +794,7 @@ class PhSensorInfoPage(Subwindow):
 
         self.lower_bound = tk.DoubleVar()
         self.lower_bound.set(pwh.get_lower_bound())
-        tk.Label(limitframe, text="Lower Limit:", font=("Arial", 18)).grid(
+        tk.Label(limitframe, text="Lower Limit:", font=("Arial", 15)).grid(
             row=1, column=1
         )
         tk.Spinbox(
@@ -872,9 +814,9 @@ class PhSensorInfoPage(Subwindow):
             limitframe,
             text="Save",
             font=fontTuple,
-            width=12,
-            height=4,
-            bg="#ff5733",
+            width=8,
+            height=3,
+            bg="#fa8128",
             command=self.save,
         )
         btn.grid(row=0, column=3, padx=10, pady=10, rowspan=2)
