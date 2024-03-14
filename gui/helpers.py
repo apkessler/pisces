@@ -329,7 +329,7 @@ def is_wifi_on() -> bool:
                     interface["soft"] == "unblocked"
                     and interface["hard"] == "unblocked"
                 )
-    except TypeError:
+    except (KeyError,TypeError):
         logger.error("Could not get wlan radio status")
     return False
 
