@@ -17,7 +17,6 @@ install:
 
 
 	echo "Install"
-	#python3 -m pip install -r requirements.txt
 
 	cp services/* ~/.config/systemd/user
 	systemctl --user daemon-reload
