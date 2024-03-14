@@ -1,6 +1,7 @@
 """Timer Settings GUI Elements    """
 
 import tkinter as tk
+from tkinter import ttk
 from loguru import logger
 from helpers import (
     SCHEDULE_CONFIG_FILE,
@@ -27,28 +28,34 @@ class AquariumLightsSettingsPage(Subwindow):
         self.tank_light_schedule = self.config_data["light_schedules"]["tank_lights"]
 
         big_font = ("Arial", 20)
-
+        tab_parent = ttk.Notebook(self.master)
+        tab1 = ttk.Frame(tab_parent)
+        tab2 = ttk.Frame(tab_parent)
+        tab_parent.add(tab1,text="Schedule")
+        tab_parent.add(tab2, text="Lights Enabled")
+        tab_parent.pack()
+        tab_parent.grid(row=0, column=0, padx=(10, 10), pady=(10, 10),rowspan=2)
         time_setting_frame = tk.LabelFrame(
-            self.master, text="Light Schedule", font=fontTuple
+            tab1, text="Light Schedule", font=fontTuple
         )
         eclipse_setting_frame = tk.LabelFrame(
-            self.master, text="Blue Cycle Settings", font=fontTuple
+            tab1, text="Blue Cycle Settings", font=fontTuple
         )
-        enabled_setting_frame = tk.LabelFrame(
-            self.master, text="Lights Enabled", font=fontTuple
+        enabled_setting_frame = tk.Frame(
+            tab2, 
         )
         tk.Label(
             self.master,
             text=wrap_text(
                 "Some changes may not take effect until the next GUI relaunch.",
-                width=25,
+                width=40,
             ),
             font=("Arial", 16),
-        ).grid(row=3, column=1)
+        ).grid(row=3, column=0, columnspan=2)
 
         time_setting_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
         eclipse_setting_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
-        enabled_setting_frame.grid(row=3, column=0, sticky="ew", padx=10, pady=10)
+        enabled_setting_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
 
         ## Light Schedule Frame
         tk.Label(time_setting_frame, text="On Time:", font=big_font).grid(
@@ -192,29 +199,29 @@ class AquariumLightsSettingsPage(Subwindow):
                 width=25,
             ),
             font=("Arial", 13),
-        ).grid(row=1, rowspan=2, column=3, padx=10, pady=10)
+        ).grid(row=3, columnspan=3, column=0, padx=10, pady=10)
 
         ## Buttons
         btn = tk.Button(
             self.master,
             text="Cancel",
             font=fontTuple,
-            width=12,
+            width=11,
             height=4,
             bg="#ff5733",
             command=self.exit,
         )
-        btn.grid(row=1, column=1, padx=10, pady=10)
+        btn.grid(row=0, column=1, padx=2, pady=10)
         btn = tk.Button(
             self.master,
             text="Save",
             font=fontTuple,
-            width=12,
+            width=11,
             height=4,
             bg="#00ff00",
             command=self.save_settings,
         )
-        btn.grid(row=2, column=1, padx=10, pady=10)
+        btn.grid(row=1, column=1, padx=2, pady=10)
 
     @activity_kick
     def widget_update(self, *args, **kwargs):
