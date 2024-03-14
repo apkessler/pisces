@@ -1,6 +1,5 @@
 grpcio==1.44.0 --no-binary=grpcio
 grpcio-tools==1.44.0 
-tk
 pyyaml
 loguru
 #numpy #Install via apt 
