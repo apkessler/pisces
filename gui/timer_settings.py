@@ -28,32 +28,39 @@ class AquariumLightsSettingsPage(Subwindow):
         self.tank_light_schedule = self.config_data["light_schedules"]["tank_lights"]
 
         big_font = ("Arial", 20)
-        tab_parent = ttk.Notebook(self.master)
-        tab1 = ttk.Frame(tab_parent)
-        tab2 = ttk.Frame(tab_parent)
-        tab_parent.add(tab1, text="Schedule")
-        tab_parent.add(tab2, text="Lights Enabled")
-        tab_parent.pack()
-        tab_parent.grid(row=0, column=0, padx=(10, 10), pady=(10, 10), rowspan=2)
+        # tab_parent = ttk.Notebook(self.master)
+        # tab1 = ttk.Frame(tab_parent)
+        # tab2 = ttk.Frame(tab_parent)
+        # tab_parent.add(tab1, text="Schedule")
+        # tab_parent.add(tab2, text="Lights Enabled")
+        # tab_parent.pack()
+        # tab_parent.grid(row=0, column=0, padx=(10, 10), pady=(10, 10), rowspan=2)
+        #
+        tab1 = self.master
+        tab2 = self.master
         time_setting_frame = tk.LabelFrame(tab1, text="Light Schedule", font=fontTuple)
         eclipse_setting_frame = tk.LabelFrame(
             tab1, text="Blue Cycle Settings", font=fontTuple
         )
-        enabled_setting_frame = tk.Frame(
-            tab2,
+        enabled_setting_frame = tk.LabelFrame(
+            tab2, text="Lights Enabled", font=fontTuple
         )
+        button_frame = tk.Frame(self.master)
         tk.Label(
-            self.master,
+            button_frame,
             text=wrap_text(
                 "Some changes may not take effect until the next GUI relaunch.",
-                width=40,
+                width=22,
             ),
-            font=("Arial", 16),
-        ).grid(row=3, column=0, columnspan=2)
+            font=("Arial", 14),
+        ).grid(row=0, column=2, padx=10, pady=10)
 
-        time_setting_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
+        button_frame.grid(row=0, column=0, columnspan=2)
+        time_setting_frame.grid(
+            row=1, column=0, sticky="ew", padx=10, pady=10, columnspan=2
+        )
         eclipse_setting_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
-        enabled_setting_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
+        enabled_setting_frame.grid(row=2, column=1, sticky="ew", padx=10, pady=10)
 
         ## Light Schedule Frame
         tk.Label(time_setting_frame, text="On Time:", font=big_font).grid(
@@ -194,32 +201,32 @@ class AquariumLightsSettingsPage(Subwindow):
             enabled_setting_frame,
             text=wrap_text(
                 "You can enable or disable specific colors on each light. If it is unchecked here, it will not turn on as part of the schedule.",
-                width=25,
+                width=35,
             ),
-            font=("Arial", 13),
-        ).grid(row=3, columnspan=3, column=0, padx=10, pady=10)
+            font=("Arial", 14),
+        ).grid(row=3, columnspan=3, column=0, padx=5, pady=5)
 
         ## Buttons
         btn = tk.Button(
-            self.master,
+            button_frame,
             text="Cancel",
             font=fontTuple,
-            width=11,
-            height=4,
+            width=8,
+            height=3,
             bg="#ff5733",
             command=self.exit,
         )
-        btn.grid(row=0, column=1, padx=2, pady=10)
+        btn.grid(row=0, column=0, padx=2, pady=10)
         btn = tk.Button(
-            self.master,
+            button_frame,
             text="Save",
             font=fontTuple,
-            width=11,
-            height=4,
+            width=8,
+            height=3,
             bg="#00ff00",
             command=self.save_settings,
         )
-        btn.grid(row=1, column=1, padx=2, pady=10)
+        btn.grid(row=0, column=1, padx=2, pady=10)
 
     @activity_kick
     def widget_update(self, *args, **kwargs):
