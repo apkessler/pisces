@@ -34,6 +34,9 @@ jobs:
         pip install ruff
         ruff --output-format=github .
       continue-on-error: true
+    - name: set pythonpath
+      run: |
+        echo "PYTHONPATH=/home/runner/work/pisces/shared/:/home/runner/work/pisces/gui/" >> $GITHUB_ENV
     - name: Test with pytest
       run: |
         PYTHONPATH=./shared:./gui pytest
