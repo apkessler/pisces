@@ -36,7 +36,7 @@ jobs:
       continue-on-error: true
     - name: set pythonpath
       run: |
-        echo "PYTHONPATH=/home/runner/work/pisces/shared/:/home/runner/work/pisces/gui/" >> $GITHUB_ENV
+        echo "PYTHONPATH=/home/runner/work/pisces/pisces/shared/:/home/runner/work/pisces/pisces/gui/" >> $GITHUB_ENV
     - name: Test with pytest
       run: |
         printf '%s\n' "$PYTHONPATH"
