@@ -39,4 +39,4 @@ jobs:
         echo "PYTHONPATH=/home/runner/work/pisces/shared/:/home/runner/work/pisces/gui/" >> $GITHUB_ENV
     - name: Test with pytest
       run: |
-        PYTHONPATH=./shared:./gui pytest
+        pytest
