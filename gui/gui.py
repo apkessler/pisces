@@ -321,7 +321,7 @@ class MainWindow(Window):
         if lock_screen_msg == PhMessages.MSG_RECALIBRATION_REQUIRED:
             self.ph_value_for_lock_screen.set("")  # Don't show a pH value
 
-        self.lock_screen_ph_text.set(wrap_text(lock_screen_msg, width=25))
+        self.lock_screen_ph_text.set(wrap_text(lock_screen_msg, width=20))
 
     def quit(self):
         self.root.quit()
@@ -483,7 +483,7 @@ class PeriPumpSettingsPage(Subwindow):
             self.master,
             text="Cancel",
             font=fontTuple,
-            width=12,
+            width=10,
             height=4,
             bg="#ff5733",
             command=self.exit,
@@ -493,7 +493,7 @@ class PeriPumpSettingsPage(Subwindow):
             self.master,
             text="Save",
             font=fontTuple,
-            width=12,
+            width=10,
             height=4,
             bg="#00ff00",
             command=self.save_settings,
@@ -637,7 +637,7 @@ class CalibratePhStartPage(Subwindow):
         )
 
         frame = tk.Frame(self.master)
-        frame.place(x=30, y=80)
+        frame.place(x=10, y=80)
 
         tk.Label(
             frame,
@@ -838,11 +838,11 @@ class CalibratePhDonePage(Subwindow):
     def __init__(self):
         super().__init__("pH Sensor Calibration")
 
-        msg = "pH Sensor calibration complete! Woohoo!\nIt may take a minute for any warning messages to clear."
+        msg = "pH Sensor calibration complete! Woohoo! It may take a minute for any warning messages to clear."
 
-        tk.Label(self.master, text=msg, font=("Arial", 18), justify=tk.LEFT).place(
-            x=50, y=100
-        )
+        tk.Label(
+            self.master, text=wrap_text(msg, 40), font=("Arial", 18), justify=tk.LEFT
+        ).place(x=50, y=100)
 
         btn = tk.Button(
             self.master,
