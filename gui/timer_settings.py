@@ -27,14 +27,14 @@ class AquariumLightsSettingsPage(Subwindow):
         self.tank_light_schedule = self.config_data["light_schedules"]["tank_lights"]
 
         big_font = ("Arial", 20)
-        tab1 = self.master
-        tab2 = self.master
-        time_setting_frame = tk.LabelFrame(tab1, text="Light Schedule", font=fontTuple)
+        time_setting_frame = tk.LabelFrame(
+            self.master, text="Light Schedule", font=fontTuple
+        )
         eclipse_setting_frame = tk.LabelFrame(
-            tab1, text="Blue Cycle Settings", font=fontTuple
+            self.master, text="Blue Cycle Settings", font=fontTuple
         )
         enabled_setting_frame = tk.LabelFrame(
-            tab2, text="Lights Enabled", font=fontTuple
+            self.master, text="Lights Enabled", font=fontTuple
         )
         button_frame = tk.Frame(self.master)
         tk.Label(
