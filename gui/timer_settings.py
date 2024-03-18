@@ -180,6 +180,7 @@ class AquariumLightsSettingsPage(Subwindow):
                     indicatoron=False,
                     onvalue=1,
                     offvalue=0,
+                    command=self.widget_update,
                 ).grid(row=l_id, column=1 if c_id == "white_enabled" else 2)
 
                 c_var.set(
