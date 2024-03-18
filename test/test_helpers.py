@@ -56,8 +56,10 @@ def test_get_ph_warning_message():
         pass
 
     # init the obj
-    _ = PhWarningHelper()
+    pwh = PhWarningHelper()
     assert os.path.exists(PhWarningHelper.PHWARNINGS_CONFIG_FILE)
+    default_upper = pwh.get_upper_bound()
+    default_lower = pwh.get_lower_bound()
 
     write_dict(PhWarningHelper.PHWARNINGS_CONFIG_FILE, {})
 
@@ -75,6 +77,11 @@ def test_get_ph_warning_message():
 
     with pytest.raises(ValueError):
         PhWarningHelper().save_new_settings(10, 7)
+
+    pwh.save_new_settings(default_lower - 1, default_upper + 1)
+    pwh.restore_defaults()
+    assert pwh.get_lower_bound() == default_lower
+    assert pwh.get_upper_bound() == default_upper
 
     # everything ok - cal same day
     PhWarningHelper().save_new_settings(6, 8)

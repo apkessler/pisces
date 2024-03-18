@@ -213,6 +213,15 @@ class PhWarningHelper:
             f"Wrote new pH warning limits to file ({lower_bound},{upper_bound})"
         )
 
+    def restore_defaults(self):
+        logger.info("Restoring default PhWarnings")
+        shutil.copyfile(
+            self.PHWARNINGS_CONFIG_DEFAULT_FILE, self.PHWARNINGS_CONFIG_FILE
+        )
+
+        with open(self.PHWARNINGS_CONFIG_FILE, "r") as configfile:
+            self.jData = json.load(configfile)
+
 
 def timeToHhmm(time: datetime.time) -> int:
     """Convert a datetime._time object to a simple time integer in form hhmm
