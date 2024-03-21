@@ -19,6 +19,7 @@ from helpers import (
     get_ip,
     is_wifi_on,
     set_wifi_state,
+    PhWarningHelper,
 )
 from windows import (
     Subwindow,
@@ -67,7 +68,7 @@ class SystemSettingsPage(Subwindow):
         """Copy the default config file on top of existing"""
         logger.info("Restoring default schedule")
         shutil.copyfile(SCHEDULE_CONFIG_DEFAULT_FILE, SCHEDULE_CONFIG_FILE)
-
+        PhWarningHelper().restore_defaults()
         self.exit()
         RelaunchPromptPage(allow_defer=False)
 

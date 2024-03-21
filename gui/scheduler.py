@@ -164,7 +164,7 @@ class LightTimer:
         newState : TimerState
             Timer state to change to
         """
-        logger.debug(f"{self.name=}")
+        logger.debug(f"{self.name} Scheduler: {self.presentState} --> {new_state}")
         if new_state == TimerState.PINIT:
             pass
         elif new_state == TimerState.DISABLED:
@@ -197,7 +197,7 @@ class LightTimer:
                         "blue" if color_masks["blue_enabled"] else "off",
                     )
                 else:
-                    logger.error(f"Unexpected value: {self.light_mode_at_night=}")
+                    logger.error(f"Unexpected value: {self.light_mode_at_night}")
                     self.hwCntrl.setLightColor(
                         lightKeys[light_name], "off"
                     )  # Just turn it off in this case
@@ -218,7 +218,6 @@ class LightTimer:
             logger.error(f"{self.name}: Unhandled state in changeStateTo():{new_state}")
             # Raise exception?
 
-        logger.debug(f"{self.name} Scheduler: {self.presentState} --> {new_state}")
         self.presentState = new_state
 
     @staticmethod
@@ -256,7 +255,7 @@ class LightTimer:
         dt_now : dt.datetime
             [description]
         """
-        logger.info(f"Resuming schedule on {self.name}")
+        logger.info(f"Resuming schedule on {self.name} @ {dt_now}")
         self.changeStateTo(
             self.timeOfDayToState(dt_now.time(), self.sunrise_time, self.sunset_time),
             dt_now,
@@ -363,7 +362,7 @@ class Scheduler(object):
             if not found:
                 logger.error(f"No Timer named {name} found!")
 
-    def resume_timers(self, timer_list: list):
+    def resume_timers(self, timer_list: list, now: dt.datetime):
         """Resume matching timers by name
 
         Parameters
@@ -371,7 +370,6 @@ class Scheduler(object):
         timer_list : list
             List of names of timers to enable
         """
-        now = dt.datetime.now()
         for schSM in self.schds:
             if schSM.name in timer_list:
                 schSM.resume_schedule(now)

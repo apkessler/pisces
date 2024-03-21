@@ -1,7 +1,8 @@
 import pytest
-from scheduler import hhmmToTime, timeToHhmm, Scheduler
+from scheduler import hhmmToTime, timeToHhmm, Scheduler, TimerState, LightTimer
 import datetime as dt
 from loguru import logger
+from typing import List
 
 
 class MockHardwareControlClient:
@@ -44,7 +45,7 @@ class MockHardwareControlClient:
         """
         self.relays[chn - 1] = isEngaged
 
-    def getRelayStates(self) -> list[bool]:
+    def getRelayStates(self) -> List[bool]:
         """
         Get all relay states as list.
         Unpack from GRPC object and return as native Python list.
@@ -64,10 +65,10 @@ class MockHardwareControlClient:
             Command scope, by default ""
         """
         assert color_name in ["off", "white", "blue"]
-        logger.debug(f"Set {lightId=} to {color_name=}")
+        logger.debug(f"Set {lightId} to {color_name}")
         self.light_colors[lightId - 1] = color_name
 
-    def getLightColors(self) -> list[str]:
+    def getLightColors(self) -> List[str]:
         """Get all light colors and return as list of strings.
             Unpack from GRPC object and return as native Python list.
 
@@ -424,8 +425,9 @@ def test_scheduler_eclipse_pause_resume(
             "off",
         ]
         now = now + dt.timedelta(seconds=30)
+    logger.debug(f"At checkpoint: {next_checkpoint}")
 
-    sch.resume_timers(["tank_lights", "outlet1"])
+    sch.resume_timers(["tank_lights", "outlet1"], now)
 
     while now <= dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY, 8, 30):
         sch.update(now)
@@ -457,7 +459,7 @@ def test_scheduler_eclipse_pause_resume(
         ]
         now = now + dt.timedelta(seconds=30)
 
-    sch.resume_timers(["tank_lights", "outlet1"])
+    sch.resume_timers(["tank_lights", "outlet1"], now)
 
     sunset_time = dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY, 17, 30)
     while now < sunset_time:
@@ -503,7 +505,7 @@ def test_scheduler_eclipse_pause_resume(
         ]
         now = now + dt.timedelta(seconds=30)
 
-    sch.resume_timers(["tank_lights", "outlet1"])
+    sch.resume_timers(["tank_lights", "outlet1"], now)
 
     while now <= dt.datetime(TEST_YEAR, TEST_MONTH, TEST_DAY + 1):
         sch.update(now)
@@ -513,3 +515,56 @@ def test_scheduler_eclipse_pause_resume(
             "off",
         ]
         now = now + dt.timedelta(seconds=30)
+
+
+def test_time_of_day_to_state():
+    assert (
+        LightTimer.timeOfDayToState(dt.time(0, 0), dt.time(8, 0), dt.time(15, 0))
+        == TimerState.NIGHT
+    )
+    assert (
+        LightTimer.timeOfDayToState(dt.time(7, 59), dt.time(8, 0), dt.time(15, 0))
+        == TimerState.NIGHT
+    )
+
+    assert (
+        LightTimer.timeOfDayToState(dt.time(8, 0), dt.time(8, 0), dt.time(15, 0))
+        == TimerState.DAY
+    )
+    assert (
+        LightTimer.timeOfDayToState(dt.time(8, 0, 1), dt.time(8, 0), dt.time(15, 0))
+        == TimerState.DAY
+    )
+    assert (
+        LightTimer.timeOfDayToState(dt.time(11, 0, 1), dt.time(8, 0), dt.time(15, 0))
+        == TimerState.DAY
+    )
+    assert (
+        LightTimer.timeOfDayToState(dt.time(14, 0, 0), dt.time(8, 0), dt.time(15, 0))
+        == TimerState.DAY
+    )
+    assert (
+        LightTimer.timeOfDayToState(dt.time(14, 59, 59), dt.time(8, 0), dt.time(15, 0))
+        == TimerState.DAY
+    )
+
+    assert (
+        LightTimer.timeOfDayToState(dt.time(15, 00, 00), dt.time(8, 0), dt.time(15, 0))
+        == TimerState.NIGHT
+    )
+    assert (
+        LightTimer.timeOfDayToState(dt.time(15, 00, 1), dt.time(8, 0), dt.time(15, 0))
+        == TimerState.NIGHT
+    )
+    assert (
+        LightTimer.timeOfDayToState(dt.time(15, 1, 0), dt.time(8, 0), dt.time(15, 0))
+        == TimerState.NIGHT
+    )
+    assert (
+        LightTimer.timeOfDayToState(dt.time(18, 0, 0), dt.time(8, 0), dt.time(15, 0))
+        == TimerState.NIGHT
+    )
+    assert (
+        LightTimer.timeOfDayToState(dt.time(23, 59, 59), dt.time(8, 0), dt.time(15, 0))
+        == TimerState.NIGHT
+    )

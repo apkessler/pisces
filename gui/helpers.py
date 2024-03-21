@@ -4,7 +4,7 @@ import subprocess
 import tkinter as tk
 import json
 import os
-from typing import Tuple
+from typing import Tuple, List
 import calendar
 import shlex
 from loguru import logger
@@ -92,7 +92,7 @@ class PhCalibrationHelper:
 
         return max(ts_list)
 
-    def get_ph_calibrations(self) -> list[datetime.datetime]:
+    def get_ph_calibrations(self) -> List[datetime.datetime]:
         """Get the history of ph calibrations"""
 
         try:
@@ -128,7 +128,7 @@ class PhCalibrationHelper:
         with open(self.PH_CALIBRATION_PATH, "w") as fp:
             json.dump(caldata, fp)
 
-        logger.info(f"Saved a calibration {ts=}")
+        logger.info(f"Saved a calibration {ts}")
 
 
 class PhMessages:
@@ -166,7 +166,7 @@ class PhWarningHelper:
         ph_now: float,
         last_cal_date: Optional[datetime.datetime],
         time_now=datetime.datetime,
-    ) -> tuple[str, str]:
+    ) -> Tuple[str, str]:
         if last_cal_date is None:
             return (
                 PhMessages.MSG_RECALIBRATION_REQUIRED,
@@ -212,6 +212,15 @@ class PhWarningHelper:
         logger.info(
             f"Wrote new pH warning limits to file ({lower_bound},{upper_bound})"
         )
+
+    def restore_defaults(self):
+        logger.info("Restoring default PhWarnings")
+        shutil.copyfile(
+            self.PHWARNINGS_CONFIG_DEFAULT_FILE, self.PHWARNINGS_CONFIG_FILE
+        )
+
+        with open(self.PHWARNINGS_CONFIG_FILE, "r") as configfile:
+            self.jData = json.load(configfile)
 
 
 def timeToHhmm(time: datetime.time) -> int:
@@ -329,7 +338,7 @@ def is_wifi_on() -> bool:
                     interface["soft"] == "unblocked"
                     and interface["hard"] == "unblocked"
                 )
-    except TypeError:
+    except (KeyError, TypeError):
         logger.error("Could not get wlan radio status")
     return False
 
